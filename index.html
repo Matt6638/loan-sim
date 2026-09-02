@@ -195,8 +195,13 @@
   .drawer-body .dpanel.on{display:block;}
   .drawer-body .dpanel + .dpanel{border-top:1px solid var(--border-soft);margin-top:6px;}
 
-  /* 顧客データの保存/読込・全リセット ツールバー */
-  .drawer-tools{flex:0 0 auto;padding:10px 14px 12px;border-bottom:1px solid var(--border-soft);background:#faf7f0;display:flex;flex-direction:column;gap:8px;}
+  /* 顧客データの保存/読込・全リセット（折りたたみ・デフォルト閉で入力欄を広く） */
+  .drawer-tools{flex:0 0 auto;border-bottom:1px solid var(--border-soft);background:#faf7f0;}
+  .dt-summary{list-style:none;cursor:pointer;padding:9px 14px;font-size:0.78rem;font-weight:600;color:var(--gold-soft);user-select:none;}
+  .dt-summary::-webkit-details-marker{display:none;}
+  .dt-summary::before{content:'▸';margin-right:7px;font-size:0.7rem;}
+  .drawer-tools[open] .dt-summary::before{content:'▾';}
+  .dt-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:8px;}
   .dt-row{display:flex;gap:8px;align-items:center;}
   .drawer-tools #custName, .drawer-tools #custList{flex:1 1 auto;min-width:0;font-family:var(--gothic);font-size:0.86rem;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
   .dt-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.82rem;font-weight:600;color:var(--text-dim);background:#f0ece0;border:1px solid var(--border);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
@@ -1516,10 +1521,10 @@
     const modeEl = document.querySelector('input[name=bonusMode]:checked');
     const mode = modeEl ? modeEl.value : 'ratio';
     if(mode === 'amount'){
-      const amt = (parseFloat($('bonusAmount').value) || 0) * 10000;
+      const amt = (iv('bonusAmount') || 0) * 10000;
       return Math.min(principal, Math.max(0, amt));
     }
-    const ratio = Math.min(50, Math.max(0, parseFloat($('bonusRatio').value) || 0));
+    const ratio = Math.min(50, Math.max(0, iv('bonusRatio') || 0));
     return principal * (ratio/100);
   }
 
@@ -1564,6 +1569,42 @@
     return schedule;
   }
 
+  // ===== 数値入力ヘルパー（FP流：全角対応・カンマ整形・値/プレースホルダ読取） =====
+  function zen2han(s){ return String(s).replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[，、]/g,',').replace(/[．]/g,'.').replace(/[－ー−―‐–—]/g,'-'); }
+  // 値が空ならプレースホルダ（＝既定値）を使い、カンマ/全角を除いて数値化。全ての数値読取はこれを通す
+  function iv(id){ var el=document.getElementById(id); if(!el) return NaN; var raw=el.value; if(raw==null||String(raw).trim()==='') raw=el.placeholder||''; raw=zen2han(String(raw)).replace(/,/g,'').replace(/[^0-9.\-]/g,''); return raw===''?NaN:parseFloat(raw); }
+  // 整数部にカンマを付与（小数は保持）。キャレット位置も可能な範囲で維持
+  function fmtNum(el){
+    var half=zen2han(el.value);
+    var ssel=(el.selectionStart==null)?half.length:el.selectionStart;
+    var caretDigits=half.slice(0,ssel).replace(/[^\d]/g,'').length;
+    var neg=/^\s*-/.test(half);
+    var cleaned=half.replace(/[^\d.]/g,''); var parts=cleaned.split('.');
+    var intp=parts[0].replace(/^0+(?=\d)/,'');
+    var dec=parts.length>1 ? '.'+parts.slice(1).join('').replace(/[^\d]/g,'') : '';
+    var out = intp==='' ? (dec?'0'+dec:'') : (Number(intp).toLocaleString('en-US')+dec);
+    if(neg&&out!=='') out='-'+out;
+    el.value=out;
+    var pos=0,count=0; if(caretDigits>0){ for(var i=0;i<out.length;i++){ var ch=out.charCodeAt(i); if(ch>=48&&ch<=57)count++; if(count>=caretDigits){pos=i+1;break;} } if(count<caretDigits)pos=out.length; }
+    try{ el.setSelectionRange(pos,pos); }catch(e){}
+  }
+  // 金額欄：全角→半角＋カンマ整形／フォーカスで一旦クリア（前値はプレースホルダへ）／空欄で離れたら復元
+  function attachAmount(el){
+    if(!el||el.dataset.amt) return; el.dataset.amt='1'; var composing=false;
+    el.addEventListener('compositionstart',function(){composing=true;});
+    el.addEventListener('compositionend',function(){composing=false;el.classList.remove('pristine');fmtNum(el);});
+    el.addEventListener('input',function(e){ if(composing||(e&&e.isComposing))return; el.classList.remove('pristine'); fmtNum(el); });
+    el.addEventListener('focus',function(){ this.dataset.prev=this.value; if(this.value)this.placeholder=this.value; this.value=''; });
+    el.addEventListener('blur',function(){ if(this.value===''&&this.dataset.prev){ this.value=this.dataset.prev; } else if(String(this.value).trim()!==''){ fmtNum(this); } });
+  }
+  // 数値欄（％・年など）：フォーカスで全選択→打ち替え／空欄で離れたら復元
+  function attachClear(el){
+    if(!el||el.dataset.clr) return; el.dataset.clr='1';
+    el.addEventListener('focus',function(){ var self=this; self.dataset.prev=self.value; setTimeout(function(){ try{self.select();}catch(x){} },0); });
+    el.addEventListener('input',function(){ el.classList.remove('pristine'); });
+    el.addEventListener('blur',function(){ if(this.value===''&&this.dataset.prev)this.value=this.dataset.prev; });
+  }
+
   // 元利内訳ステートメントを連続エリアチャート（SVG）で描画
   // 元金割合＝下(ティール)、利息割合＝上(ローズ)、残高割合＝点線。preserveAspectRatio=none で高さ固定・横可変
   function statementSVG(yearly, loanPrincipal){
@@ -1597,9 +1638,9 @@
   }
 
   function calculate(){
-    const principalManYen = parseFloat($('principal').value) || 0;
-    const rate = parseFloat($('rate').value) || 0;
-    const years = parseInt($('years').value) || 0;
+    const principalManYen = iv('principal') || 0;
+    const rate = iv('rate') || 0;
+    const years = iv('years') || 0;
     const method = document.querySelector('input[name=method]:checked').value;
 
     const principal = principalManYen * 10000;
@@ -1691,22 +1732,22 @@
   }
 
   function diagnose(){
-    const incomeMan = parseFloat($('income').value) || 0;
-    const otherDebtMan = parseFloat($('otherDebt').value) || 0;
+    const incomeMan = iv('income') || 0;
+    const otherDebtMan = iv('otherDebt') || 0;
     const useStress = $('stressRate').checked;
 
     // 審査金利トグル：オンなら金利入力を審査金利として扱う（未変更なら目安値を充てる）
     if(useStress){
       $('diagRate').value = STRESS_RATE;
     }
-    const rate = parseFloat($('diagRate').value) || 0;
-    const years = parseInt($('diagYears').value) || 0;
+    const rate = iv('diagRate') || 0;
+    const years = iv('diagYears') || 0;
 
     // 返済負担率：自動設定チェック時は年収から決定して入力欄に反映
     if($('autoRatio').checked){
       $('burdenRatio').value = flat35Ratio(incomeMan);
     }
-    const ratioPct = Math.min(60, Math.max(1, parseFloat($('burdenRatio').value) || 0));
+    const ratioPct = Math.min(60, Math.max(1, iv('burdenRatio') || 0));
 
     const annualCap = Math.max(0, incomeMan*10000*(ratioPct/100) - otherDebtMan*10000);
     const monthlyCap = annualCap / 12;
@@ -1739,8 +1780,8 @@
   // ============ 2-2. 金利上昇に備えた別枠積立 ============
   // 既存「借入条件」を再利用し、指定金利での毎月返済額（初回・ボーナス分を除く月々返済）を返す
   function firstMonthlyPaymentAtRate(ratePct){
-    const principal = (parseFloat($('principal').value) || 0) * 10000;
-    const years = parseInt($('years').value) || 0;
+    const principal = (iv('principal') || 0) * 10000;
+    const years = iv('years') || 0;
     const method = document.querySelector('input[name=method]:checked').value;
     const monthlyPrincipal = principal - bonusPrincipalOf(principal);
     const sched = simulateSubLoan(monthlyPrincipal, ratePct, years, 12, method);
@@ -1748,17 +1789,17 @@
   }
 
   function stressTest(){
-    const baseRate = parseFloat($('rate').value) || 0;
+    const baseRate = iv('rate') || 0;
     const method = document.querySelector('input[name=method]:checked').value;
-    const hasBonus = bonusPrincipalOf((parseFloat($('principal').value)||0)*10000) > 0;
-    const saveYears = parseInt($('saveYears').value) || 0;
+    const hasBonus = bonusPrincipalOf((iv('principal')||0)*10000) > 0;
+    const saveYears = iv('saveYears') || 0;
     const current = firstMonthlyPaymentAtRate(baseRate);
 
     // 試算のベース表示
     $('stressBase').textContent =
-      '借入 ' + (parseFloat($('principal').value)||0).toLocaleString('ja-JP') + '万円' +
+      '借入 ' + (iv('principal')||0).toLocaleString('ja-JP') + '万円' +
       '／金利 ' + baseRate + '％' +
-      '／' + (parseInt($('years').value)||0) + '年' +
+      '／' + (iv('years')||0) + '年' +
       '／' + (method === 'equalPrincipal' ? '元金均等' : '元利均等') +
       (hasBonus ? '（毎月返済分で比較）' : '');
 
@@ -1855,9 +1896,9 @@
   // ============ 2-3. 賃貸（投資用）転用シミュレーション ============
   // 既存「借入条件」から年次スケジュール（元金・利息・返済額・年末残高）を再構築（base module は不変のまま）
   function computeBaseYearly(){
-    const principal = (parseFloat($('principal').value) || 0) * 10000;
-    const rate = parseFloat($('rate').value) || 0;
-    const years = parseInt($('years').value) || 0;
+    const principal = (iv('principal') || 0) * 10000;
+    const rate = iv('rate') || 0;
+    const years = iv('years') || 0;
     const method = document.querySelector('input[name=method]:checked').value;
     const bonusPrincipal = bonusPrincipalOf(principal);
     const monthlyPrincipal = principal - bonusPrincipal;
@@ -1885,14 +1926,14 @@
 
   function convertSim(){
     const {yearly, years} = computeBaseYearly();
-    const cvYear = Math.max(1, parseInt($('cvYear').value) || 1);
-    const rentAnnual = (parseFloat($('rent').value) || 0) * 10000 * 12;
-    const vacancy = Math.min(100, Math.max(0, parseFloat($('vacancy').value) || 0));
-    const mgmtCostAnnual = (parseFloat($('mgmtCost').value) || 0) * 10000 * 12;
-    const mgmtFeePct = Math.max(0, parseFloat($('mgmtFee').value) || 0);
-    const taxRate = parseFloat($('taxRate').value) || 0;
+    const cvYear = Math.max(1, iv('cvYear') || 1);
+    const rentAnnual = (iv('rent') || 0) * 10000 * 12;
+    const vacancy = Math.min(100, Math.max(0, iv('vacancy') || 0));
+    const mgmtCostAnnual = (iv('mgmtCost') || 0) * 10000 * 12;
+    const mgmtFeePct = Math.max(0, iv('mgmtFee') || 0);
+    const taxRate = iv('taxRate') || 0;
     const refinance = $('refinance').checked;
-    const refiRate = parseFloat($('refiRate').value) || 0;
+    const refiRate = iv('refiRate') || 0;
 
     // 転用時点（cvYear 年末）の残債と、転用後最初の1年のローン返済・利息
     const balanceAtConv = yearly[cvYear-1] ? yearly[cvYear-1].balance : 0;
@@ -1960,17 +2001,17 @@
   };
 
   function compareSim(){
-    const rentMonthly = parseFloat($('rentNow').value) || 0; // 円で入力
-    const g = (parseFloat($('rentGrowth').value) || 0) / 100;
-    const liveYears = Math.max(1, parseInt($('liveYears').value) || 1);
-    const propPriceMan = parseFloat($('propPrice').value) || 0;
+    const rentMonthly = iv('rentNow') || 0; // 円で入力
+    const g = (iv('rentGrowth') || 0) / 100;
+    const liveYears = Math.max(1, iv('liveYears') || 1);
+    const propPriceMan = iv('propPrice') || 0;
     const propPrice = propPriceMan * 10000;
-    const residualPct = Math.max(0, parseFloat($('residualPct').value) || 0);
+    const residualPct = Math.max(0, iv('residualPct') || 0);
     // 固定資産税：物件価格からの概算（約0.3%/年）を選んだ場合は自動入力
-    if($('propTaxAuto').checked){ $('propTax').value = (propPriceMan * 0.003).toFixed(1); }
-    const propTaxAnnual = (parseFloat($('propTax').value) || 0) * 10000;
-    const ownMgmtAnnual = (parseFloat($('ownMgmt').value) || 0) * 10000 * 12;
-    const fireInsAnnual = (parseFloat($('fireIns').value) || 0) * 10000;
+    if($('propTaxAuto').checked){ $('propTax').value = (propPriceMan * 0.003).toFixed(1); fmtNum($('propTax')); $('propTax').classList.remove('pristine'); }
+    const propTaxAnnual = (iv('propTax') || 0) * 10000;
+    const ownMgmtAnnual = (iv('ownMgmt') || 0) * 10000 * 12;
+    const fireInsAnnual = (iv('fireIns') || 0) * 10000;
 
     // 賃貸継続：現在家賃を毎年 g で複利成長させ累計（初年度は現在家賃）
     let rentTotal = 0;
@@ -2072,13 +2113,13 @@
 
   // 控除の適用可否と適用限度額・期間を判定
   function creditEligibility(){
-    const year = parseInt($('moveInYear').value) || 2025;
+    const year = iv('moveInYear') || 2025;
     const isNew = document.querySelector('input[name=buildType]:checked').value === 'new';
     const cat = $('envCategory').value;
     const keizoku = $('keizoku').checked;
     const household = $('household').checked;
-    const area = parseFloat($('floorArea').value) || 0;
-    const income = parseFloat($('totalIncome').value) || 0; // 万円
+    const area = iv('floorArea') || 0;
+    const income = iv('totalIncome') || 0; // 万円
 
     // 【確定事項】省エネ基準未達（その他）で経過措置に該当しない → 控除対象外・0円（赤警告）
     if(cat === 'other' && !keizoku){
@@ -2271,19 +2312,22 @@
     drawer.className = 'input-drawer';
     drawer.innerHTML = '<div class="drawer-head"><span class="dh-no">01</span><span class="dh-title" id="drawerTitle">入力</span>' +
       '<button type="button" class="drawer-close" id="drawerClose">完了 ✓</button></div>' +
-      '<div class="drawer-tools">' +
-        '<div class="dt-row">' +
-          '<input type="text" id="custName" placeholder="顧客名で保存（例：山田様）">' +
-          '<button type="button" class="dt-btn dt-save" id="custSave">保存</button>' +
+      '<details class="drawer-tools" id="dtools">' +
+        '<summary class="dt-summary">顧客データの保存・読込 ／ 全リセット</summary>' +
+        '<div class="dt-body">' +
+          '<div class="dt-row">' +
+            '<input type="text" id="custName" placeholder="顧客名で保存（例：山田様）">' +
+            '<button type="button" class="dt-btn dt-save" id="custSave">保存</button>' +
+          '</div>' +
+          '<div class="dt-row">' +
+            '<select id="custList"><option value="">― 保存した顧客を読込 ―</option></select>' +
+            '<button type="button" class="dt-btn" id="custLoad">読込</button>' +
+            '<button type="button" class="dt-btn dt-del" id="custDel">削除</button>' +
+          '</div>' +
+          '<button type="button" class="dt-btn dt-reset" id="resetAll">全ての入力をリセット</button>' +
+          '<div class="dt-note" id="custNote"></div>' +
         '</div>' +
-        '<div class="dt-row">' +
-          '<select id="custList"><option value="">― 保存した顧客を読込 ―</option></select>' +
-          '<button type="button" class="dt-btn" id="custLoad">読込</button>' +
-          '<button type="button" class="dt-btn dt-del" id="custDel">削除</button>' +
-        '</div>' +
-        '<button type="button" class="dt-btn dt-reset" id="resetAll">全ての入力をリセット</button>' +
-        '<div class="dt-note" id="custNote"></div>' +
-      '</div>' +
+      '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
     document.body.appendChild(drawer);
     var scrim = document.createElement('div'); scrim.className = 'drawer-scrim'; document.body.appendChild(scrim);
@@ -2303,6 +2347,16 @@
         var input = gr.querySelector(':scope > .panel'); // 先頭パネル＝入力
         if(input){ input.classList.add('dpanel'); input.setAttribute('data-mod', g.key); dbody.appendChild(input); }
       });
+    });
+
+    // FP流の数値入力へ変換：金額欄はカンマ整形＋フォーカスでクリア、その他数値欄はフォーカスで全選択
+    var MONEY = {principal:1,income:1,otherDebt:1,bonusAmount:1,rentNow:1,propPrice:1,propTax:1,ownMgmt:1,mgmtCost:1,rent:1,fireIns:1,totalIncome:1};
+    Array.prototype.forEach.call(dbody.querySelectorAll('input'), function(el){
+      if(el.type==='checkbox' || el.type==='radio' || el.id==='custName') return;
+      if(el.type==='number') el.type='text';
+      el.setAttribute('inputmode','decimal');
+      if(MONEY[el.id]){ if(el.value!=='') fmtNum(el); attachAmount(el); }
+      else attachClear(el);
     });
 
     var TITLES = {base:'返済・金利上昇の入力', m21:'借入可能額 診断の入力', m23:'賃貸転用の入力', m24:'買う vs 借りる の入力', m25:'住宅ローン控除の入力'};
