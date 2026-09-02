@@ -52,9 +52,9 @@
   /* ===== 起動スプラッシュ（開いた時に出て、自動で消える） ===== */
   #splash{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(900px 520px at 50% 34%, #26385f 0%, #101a30 74%);
-    animation:spBgOut 2.6s ease forwards;}
+    animation:spBgOut 5.2s ease forwards;}
   #splash.hide{opacity:0;visibility:hidden;transition:opacity .6s ease;}
-  #splash .sp-inner{text-align:center;animation:splashSeq 2.6s ease forwards;padding:0 20px;}
+  #splash .sp-inner{text-align:center;animation:splashSeq 5.2s ease forwards;padding:0 20px;}
   .sp-logo{width:112px;height:112px;border-radius:26px;margin:0 auto 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
     background:linear-gradient(160deg,#fdf9f0,#e7ddc9);box-shadow:0 16px 42px rgba(0,0,0,.46);}
   .sp-hl{font-family:'Times New Roman',var(--mincho),serif;font-weight:400;font-size:56px;letter-spacing:2px;color:#1c2b4a;line-height:1;}
@@ -194,6 +194,20 @@
   .drawer-body .dpanel{display:none;}
   .drawer-body .dpanel.on{display:block;}
   .drawer-body .dpanel + .dpanel{border-top:1px solid var(--border-soft);margin-top:6px;}
+
+  /* 顧客データの保存/読込・全リセット ツールバー */
+  .drawer-tools{flex:0 0 auto;padding:10px 14px 12px;border-bottom:1px solid var(--border-soft);background:#faf7f0;display:flex;flex-direction:column;gap:8px;}
+  .dt-row{display:flex;gap:8px;align-items:center;}
+  .drawer-tools #custName, .drawer-tools #custList{flex:1 1 auto;min-width:0;font-family:var(--gothic);font-size:0.86rem;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
+  .dt-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.82rem;font-weight:600;color:var(--text-dim);background:#f0ece0;border:1px solid var(--border);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .dt-btn:hover{border-color:var(--gold-soft);color:var(--text);}
+  .dt-save{background:var(--principal);color:#fff;border-color:var(--principal);}
+  .dt-save:hover{filter:brightness(1.08);color:#fff;}
+  .dt-del{color:var(--rose);}
+  .dt-del:hover{border-color:var(--rose);color:var(--rose);}
+  .dt-reset{width:100%;background:#fff;color:var(--rose);border:1px dashed var(--rose);}
+  .dt-reset:hover{background:#fbf1ee;}
+  .dt-note{font-size:0.72rem;color:var(--gold-soft);min-height:1em;line-height:1.4;}
 
   /* iPad系（幅768px以上かつ高さ600px以上）＝入力は右からのサイドドロワー・結果は全幅 */
   /* ※iPhoneは横向きでも高さが低いため対象外＝下部ドロワーのまま */
@@ -1490,7 +1504,7 @@
     if(!sp) return;
     const hide = ()=> sp.classList.add('hide');
     sp.addEventListener('click', hide);
-    setTimeout(hide, 2750);
+    setTimeout(hide, 5350);
   })();
 
   // ボーナス返済分の借入元本（円）。割合／金額のどちらの指定でも同じ値を返す（全モジュール共通）
@@ -2253,6 +2267,19 @@
     drawer.className = 'input-drawer';
     drawer.innerHTML = '<div class="drawer-head"><span class="dh-no">01</span><span class="dh-title" id="drawerTitle">入力</span>' +
       '<button type="button" class="drawer-close" id="drawerClose">完了 ✓</button></div>' +
+      '<div class="drawer-tools">' +
+        '<div class="dt-row">' +
+          '<input type="text" id="custName" placeholder="顧客名で保存（例：山田様）">' +
+          '<button type="button" class="dt-btn dt-save" id="custSave">保存</button>' +
+        '</div>' +
+        '<div class="dt-row">' +
+          '<select id="custList"><option value="">― 保存した顧客を読込 ―</option></select>' +
+          '<button type="button" class="dt-btn" id="custLoad">読込</button>' +
+          '<button type="button" class="dt-btn dt-del" id="custDel">削除</button>' +
+        '</div>' +
+        '<button type="button" class="dt-btn dt-reset" id="resetAll">全ての入力をリセット</button>' +
+        '<div class="dt-note" id="custNote"></div>' +
+      '</div>' +
       '<div class="drawer-body" id="drawerBody"></div>';
     document.body.appendChild(drawer);
     var scrim = document.createElement('div'); scrim.className = 'drawer-scrim'; document.body.appendChild(scrim);
@@ -2308,6 +2335,68 @@
     document.querySelectorAll('.tab').forEach(function(t){
       t.addEventListener('click', function(){ show(t.dataset.mod, true); });
     });
+
+    // ===== 全入力の保存/読込/リセット（顧客ごと・localStorage・オフライン） =====
+    var LS_KEY = 'loansim:customers';
+    // 全入力（ドロワー内の input/select、method/bonusMode等のラジオ、各チェック）を1オブジェクトに収集
+    function collectState(){
+      var s = {inputs:{}, radios:{}, checks:{}, fundOverride: JSON.parse(JSON.stringify(fundOverride))};
+      Array.prototype.forEach.call(dbody.querySelectorAll('input, select'), function(el){
+        if(el.type === 'radio'){ if(el.checked && el.name) s.radios[el.name] = el.value; }
+        else if(el.type === 'checkbox'){ if(el.id) s.checks[el.id] = el.checked; }
+        else if(el.id){ s.inputs[el.id] = el.value; }
+      });
+      return s;
+    }
+    function applyState(s){
+      if(!s) return;
+      Object.keys(s.inputs||{}).forEach(function(id){ var el=document.getElementById(id); if(el) el.value = s.inputs[id]; });
+      Object.keys(s.checks||{}).forEach(function(id){ var el=document.getElementById(id); if(el) el.checked = !!s.checks[id]; });
+      Object.keys(s.radios||{}).forEach(function(name){ var el=document.querySelector('input[name="'+name+'"][value="'+s.radios[name]+'"]'); if(el) el.checked = true; });
+      // 投資利回りの上書きを復元
+      Object.keys(fundOverride).forEach(function(k){ delete fundOverride[k]; });
+      if(s.fundOverride) Object.keys(s.fundOverride).forEach(function(k){ fundOverride[k] = s.fundOverride[k]; });
+      // 条件表示（ボーナス割合/金額、固定資産税の自動）を整えつつ全再計算
+      var amt = (document.querySelector('input[name=bonusMode]:checked')||{}).value === 'amount';
+      $('bonusRatioWrap').classList.toggle('hidden', amt);
+      $('bonusAmountWrap').classList.toggle('hidden', !amt);
+      recalcAll(); diagnose();
+    }
+    // 初期値（既定）＝入力移動直後の状態を控える。全リセットで使用
+    var INITIAL_STATE = collectState();
+
+    function getCustomers(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ return {}; } }
+    function setCustomers(o){ try{ localStorage.setItem(LS_KEY, JSON.stringify(o)); }catch(e){} }
+    function refreshCustList(sel){
+      var o = getCustomers(), names = Object.keys(o).sort();
+      var lst = $('custList');
+      lst.innerHTML = '<option value="">― 保存した顧客を読込 ―</option>' + names.map(function(n){
+        return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>';
+      }).join('');
+      if(sel) lst.value = sel;
+    }
+    function note(msg){ var n=$('custNote'); if(n){ n.textContent=msg; if(msg){ setTimeout(function(){ if(n.textContent===msg) n.textContent=''; }, 2600); } } }
+
+    $('custSave').addEventListener('click', function(){
+      var name = ($('custName').value||'').trim();
+      if(!name){ note('顧客名を入力してください'); return; }
+      var o = getCustomers(); o[name] = collectState(); setCustomers(o);
+      refreshCustList(name); note('「'+name+'」を保存しました');
+    });
+    $('custLoad').addEventListener('click', function(){
+      var name = $('custList').value; if(!name){ note('読み込む顧客を選んでください'); return; }
+      var o = getCustomers(); if(o[name]){ applyState(o[name]); $('custName').value = name; note('「'+name+'」を読み込みました'); }
+    });
+    $('custDel').addEventListener('click', function(){
+      var name = $('custList').value; if(!name){ note('削除する顧客を選んでください'); return; }
+      var o = getCustomers(); delete o[name]; setCustomers(o); refreshCustList(); note('「'+name+'」を削除しました');
+    });
+    $('resetAll').addEventListener('click', function(){
+      applyState(INITIAL_STATE); $('custName').value = ''; $('custList').value = '';
+      note('全ての入力を初期値に戻しました');
+    });
+    refreshCustList();
+
     show('base', false);
   }
 
