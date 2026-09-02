@@ -169,7 +169,7 @@
   /* 下からせり出す入力ドロワー */
   .input-drawer{
     position:fixed;left:8px;right:8px;bottom:0;
-    height:56vh;max-height:580px;
+    height:74vh;max-height:720px;
     background:var(--panel);border:1px solid var(--border);border-bottom:none;
     border-radius:14px 14px 0 0;box-shadow:0 -14px 38px -12px rgba(27,42,74,.42);
     transform:translateY(107%);transition:transform .28s ease;z-index:56;
@@ -340,6 +340,11 @@
   }
   .radio-group input{accent-color:var(--gold);}
   .field-hint{font-size:0.72rem;color:var(--text-dim);margin-top:6px;}
+  /* 金利・返済期間のプリセット選択チップ */
+  .chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;}
+  .chip{font-family:var(--mono);font-size:0.82rem;color:var(--text-dim);background:#f4f1e8;border:1px solid var(--border);border-radius:999px;padding:6px 13px;cursor:pointer;transition:all .15s;}
+  .chip:hover{border-color:var(--gold-soft);color:var(--text);}
+  .chip.on{background:var(--principal);color:#fff;border-color:var(--principal);}
 
   /* results */
   .headline-figure{
@@ -737,7 +742,10 @@
           <input type="number" id="rate" value="0.7" min="0" max="20" step="0.01">
           <span class="unit">%</span>
         </div>
-        <div class="field-hint">全期間固定金利として計算します</div>
+        <div class="chip-row" data-target="rate">
+          <button type="button" class="chip">0.3</button><button type="button" class="chip">0.5</button><button type="button" class="chip">0.7</button><button type="button" class="chip">1.0</button><button type="button" class="chip">1.5</button><button type="button" class="chip">2.0</button>
+        </div>
+        <div class="field-hint">ボタンで選択、または直接入力（全期間固定金利として計算）</div>
       </div>
 
       <div class="field-row">
@@ -745,6 +753,9 @@
         <div class="field-input">
           <input type="number" id="years" value="35" min="1" max="50" step="1">
           <span class="unit">年</span>
+        </div>
+        <div class="chip-row" data-target="years">
+          <button type="button" class="chip">20</button><button type="button" class="chip">25</button><button type="button" class="chip">30</button><button type="button" class="chip">35</button><button type="button" class="chip">40</button>
         </div>
       </div>
 
@@ -827,6 +838,7 @@
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
+        <button class="table-toggle" id="tableToggleBottom" style="margin:14px 0 0;width:100%;">▲ 年間返済予定表を閉じる</button>
       </div>
     </div>
 
@@ -856,7 +868,7 @@
         <label for="scenario1">シナリオ①：金利上昇幅</label>
         <div class="field-input">
           <span class="unit">＋</span>
-          <input type="number" id="scenario1" value="1.0" min="0" max="10" step="0.1">
+          <input type="number" id="scenario1" value="0.5" min="0" max="10" step="0.1">
           <span class="unit">%</span>
         </div>
       </div>
@@ -865,7 +877,7 @@
         <label for="scenario2">シナリオ②：金利上昇幅</label>
         <div class="field-input">
           <span class="unit">＋</span>
-          <input type="number" id="scenario2" value="2.0" min="0" max="10" step="0.1">
+          <input type="number" id="scenario2" value="1.0" min="0" max="10" step="0.1">
           <span class="unit">%</span>
         </div>
       </div>
@@ -905,7 +917,7 @@
       <div class="scenario-grid">
         <div class="scenario-card">
           <span class="scenario-tag" id="tag1">＋1.0%</span>
-          <div class="scenario-save-label">毎月の積立目標額</div>
+          <div class="scenario-save-label">増額を打ち消す毎月の積立額</div>
           <div class="scenario-save" id="save1">—</div>
           <div class="scenario-detail">
             上昇後の毎月返済額 <span class="mono" id="stressed1">—</span><br>
@@ -914,7 +926,7 @@
         </div>
         <div class="scenario-card">
           <span class="scenario-tag" id="tag2">＋2.0%</span>
-          <div class="scenario-save-label">毎月の積立目標額</div>
+          <div class="scenario-save-label">増額を打ち消す毎月の積立額</div>
           <div class="scenario-save" id="save2">—</div>
           <div class="scenario-detail">
             上昇後の毎月返済額 <span class="mono" id="stressed2">—</span><br>
@@ -949,6 +961,61 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- ===== 繰上返済の効果（返済ページに統合） ===== -->
+  <div class="sub-heading">
+    <span class="num">繰上返済</span>
+    <h3>繰上返済の効果<span class="badge">概算・目安</span></h3>
+  </div>
+  <p class="sub-lead">
+    まとまった資金で繰上返済したときの「期間短縮型」と「返済額軽減型」の効果を試算します。時期を選ぶとその時点の残債が出ます（元利均等・ボーナス分を除いた概算）。
+  </p>
+
+  <div class="grid">
+    <!-- INPUT -->
+    <div class="panel">
+      <div class="ledger-title">繰上返済の条件</div>
+      <div class="field-row">
+        <label for="ppYear">繰上返済の時期</label>
+        <div class="field-input"><input type="number" id="ppYear" value="5" min="1" max="50" step="1"><span class="unit">年後</span></div>
+        <div class="field-hint" id="ppBalHint"></div>
+      </div>
+      <div class="field-row">
+        <label for="ppAmount">繰上返済額</label>
+        <div class="field-input"><input type="number" id="ppAmount" value="100" min="0" step="10"><span class="unit">万円</span></div>
+        <div class="field-hint">その時点の残債を上限とします。</div>
+      </div>
+      <div class="action-row">
+        <button class="table-toggle" id="ppBtn" style="border-color:var(--gold);color:var(--gold);">試算する</button>
+        <button class="btn-clear" id="ppClear" type="button">クリア</button>
+      </div>
+    </div>
+    <!-- RESULT -->
+    <div class="panel">
+      <div class="headline-figure">
+        <div class="headline-label">繰上返済で軽減できる利息（期間短縮型）</div>
+        <div class="headline-value" id="ppInterestSaved">—</div>
+        <div class="headline-sub" id="ppSub"></div>
+      </div>
+      <div class="scenario-grid">
+        <div class="scenario-card">
+          <span class="scenario-tag">期間短縮型</span>
+          <div class="scenario-save-label">短縮される期間</div>
+          <div class="scenario-save" id="ppShorten">—</div>
+          <div class="scenario-detail">軽減される利息 <span class="mono" id="ppIntTerm">—</span><br>完済までの残り <span class="mono" id="ppNewTerm">—</span></div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-tag">返済額軽減型</span>
+          <div class="scenario-save-label">毎月返済額の軽減</div>
+          <div class="scenario-save" id="ppPayCut">—</div>
+          <div class="scenario-detail">軽減後の毎月返済 <span class="mono" id="ppNewPay">—</span><br>軽減される利息 <span class="mono" id="ppIntReduce">—</span></div>
+        </div>
+      </div>
+      <div class="source-note">
+        <strong style="color:var(--text);">計算方法：</strong>元利均等・全期間固定の前提で、指定時期の残債から繰上返済額を差し引いて再計算した概算です。<b>期間短縮型</b>＝毎月返済額を変えずに完済を早める（消える利息が大きい）。<b>返済額軽減型</b>＝期間を変えずに毎月返済額を下げる。ボーナス返済分・手数料・端数・繰上手数料は考慮していません。
+      </div>
+    </div>
   </div>
 
   <!-- ============ 2-1. 借入可能額診断 ============ -->
@@ -2258,7 +2325,45 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); stressTest(); convertSim(); compareSim(); renderCredit(); }
+  // ===== 繰上返済シミュレーション =====
+  function prepaySim(){
+    var principal = (iv('principal')||0)*10000;
+    var rate = iv('rate')||0;
+    var years = Math.round(iv('years')||0);
+    var r = (rate/100)/12, n = years*12;
+    var y = Math.max(1, Math.round(iv('ppYear')||1));
+    var Pp = (iv('ppAmount')||0)*10000;
+    var ids=['ppInterestSaved','ppShorten','ppPayCut','ppNewPay','ppIntTerm','ppIntReduce','ppNewTerm'];
+    if(!(principal>0) || n<=0){ ids.forEach(function(id){ var e=$(id); if(e)e.textContent='—'; }); if($('ppBalHint'))$('ppBalHint').textContent=''; return; }
+    var M = Math.min(n-1, y*12);
+    var A = annuityPayment(principal, r, n);
+    var bal = principal;
+    for(var i=0;i<M;i++){ var it=bal*r; var pr=A-it; if(pr>bal)pr=bal; bal=Math.max(0,bal-pr); }
+    var B = bal, R = n - M;
+    Pp = Math.min(Pp, B);
+    var Bnew = Math.max(0, B - Pp);
+    var Rp;
+    if(Bnew<=0) Rp=0; else if(r===0) Rp=Math.ceil(Bnew/A); else Rp=Math.ceil( Math.log(A/(A - Bnew*r)) / Math.log(1+r) );
+    if(Rp>R) Rp=R;
+    var monthsSaved = Math.max(0, R - Rp);
+    var intTerm = Math.max(0, A*monthsSaved - Pp);
+    var Anew = (Bnew<=0)?0: annuityPayment(Bnew, r, R);
+    var payCut = Math.max(0, A - Anew);
+    var intReduce = Math.max(0, R*payCut - Pp);
+
+    $('ppBalHint').textContent = y + '年後の残債：約 ' + Math.round(B/10000).toLocaleString('ja-JP') + '万円（繰上額はこれが上限）';
+    $('ppInterestSaved').innerHTML = yen(intTerm) + '<small>円</small>';
+    $('ppSub').textContent = '繰上 ' + Math.round(Pp/10000).toLocaleString('ja-JP') + '万円（' + y + '年後）の効果。方式で結果が変わります';
+    var yS=Math.floor(monthsSaved/12), mS=monthsSaved%12;
+    $('ppShorten').innerHTML = (yS>0?yS+'<small>年</small>':'') + ((mS>0||yS===0)?mS+'<small>ヶ月</small>':'');
+    $('ppIntTerm').textContent = yen(intTerm)+' 円';
+    var tot=M+Rp; $('ppNewTerm').textContent = Math.floor(tot/12)+'年'+(tot%12)+'ヶ月';
+    $('ppPayCut').innerHTML = '−'+yen(payCut)+'<small>円 / 月</small>';
+    $('ppNewPay').textContent = yen(A)+'円 → '+yen(Anew)+'円';
+    $('ppIntReduce').textContent = yen(intReduce)+' 円';
+  }
+
+  function recalcAll(){ calculate(); prepaySim(); stressTest(); convertSim(); compareSim(); renderCredit(); }
 
   $('calcBtn').addEventListener('click', calculate);
   ['principal','rate','years','bonusRatio'].forEach(id=>{
@@ -2286,11 +2391,16 @@
     $('bonusRatioWrap').classList.remove('hidden'); $('bonusAmountWrap').classList.add('hidden');
     recalcAll();
   });
-  $('tableToggle').addEventListener('click', ()=>{
+  function toggleTable(fromBottom){
     const w = $('tableWrap');
+    const opening = !w.classList.contains('open');
     w.classList.toggle('open');
-    $('tableToggle').textContent = w.classList.contains('open') ? '年間返済予定表を閉じる' : '年間返済予定表を表示';
-  });
+    $('tableToggle').textContent = opening ? '年間返済予定表を閉じる' : '年間返済予定表を表示';
+    // 下の閉じるボタンで閉じたら、上のトグルまでスクロールして迷子を防ぐ
+    if(!opening && fromBottom){ var nav=document.querySelector('.tabnav'); var navH=nav?nav.getBoundingClientRect().height:0; window.scrollTo(0, Math.max(0, $('tableToggle').getBoundingClientRect().top + window.scrollY - navH - 8)); }
+  }
+  $('tableToggle').addEventListener('click', ()=> toggleTable(false));
+  $('tableToggleBottom').addEventListener('click', ()=> toggleTable(true));
 
   // ============ セクションのタブ切替（1画面で選択） ============
   // main 直下のノードをモジュール単位にグルーピングし、選択したモジュールだけ表示する。
@@ -2350,13 +2460,24 @@
     });
 
     // FP流の数値入力へ変換：金額欄はカンマ整形＋フォーカスでクリア、その他数値欄はフォーカスで全選択
-    var MONEY = {principal:1,income:1,otherDebt:1,bonusAmount:1,rentNow:1,propPrice:1,propTax:1,ownMgmt:1,mgmtCost:1,rent:1,fireIns:1,totalIncome:1};
+    var MONEY = {principal:1,income:1,otherDebt:1,bonusAmount:1,rentNow:1,propPrice:1,propTax:1,ownMgmt:1,mgmtCost:1,rent:1,fireIns:1,totalIncome:1,ppAmount:1};
     Array.prototype.forEach.call(dbody.querySelectorAll('input'), function(el){
       if(el.type==='checkbox' || el.type==='radio' || el.id==='custName') return;
       if(el.type==='number') el.type='text';
       el.setAttribute('inputmode','decimal');
       if(MONEY[el.id]){ if(el.value!=='') fmtNum(el); attachAmount(el); }
       else attachClear(el);
+    });
+    // プリセット選択チップ：クリックで対象の入力欄に値をセットして即時計算
+    Array.prototype.forEach.call(dbody.querySelectorAll('.chip-row'), function(row){
+      var target = row.getAttribute('data-target');
+      Array.prototype.forEach.call(row.querySelectorAll('.chip'), function(btn){
+        btn.addEventListener('click', function(){
+          var el = document.getElementById(target); if(!el) return;
+          el.value = btn.textContent.trim(); el.classList.remove('pristine');
+          el.dispatchEvent(new Event('input', {bubbles:true}));
+        });
+      });
     });
 
     var TITLES = {base:'返済・金利上昇の入力', m21:'借入可能額 診断の入力', m23:'賃貸転用の入力', m24:'買う vs 借りる の入力', m25:'住宅ローン控除の入力'};
@@ -2479,8 +2600,11 @@
     $('autoRatio').checked = true; $('diagRate').value = 0.7; $('stressRate').checked = false;
     $('diagYears').value = 35; diagnose();
   });
+  $('ppClear').addEventListener('click', ()=>{
+    $('ppYear').value = 5; $('ppAmount').value = 100; fmtNum($('ppAmount')); prepaySim();
+  });
   $('stressClear').addEventListener('click', ()=>{
-    $('scenario1').value = 1.0; $('scenario2').value = 2.0; $('saveYears').value = 10;
+    $('scenario1').value = 0.5; $('scenario2').value = 1.0; $('saveYears').value = 10;
     document.querySelector('input[name=fundBase][value="1"]').checked = true;
     Object.keys(fundOverride).forEach(k=> delete fundOverride[k]); // 利回りの上書きも実績値に戻す
     stressTest();
@@ -2498,6 +2622,7 @@
   });
 
   calculate();
+  prepaySim();
   diagnose();
   stressTest();
   convertSim();
