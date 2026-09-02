@@ -27,7 +27,7 @@
     --principal:#2f9e8f; /* 元金＝ティール（爽やか・返済グラフ・元利内訳） */
     --interest:#4a97cf;  /* 利息＝スカイブルー */
     --radius:10px;
-    --shadow:0 1px 2px rgba(27,42,74,.05),0 8px 28px rgba(27,42,74,.07);
+    --shadow:0 1px 2px rgba(27,42,74,.06),0 12px 30px -6px rgba(27,42,74,.14);
     --gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","YuGothic","Noto Sans JP",system-ui,sans-serif;
     --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
     --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
@@ -181,7 +181,7 @@
     padding:12px 18px;border-bottom:1px solid var(--border-soft);background:var(--bg);
   }
   .drawer-head .dh-no{font-family:var(--mono);font-size:12px;color:var(--gold);}
-  .drawer-head .dh-title{font-family:var(--mincho);font-size:1rem;font-weight:700;}
+  .drawer-head .dh-title{font-family:var(--mincho);font-size:1rem;font-weight:600;}
   .drawer-close{
     margin-left:auto;font:700 0.84rem var(--gothic);color:#fff;
     background:var(--gold);border:1px solid var(--gold-soft);border-radius:8px;
@@ -355,7 +355,7 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size:2.4rem;
     color:var(--gold);
-    font-weight:600;
+    font-weight:500;
     line-height:1;
   }
   .headline-value small{font-size:1rem;color:var(--text-dim);font-weight:400;margin-left:4px;}
@@ -503,7 +503,7 @@
   }
   .section-heading h2{
     font-family:var(--mincho);
-    font-weight:700;
+    font-weight:600;
     font-size:1.2rem;
     margin:0;
     letter-spacing:0.02em;
@@ -520,7 +520,7 @@
     font-family:var(--mincho);color:var(--gold);font-size:0.74rem;letter-spacing:0.14em;
     border:1px solid var(--gold-soft);border-radius:var(--radius);padding:2px 8px;white-space:nowrap;
   }
-  .sub-heading h3{font-family:var(--mincho);font-weight:700;font-size:1.05rem;margin:0;letter-spacing:0.02em;}
+  .sub-heading h3{font-family:var(--mincho);font-weight:600;font-size:1.05rem;margin:0;letter-spacing:0.02em;}
   .sub-lead{font-size:0.78rem;color:var(--text-dim);margin:8px 0 18px;line-height:1.7;}
 
   /* 銘柄積立テーブル（金利上昇積立） */
@@ -609,7 +609,7 @@
     line-height:1.8;
     border-bottom:1px solid var(--border);
   }
-  .confirm-note .cn-head{color:var(--gold);font-family:var(--mincho);font-weight:700;display:block;margin-bottom:6px;}
+  .confirm-note .cn-head{color:var(--gold);font-family:var(--mincho);font-weight:600;display:block;margin-bottom:6px;}
   .hidden{display:none !important;}
 
   /* 4-up stat strip variant（パネル幅に応じて 4→2→1 列） */
@@ -671,10 +671,14 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size:1.9rem;
     color:var(--gold);
-    font-weight:600;
+    font-weight:500;
     line-height:1;
   }
   .scenario-save small{font-size:0.9rem;color:var(--text-dim);font-weight:400;margin-left:3px;}
+  .stress-lump{margin-top:14px;padding:12px 14px;background:#f3f6f5;border:1px solid var(--border-soft);border-left:3px solid var(--principal);border-radius:7px;}
+  .stress-lump .sl-label{display:block;font-size:0.72rem;color:var(--text-dim);line-height:1.5;margin-bottom:5px;}
+  .stress-lump .sl-amt{font-family:var(--mono);font-size:1.35rem;color:var(--principal);font-weight:500;}
+  .stress-lump .sl-note{display:block;font-size:0.66rem;color:var(--text-dim);margin-top:4px;}
   .scenario-detail{
     margin-top:16px;
     font-size:0.76rem;
@@ -923,6 +927,11 @@
             上昇後の毎月返済額 <span class="mono" id="stressed1">—</span><br>
             <span id="cumLabel1">10年間の積立累計</span> <span class="mono" id="cum1">—</span>
           </div>
+          <div class="stress-lump">
+            <span class="sl-label">積立完了時に一括返済して<br>毎月返済額を現行水準に戻すなら</span>
+            <span class="mono sl-amt" id="lump1">—</span>
+            <span class="sl-note" id="lumpNote1"></span>
+          </div>
         </div>
         <div class="scenario-card">
           <span class="scenario-tag" id="tag2">＋2.0%</span>
@@ -931,6 +940,11 @@
           <div class="scenario-detail">
             上昇後の毎月返済額 <span class="mono" id="stressed2">—</span><br>
             <span id="cumLabel2">10年間の積立累計</span> <span class="mono" id="cum2">—</span>
+          </div>
+          <div class="stress-lump">
+            <span class="sl-label">積立完了時に一括返済して<br>毎月返済額を現行水準に戻すなら</span>
+            <span class="mono sl-amt" id="lump2">—</span>
+            <span class="sl-note" id="lumpNote2"></span>
           </div>
         </div>
       </div>
@@ -957,6 +971,7 @@
 
       <div class="source-note">
         <strong style="color:var(--text);">積立目標額の計算方法：</strong>上の「借入条件」と同じ借入元本・返済期間・返済方法で、金利だけを上昇させたときの毎月返済額（初回）を再計算し、現行金利との差額を「毎月の積立目標額」として表示しています（ボーナス返済分を除いた毎月返済額どうしの比較です）。実際の変動金利は上昇の時期・幅・見直しルールにより異なり、本試算は一定幅で即時上昇した場合の概算です。<br>
+        <strong style="color:var(--text);">「元の月額に戻す一括返済」の計算方法：</strong>積立期間の年数だけ現行金利で返済した時点の残債に対し、上昇後の金利・残存期間で毎月返済額が現行水準に一致するよう、必要な一括返済額を逆算した概算です（元利均等・ボーナス分を除く。手数料・端数は考慮していません）。<br>
         <strong style="color:var(--text);">銘柄別 評価額の算出条件：</strong><span id="fundCond"></span>
       </div>
     </div>
@@ -1875,6 +1890,18 @@
       ? '元金均等のため初回時点の金額で比較しています'
       : '毎月返済分（ボーナス分を除く）で比較しています';
 
+    // 積立完了時（saveYears年後）に一括返済して毎月返済額を現行水準に戻すのに必要な額（元利均等・概算）
+    const principalYen = (iv('principal')||0)*10000;
+    const yearsN = Math.round(iv('years')||0);
+    const monthlyPrincipal = principalYen - bonusPrincipalOf(principalYen);
+    const nAll = yearsN*12;
+    const rBase = (baseRate/100)/12;
+    const Aorig = nAll>0 ? annuityPayment(monthlyPrincipal, rBase, nAll) : 0;
+    const S = Math.max(0, Math.min(Math.max(0,nAll-1), Math.round(saveYears*12)));
+    let balS = monthlyPrincipal;
+    for(let k=0;k<S;k++){ const it=balS*rBase; let pr=Aorig-it; if(pr>balS)pr=balS; balS=Math.max(0,balS-pr); }
+    const Bs = balS, Rem = nAll - S;
+
     const diffs = {};
     [1,2].forEach(i=>{
       const delta = Math.max(0, parseFloat($('scenario'+i).value) || 0);
@@ -1887,6 +1914,20 @@
       $('cumLabel'+i).textContent = saveYears + '年間の積立累計';
       $('cum'+i).textContent = yen(cumulative) + ' 円';
       diffs[i] = diff;
+
+      // 元の月額に戻す一括返済額
+      const rNew = ((baseRate+delta)/100)/12;
+      let lump = 0;
+      if(Rem>0 && Bs>0){
+        const pv = rNew<1e-12 ? Aorig*Rem : Aorig*(1-Math.pow(1+rNew,-Rem))/rNew;
+        lump = Math.max(0, Math.min(Bs, Bs - pv));
+      }
+      if($('lump'+i)){
+        $('lump'+i).textContent = lump>0 ? yen(Math.round(lump)) + ' 円' : '不要';
+        $('lumpNote'+i).textContent = lump>0
+          ? '（' + saveYears + '年後の残債 約' + Math.round(Bs/10000).toLocaleString('ja-JP') + '万円のうち。元利均等・概算／積立累計 ' + yen(cumulative) + '円と比較）'
+          : '（この上昇幅では毎月返済額は増えません）';
+      }
     });
 
     renderFunds(diffs, saveYears);
@@ -2340,6 +2381,7 @@
     var bal = principal;
     for(var i=0;i<M;i++){ var it=bal*r; var pr=A-it; if(pr>bal)pr=bal; bal=Math.max(0,bal-pr); }
     var B = bal, R = n - M;
+    var remInt = Math.max(0, A*R - B); // この残債に今後かかる利息（繰上なし・概算）
     Pp = Math.min(Pp, B);
     var Bnew = Math.max(0, B - Pp);
     var Rp;
@@ -2351,7 +2393,7 @@
     var payCut = Math.max(0, A - Anew);
     var intReduce = Math.max(0, R*payCut - Pp);
 
-    $('ppBalHint').textContent = y + '年後の残債：約 ' + Math.round(B/10000).toLocaleString('ja-JP') + '万円（繰上額はこれが上限）';
+    $('ppBalHint').innerHTML = y + '年後の残債（残り元金の合計）：約 <b style="color:var(--text)">' + Math.round(B/10000).toLocaleString('ja-JP') + '万円</b>　／　この残債に今後かかる利息：約 <b style="color:var(--text)">' + Math.round(remInt/10000).toLocaleString('ja-JP') + '万円</b>（繰上なしの場合の概算）';
     $('ppInterestSaved').innerHTML = yen(intTerm) + '<small>円</small>';
     $('ppSub').textContent = y + '年後の残債（残り元金）約 ' + Math.round(B/10000).toLocaleString('ja-JP') + '万円 のうち ' + Math.round(Pp/10000).toLocaleString('ja-JP') + '万円を繰上返済した場合';
     var yS=Math.floor(monthsSaved/12), mS=monthsSaved%12;
