@@ -52,9 +52,9 @@
   /* ===== 起動スプラッシュ（開いた時に出て、自動で消える） ===== */
   #splash{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(900px 520px at 50% 34%, #26385f 0%, #101a30 74%);
-    animation:spBgOut 5.2s ease forwards;}
+    animation:spBgOut 4s ease forwards;}
   #splash.hide{opacity:0;visibility:hidden;transition:opacity .6s ease;}
-  #splash .sp-inner{text-align:center;animation:splashSeq 5.2s ease forwards;padding:0 20px;}
+  #splash .sp-inner{text-align:center;animation:splashSeq 4s ease forwards;padding:0 20px;}
   .sp-logo{width:112px;height:112px;border-radius:26px;margin:0 auto 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
     background:linear-gradient(160deg,#fdf9f0,#e7ddc9);box-shadow:0 16px 42px rgba(0,0,0,.46);}
   .sp-hl{font-family:'Times New Roman',var(--mincho),serif;font-weight:400;font-size:56px;letter-spacing:2px;color:#1c2b4a;line-height:1;}
@@ -318,7 +318,7 @@
     transition:border-color .15s, box-shadow .15s;
   }
   .field-input:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(154,123,79,.16);}
-  .field-input input[type=number], .field-input select{
+  .field-input input, .field-input select{
     background:transparent;
     border:none;
     outline:none;
@@ -1513,7 +1513,7 @@
     if(!sp) return;
     const hide = ()=> sp.classList.add('hide');
     sp.addEventListener('click', hide);
-    setTimeout(hide, 5350);
+    setTimeout(hide, 4150);
   })();
 
   // ボーナス返済分の借入元本（円）。割合／金額のどちらの指定でも同じ値を返す（全モジュール共通）
