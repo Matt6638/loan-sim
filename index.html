@@ -429,9 +429,22 @@
   .qb-k{font-size:0.7rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
   .qb-u{font-size:0.68rem;color:var(--text-dim);white-space:nowrap;}
   .qb-field input{width:66px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:transparent;border:none;outline:none;padding:1px 0;}
+  .qb-field input#qAge{width:38px;}
+  .qb-field input#qRate{width:48px;}
   .qb-field input.pristine{color:#a2a8b5;}
   .qb-reset{margin-left:auto;flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:7px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .qb-reset:hover{background:var(--rose);color:#fff;border-color:var(--rose);}
+  /* iPhone縦：4項目＋全クリアが余計な行を作らないよう詰める */
+  @media (max-width:480px){
+    .quick-bar{gap:6px;padding:10px 12px;}
+    .qb-field{padding:4px 7px;gap:4px;}
+    .qb-k{font-size:0.66rem;}
+    .qb-u{font-size:0.62rem;}
+    .qb-field input{width:54px;font-size:0.9rem;}
+    .qb-field input#qAge{width:30px;}
+    .qb-field input#qRate{width:38px;}
+    .qb-reset{margin-left:0;font-size:0.7rem;padding:6px 10px;}
+  }
 
   /* パターン比較 */
   .share-row{display:flex;align-items:center;gap:12px;padding:12px 24px 0;}
@@ -947,6 +960,7 @@
       <!-- 結果画面から借入条件を直接変更（ドロワーの入力欄と双方向連動） -->
       <div class="quick-bar">
         <label class="qb-field"><span class="qb-k">借入</span><input type="text" inputmode="numeric" id="qPrincipal"><span class="qb-u">万円</span></label>
+        <label class="qb-field"><span class="qb-k">年齢</span><input type="text" inputmode="numeric" id="qAge"><span class="qb-u">歳</span></label>
         <label class="qb-field"><span class="qb-k">金利</span><input type="text" inputmode="decimal" id="qRate"><span class="qb-u">%</span></label>
         <label class="qb-field"><span class="qb-k">ボーナス</span><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
         <button type="button" class="qb-reset" id="qReset">全クリア</button>
@@ -1880,11 +1894,22 @@
   }
   function toMan(v){ return Math.round(v/10000).toLocaleString('ja-JP'); }
 
+  // 試算期間（年数）と、それを完済年内に収めるための「経過年」の上限
+  function focusSpanNow(){
+    const N = gLastYearly ? gLastYearly.length : 0; if(!N) return 1;
+    return Math.max(1, Math.min(N, Math.round(iv('focusSpan')||1)));
+  }
+  function focusMaxYear(){
+    const N = gLastYearly ? gLastYearly.length : 0; if(!N) return 1;
+    return Math.max(1, N - focusSpanNow() + 1); // 例）完済35年・試算期間5年 → 31年目まで（31〜35年目）
+  }
+
   function renderStatement(){
     if(!gLastYearly || !gLastYearly.length) return;
     const N = gLastYearly.length;
-    let sy = Math.round(iv('focusYear')||1); sy = Math.max(1, Math.min(N, sy));
-    let sp = Math.round(iv('focusSpan')||1); sp = Math.max(1, Math.min(N - sy + 1, sp));
+    const sp = focusSpanNow();                                   // 試算期間はそのまま維持し
+    let sy = Math.round(iv('focusYear')||1);
+    sy = Math.max(1, Math.min(focusMaxYear(), sy));               // 経過年のほうを上限で止める
     const a = gStartAge;
     $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a});
 
@@ -2673,9 +2698,17 @@
       var rect=wrap.getBoundingClientRect(); if(rect.width<=0) return null;
       var f=(clientX-rect.left)/rect.width; f=Math.max(0,Math.min(1,f));
       var N=gLastYearly.length;
-      return Math.max(1, Math.min(N, Math.round(f*(N-1))+1));
+      var y=Math.round(f*(N-1))+1;
+      // 1年目より左、および「試算期間が完済年を超える位置」より右では止める
+      return Math.max(1, Math.min(focusMaxYear(), y));
     }
-    function apply(clientX){ var y=toYear(clientX); if(y==null) return; var fy=$('focusYear'); if(fy){ fy.value=y; fy.classList.remove('pristine'); } renderStatement(); }
+    function apply(clientX){
+      var y=toYear(clientX); if(y==null) return;
+      var fy=$('focusYear'); if(!fy) return;
+      // 位置が変わらないときは再描画しない（端でドラッグし続けたときの点滅を防ぐ）
+      if(Math.round(iv('focusYear')||0) === y) return;
+      fy.value=y; fy.classList.remove('pristine'); renderStatement();
+    }
     el.addEventListener('pointerdown', function(e){ dragging=true; try{el.setPointerCapture(e.pointerId);}catch(x){} apply(e.clientX); });
     el.addEventListener('pointermove', function(e){ if(dragging) apply(e.clientX); });
     window.addEventListener('pointerup', function(){ dragging=false; });
@@ -2693,7 +2726,7 @@
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
   function qBonusTargetId(){ return bonusIsAmount() ? 'bonusAmount' : 'bonusRatio'; }
-  var QUICK_MAP = [['qPrincipal', function(){ return 'principal'; }], ['qRate', function(){ return 'rate'; }], ['qBonus', qBonusTargetId]];
+  var QUICK_MAP = [['qPrincipal', function(){ return 'principal'; }], ['qAge', function(){ return 'borrowerAge'; }], ['qRate', function(){ return 'rate'; }], ['qBonus', qBonusTargetId]];
 
   // ドロワー側の値をクイックバーへ反映（入力中の欄は上書きしない）
   function syncQuickBar(){
@@ -2742,9 +2775,8 @@
   // グラフ操作：経過年（縦ライン）／試算期間（四角）／◀▶
   function clampFocusInputs(){
     if(!gLastYearly||!gLastYearly.length) return;
-    const N=gLastYearly.length;
-    let sy=Math.round(iv('focusYear')||1); sy=Math.max(1,Math.min(N,sy));
-    let sp=Math.round(iv('focusSpan')||1); sp=Math.max(1,Math.min(N-sy+1,sp));
+    const sp=focusSpanNow();
+    let sy=Math.round(iv('focusYear')||1); sy=Math.max(1,Math.min(focusMaxYear(),sy));
     if($('focusYear')){ $('focusYear').value=sy; $('focusYear').classList.remove('pristine'); }
     if($('focusSpan')){ $('focusSpan').value=sp; $('focusSpan').classList.remove('pristine'); }
   }
@@ -2754,7 +2786,7 @@
       el.addEventListener('change', ()=>{ clampFocusInputs(); renderStatement(); }); }
   });
   if($('gfPrev')) $('gfPrev').addEventListener('click', ()=>{ const el=$('focusYear'); el.value=Math.max(1,(Math.round(iv('focusYear')||1))-1); el.classList.remove('pristine'); renderStatement(); });
-  if($('gfNext')) $('gfNext').addEventListener('click', ()=>{ const el=$('focusYear'); const N=gLastYearly?gLastYearly.length:1; el.value=Math.min(N,(Math.round(iv('focusYear')||1))+1); el.classList.remove('pristine'); renderStatement(); });
+  if($('gfNext')) $('gfNext').addEventListener('click', ()=>{ const el=$('focusYear'); el.value=Math.min(focusMaxYear(),(Math.round(iv('focusYear')||1))+1); el.classList.remove('pristine'); renderStatement(); });
   // ボーナス指定方法（割合／金額）の切替と、金額入力・モードの全モジュール反映
   document.querySelectorAll('input[name=bonusMode]').forEach(el=>{
     el.addEventListener('change', ()=>{
