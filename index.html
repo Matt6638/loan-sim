@@ -455,9 +455,21 @@
   .gf-cell .sr.pc .mono{color:var(--principal);}
   .gf-cell .sr.ic .mono{color:var(--interest);}
 
-  /* グラフの縦ライン下の年齢ラベル */
-  .chart-wrap{position:relative;}
-  .gf-line-label{position:absolute;bottom:26px;transform:translateX(-50%);background:var(--gold-soft);color:#fff;font-family:var(--mono);font-size:0.62rem;line-height:1.25;padding:2px 6px;border-radius:5px;white-space:nowrap;text-align:center;pointer-events:none;box-shadow:0 2px 6px rgba(27,42,74,.25);}
+  /* ダブルタップ拡大の抑止（ボタン・チップ周辺で画面が拡大しないように） */
+  button, .chip, .gf-arrow, .fund-pick, .tab, .yield-picker, .gf-controls, .graph-focus, input, select, label{touch-action:manipulation;}
+
+  /* グラフの縦ライン下の年齢ラベル（ドラッグで移動できる） */
+  .chart-wrap{position:relative;touch-action:pan-y;cursor:ew-resize;}
+  .gf-line-label{position:absolute;bottom:26px;transform:translateX(-50%);background:var(--gold-soft);color:#fff;font-family:var(--mono);font-size:0.62rem;line-height:1.25;padding:3px 8px;border-radius:6px;white-space:nowrap;text-align:center;pointer-events:none;box-shadow:0 2px 6px rgba(27,42,74,.25);}
+  .gf-line-label::after{content:"◀▶";display:block;font-size:0.5rem;opacity:.75;margin-top:1px;letter-spacing:1px;}
+  .chart-hint{font-size:0.66rem;color:var(--text-dim);margin-top:4px;text-align:center;}
+
+  /* 完済コントロール（結果欄で年齢を編集） */
+  .payoff-ctrl{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:10px 12px;background:#faf8f2;border:1px solid var(--border-soft);border-radius:8px;margin:4px 0 2px;}
+  .payoff-ctrl .gf-label{font-size:0.76rem;color:var(--gold-soft);font-weight:600;white-space:nowrap;}
+  .payoff-ctrl input{width:64px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 8px;}
+  .payoff-ctrl input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
+  .payoff-ctrl .gf-unit{font-size:0.74rem;color:var(--text-dim);}
 
   /* 想定利回りセレクタ（0.3/6/10/20％＋入力） */
   .yield-picker{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px;background:#faf8f2;border:1px solid var(--border-soft);border-radius:8px;margin-top:6px;}
@@ -470,6 +482,7 @@
   .yield-out .yo-amt{font-family:var(--mono);font-size:1.5rem;color:var(--principal);font-weight:500;}
   .yield-out .yo-amt small{font-size:0.9rem;color:var(--text-dim);font-weight:400;margin-left:3px;}
   .yield-out .yo-note{display:block;font-size:0.68rem;color:var(--text-dim);margin-top:5px;}
+  .yield-out .yo-block + .yo-block{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
 
   /* 参考銘柄（過去実績）を開くボタン */
   .fund-ref{margin-top:14px;border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;}
@@ -905,6 +918,7 @@
           <span><span class="swatch bal"></span>残高</span>
         </div>
         <div id="stripChart"></div>
+        <div class="chart-hint">グラフをタップ／左右にドラッグすると「経過年」が動きます</div>
 
         <!-- グラフ操作：経過年（縦ライン）＋試算期間（四角） -->
         <div class="graph-focus">
@@ -996,15 +1010,6 @@
         <div class="field-hint">差額を毎月積み立てた場合の累計額と、下の銘柄別の評価額をこの期間で試算します。</div>
       </div>
 
-      <div class="field-row">
-        <label>銘柄試算のベースにするシナリオ</label>
-        <div class="radio-group">
-          <label><input type="radio" name="fundBase" value="1" checked> シナリオ①</label>
-          <label><input type="radio" name="fundBase" value="2"> シナリオ②</label>
-        </div>
-        <div class="field-hint">選んだシナリオの「毎月の積立目標額」を、下の銘柄で運用した場合を試算します。</div>
-      </div>
-
       <div class="action-row">
         <button class="table-toggle" id="stressBtn" style="border-color:var(--gold);color:var(--gold);">試算する</button>
         <button class="btn-clear" id="stressClear" type="button">クリア</button>
@@ -1067,12 +1072,7 @@
           <summary>投資信託の過去実績（年率）を利回りの目安にする</summary>
           <div class="fr-body">
             <div class="strip-sub" style="margin-top:0;">下表は代表的なインデックス投信の<b>過去実績（年率）</b>です。数値をタップすると上の「想定利回り」に反映します。将来の成果を保証するものではありません。</div>
-            <table class="fund-table">
-              <thead>
-                <tr><th>銘柄</th><th>年率リターン（過去実績）</th><th>毎月の必要積立額</th></tr>
-              </thead>
-              <tbody id="fundBody"></tbody>
-            </table>
+            <div id="fundRefStress"></div>
             <div class="warn-banner amber" style="margin-top:14px;border-radius:6px;border-bottom:none;">
               <span class="warn-title">これは投資の勧誘・推奨ではありません</span>
               表示の利回りは<b>過去の実績</b>であり、将来の運用成果を保証・示唆するものではありません。元本割れの可能性があります。実際の商品選択・投資判断は、目論見書と販売会社・専門家にご確認ください。
@@ -1101,8 +1101,8 @@
       <div class="ledger-title">完済の条件</div>
       <div class="field-row">
         <label for="payoffAge">完済したい年齢</label>
-        <div class="field-input"><input type="text" inputmode="numeric" id="payoffAge" value="60"><span class="unit">歳</span></div>
-        <div class="field-hint" id="payoffHint">「借入時の年齢」から逆算して、完済までの経過年数を算出します。</div>
+        <div class="field-input"><input type="text" inputmode="numeric" id="payoffAge" placeholder="例：70"><span class="unit">歳</span></div>
+        <div class="field-hint" id="payoffHint">「借入時の年齢」から逆算して経過年数を算出します。未入力なら<b>完済の5年前</b>を初期表示します。</div>
       </div>
     </div>
     <!-- RESULT -->
@@ -1111,6 +1111,22 @@
         <div class="headline-label" id="payoffHeadLabel">完済に必要な一括返済額（その時点の残債）</div>
         <div class="headline-value" id="payoffLump">—</div>
         <div class="headline-sub" id="payoffSub"></div>
+      </div>
+
+      <!-- 結果欄でも完済時期を編集できる（年齢／未入力時は年目） -->
+      <div class="payoff-ctrl" id="payoffCtrlAge">
+        <span class="gf-label">完済したい年齢</span>
+        <button type="button" class="gf-arrow" id="payoffPrev">◀</button>
+        <input type="text" inputmode="numeric" id="payoffAgeR" placeholder="例：70">
+        <span class="gf-unit">歳</span>
+        <button type="button" class="gf-arrow" id="payoffNext">▶</button>
+      </div>
+      <div class="payoff-ctrl" id="payoffCtrlYear" style="display:none;">
+        <span class="gf-label">完済時期</span>
+        <button type="button" class="gf-arrow" id="payoffPrevY">◀</button>
+        <input type="text" inputmode="numeric" id="payoffYearR" placeholder="—">
+        <span class="gf-unit">年目</span>
+        <button type="button" class="gf-arrow" id="payoffNextY">▶</button>
       </div>
 
       <div class="strip-section">
@@ -1129,10 +1145,7 @@
           <summary>投資信託の過去実績（年率）を利回りの目安にする</summary>
           <div class="fr-body">
             <div class="strip-sub" style="margin-top:0;">下表は代表的なインデックス投信の<b>過去実績（年率）</b>です。数値をタップすると上の「想定利回り」に反映します。将来の成果を保証するものではありません。</div>
-            <table class="fund-table">
-              <thead><tr><th>銘柄</th><th>年率リターン（過去実績）</th><th>毎月の必要積立額</th></tr></thead>
-              <tbody id="fundBodyPayoff"></tbody>
-            </table>
+            <div id="fundRefPayoff"></div>
           </div>
         </details>
       </div>
@@ -2144,13 +2157,13 @@
       }
     });
 
-    // 想定利回りで積み立てる場合（選択シナリオ基準）
-    const baseSel = document.querySelector('input[name=fundBase]:checked');
-    const which = baseSel ? parseInt(baseSel.value) : 1;
-    gStressScenarioNo = which;
+    // 想定利回りで積み立てる場合（シナリオ①②の両方）
     gStressSaveYears = saveYears;
-    gStressCashMonthly = diffs[which] || 0;
-    gStressTarget = gStressCashMonthly * 12 * saveYears;
+    gStressScenarios = [1,2].map(function(i){
+      const delta = Math.max(0, parseFloat($('scenario'+i).value) || 0);
+      const cash = diffs[i] || 0;
+      return {mark:(i===1?'①':'②'), delta:delta, cash:cash, target:cash*12*saveYears};
+    });
     stressYieldUpdate();
   }
 
@@ -2183,48 +2196,56 @@
     return f>0 ? target/f : 0;
   }
 
-  // 参考銘柄テーブル（読み取り専用）：各銘柄の過去実績（年率）と、その利回りで target を用意する毎月必要額
-  function renderFundRef(tbodyId, target, years){
-    const tbody = $(tbodyId); if(!tbody) return;
+  // 参考銘柄テーブル（読み取り専用）：各銘柄の過去実績（年率）と、その利回りで各targetを用意する毎月必要額
+  // targets = [{label, target}]（1つ以上）。containerId のdivにテーブルごと生成する。
+  function renderFundRef(containerId, targets, years, yieldInputId){
+    const cont = $(containerId); if(!cont) return;
     const h = fundHorizon(years);
-    tbody.innerHTML = '';
-    FUNDS.forEach(f=>{
+    let head = '<tr><th>銘柄</th><th>年率リターン<br>（過去実績）</th>';
+    targets.forEach(function(t){ head += '<th>' + t.label + '</th>'; });
+    head += '</tr>';
+    let body = '';
+    FUNDS.forEach(function(f){
       const r = f.r[h];
-      const need = Math.round(neededMonthly(target, r, years));
-      const tr = document.createElement('tr');
-      tr.innerHTML =
+      let cells =
         '<td><span class="fund-name">' + f.name + '</span><span class="fund-since">' + f.since + '</span></td>' +
-        '<td><button type="button" class="fund-pick" data-r="' + (isFinite(r)?r:0) + '">' + (isFinite(r)?r:0) + '%</button></td>' +
-        '<td><span class="fund-need">' + yen(need) + ' 円</span></td>';
-      tbody.appendChild(tr);
+        '<td><button type="button" class="fund-pick" data-r="' + (isFinite(r)?r:0) + '">' + (isFinite(r)?r:0) + '%</button></td>';
+      targets.forEach(function(t){ const need = Math.round(neededMonthly(t.target, r, years)); cells += '<td><span class="fund-need">' + yen(need) + ' 円</span></td>'; });
+      body += '<tr>' + cells + '</tr>';
     });
-    const targetInputId = (tbodyId === 'fundBodyPayoff') ? 'yieldPayoff' : 'yieldStress';
-    Array.prototype.forEach.call(tbody.querySelectorAll('.fund-pick'), function(btn){
+    cont.innerHTML = '<table class="fund-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+    Array.prototype.forEach.call(cont.querySelectorAll('.fund-pick'), function(btn){
       btn.addEventListener('click', function(){
-        const el = $(targetInputId); if(!el) return;
+        const el = $(yieldInputId); if(!el) return;
         el.value = btn.getAttribute('data-r'); el.classList.remove('pristine');
         el.dispatchEvent(new Event('input', {bubbles:true}));
       });
     });
     if($('fundCond')) $('fundCond').innerHTML =
-      '各銘柄の年率は<b>' + FUND_ASOF + '基準・過去' + h + '年のトータルリターン</b>（出典：ウエルスアドバイザー／Yahoo!ファイナンス投資信託の各ファンドページ。信託報酬控除後の基準価額ベース、分配金再投資）。積立は期末つみたて・月複利換算（(1+年率)^(1/12)−1）で' + years + '年運用した概算です。' +
+      '各銘柄の年率は<b>' + FUND_ASOF + '基準・過去' + h + '年のトータルリターン</b>（出典：ウエルスアドバイザー／Yahoo!ファイナンス投資信託の各ファンドページ。信託報酬控除後の基準価額ベース、分配金再投資）。積立は期末つみたて・月複利換算（(1+年率)^(1/12)−1）で運用した概算です。' +
       '<b>直近は株式市場が大きく上昇した局面であり、この利回りが今後も続く前提ではありません。</b>税金（NISA枠外 約20.315%）・売買手数料・為替変動・積立時期の分散効果は考慮していません。定期預金は実績ではなく保守ケースの参考値です。想定利回りは営業側で自由に変更できます。';
   }
 
-  // 金利上昇：増額を打ち消す積立を「想定利回り」で試算（現金より抑えられる額を表示）
-  var gStressTarget=0, gStressSaveYears=0, gStressCashMonthly=0, gStressScenarioNo=1;
+  // 金利上昇：増額を打ち消す積立を「想定利回り」で試算（シナリオ①②を両方表示）
+  var gStressScenarios=[], gStressSaveYears=0;
   function stressYieldUpdate(){
-    const which = gStressScenarioNo, years = gStressSaveYears, cash = gStressCashMonthly, target = gStressTarget;
-    if($('stressYieldSub')) $('stressYieldSub').innerHTML =
-      'シナリオ' + (which===1?'①':'②') + 'の増額を打ち消す積立目標＝毎月 <b>' + yen(cash) + ' 円</b>（' + years + '年で累計 <b>' + yen(target) + ' 円</b>）。運用すれば毎月の積立額を抑えられます。';
+    const years = gStressSaveYears;
     const y = iv('yieldStress'); const yieldPct = isFinite(y) ? Math.max(0,y) : 0;
-    const need = Math.round(neededMonthly(target, yieldPct, years));
-    const saved = Math.max(0, cash - need);
-    if($('stressYieldOut')) $('stressYieldOut').innerHTML =
-      '<div class="yo-lead">想定利回り <b>' + (Math.round(yieldPct*100)/100) + '%</b> で ' + years + '年間運用して、累計 ' + yen(target) + '円 を用意する場合</div>' +
-      '<div class="yo-amt">' + yen(need) + '<small> 円 / 月</small></div>' +
-      '<div class="yo-note">' + (saved>0 ? '現金でためる場合（毎月 ' + yen(cash) + '円）より 毎月 ' + yen(saved) + '円 少なくて済みます' : '現金とほぼ同じ') + '</div>';
-    renderFundRef('fundBody', target, years);
+    if($('stressYieldSub')) $('stressYieldSub').innerHTML =
+      '想定利回り <b>' + (Math.round(yieldPct*100)/100) + '%</b> で ' + years + '年間運用して、増額分を用意する場合の毎月の積立額です（シナリオ①・②）。';
+    let html = '';
+    gStressScenarios.forEach(function(s){
+      const need = Math.round(neededMonthly(s.target, yieldPct, years));
+      const saved = Math.max(0, s.cash - need);
+      html +=
+        '<div class="yo-block">' +
+        '<div class="yo-lead"><b>シナリオ' + s.mark + '（＋' + s.delta + '%）</b>：増額を打ち消す積立目標 毎月 ' + yen(s.cash) + '円（' + years + '年で累計 ' + yen(s.target) + '円）</div>' +
+        '<div class="yo-amt">' + yen(need) + '<small> 円 / 月</small></div>' +
+        '<div class="yo-note">' + (saved>0 ? '現金でためる場合（毎月 ' + yen(s.cash) + '円）より 毎月 ' + yen(saved) + '円 少なくて済みます' : '現金とほぼ同じ') + '</div>' +
+        '</div>';
+    });
+    if($('stressYieldOut')) $('stressYieldOut').innerHTML = html;
+    renderFundRef('fundRefStress', gStressScenarios.map(function(s){ return {label:'シナリオ'+s.mark+'<br>毎月', target:s.target}; }), years, 'yieldStress');
   }
 
   // ============ ◯歳で完済（繰上げ完済）＋早い繰上げほど利息が減る ============
@@ -2235,34 +2256,62 @@
     const r=(rate/100)/12; const n=years*12;
     const mp = principalYen - bonusPrincipalOf(principalYen);
     const av=iv('borrowerAge'); const startAge=(av&&av>0)?Math.round(av):null;
-    const payAge=Math.round(iv('payoffAge')||0);
-    const py = (startAge!=null && isFinite(payAge)) ? (payAge-startAge) : NaN;
+    const ageMode = (startAge!=null);
 
-    if(!(mp>0) || n<=0 || !isFinite(py) || py<1 || py>=years){
+    // モード切替（年齢が分かれば年齢入力、なければ年目入力）
+    if($('payoffCtrlAge')) $('payoffCtrlAge').style.display = ageMode ? '' : 'none';
+    if($('payoffCtrlYear')) $('payoffCtrlYear').style.display = ageMode ? 'none' : '';
+
+    if(!(mp>0) || n<=0 || years<2){
       gPayoffLump=0; gPayoffYears=0;
       if($('payoffLump')) $('payoffLump').textContent='—';
-      if($('payoffSub')) $('payoffSub').textContent =
-        (startAge==null) ? '「借入時の年齢」を入力すると計算できます。'
-        : (!isFinite(payAge)||payAge<=startAge) ? '完済年齢は現在の年齢より後にしてください。'
-        : (py>=years) ? ('指定の年齢（'+payAge+'歳）は通常返済での完済（'+(startAge+years)+'歳）以降です。それより前の年齢を指定してください。')
-        : '完済年齢が早すぎます。';
+      if($('payoffSub')) $('payoffSub').textContent='借入条件を入力すると計算します。';
       if($('payoffYieldSub')) $('payoffYieldSub').textContent='';
       if($('payoffYieldOut')) $('payoffYieldOut').innerHTML='';
-    } else {
-      const A=annuityPayment(mp,r,n); let bal=mp; const M=py*12;
-      for(let k=0;k<M;k++){ const it=bal*r; let pr=A-it; if(pr>bal)pr=bal; bal=Math.max(0,bal-pr); }
-      const lump=Math.max(0,bal);
-      gPayoffLump=lump; gPayoffYears=py;
-      if($('payoffHeadLabel')) $('payoffHeadLabel').textContent = payAge+'歳で完済するための一括返済額（残債）';
-      if($('payoffLump')) $('payoffLump').innerHTML = yen(Math.round(lump))+'<small>円</small>';
-      if($('payoffSub')) $('payoffSub').textContent = '借入から '+py+'年目（'+payAge+'歳）に一括返済すると完済。今から '+py+'年間で用意する想定です（元利均等・ボーナス分を除く概算）。';
-      payoffYieldUpdate();
+      if($('fundRefPayoff')) $('fundRefPayoff').innerHTML='';
+      renderEarlyLate(); return;
     }
+
+    const defPy = Math.max(1, Math.min(years-1, years-5)); // 完済5年前（デフォルト）
+    // 入力欄の「実際に打ち込まれた値」だけを読む（プレースホルダは無視）
+    function rawNum(id){ var el=$(id); if(!el) return NaN; var v=String(el.value||'').trim(); if(v==='') return NaN; v=zen2han(v).replace(/,/g,'').replace(/[^0-9.\-]/g,''); return v===''?NaN:parseFloat(v); }
+    // 未入力／範囲外はデフォルト（完済5年前）に
+    let py, usedDefault=false;
+    if(ageMode){
+      const payAge = isFinite(rawNum('payoffAge')) ? rawNum('payoffAge') : rawNum('payoffAgeR');
+      if(isFinite(payAge) && payAge>startAge && (payAge-startAge)<years){ py=payAge-startAge; }
+      else { py=defPy; usedDefault=true; }
+      if($('payoffAge')) $('payoffAge').placeholder = String(startAge+defPy);
+      if($('payoffAgeR')) $('payoffAgeR').placeholder = String(startAge+defPy);
+    } else {
+      const yr=rawNum('payoffYearR');
+      if(isFinite(yr) && yr>=1 && yr<years){ py=Math.round(yr); }
+      else { py=defPy; usedDefault=true; }
+      if($('payoffYearR')) $('payoffYearR').placeholder = String(defPy);
+    }
+    py = Math.max(1, Math.min(years-1, py));
+    gPayoffYears = py;
+
+    const A=annuityPayment(mp,r,n); let bal=mp; const M=py*12;
+    for(let k=0;k<M;k++){ const it=bal*r; let pr=A-it; if(pr>bal)pr=bal; bal=Math.max(0,bal-pr); }
+    gPayoffLump=Math.max(0,bal);
+    const payAgeShown = ageMode ? (startAge+py) : null;
+
+    if($('payoffHeadLabel')) $('payoffHeadLabel').textContent =
+      ageMode ? (payAgeShown+'歳で完済するための一括返済額（残債）') : ('借入から'+py+'年目で完済するための一括返済額（残債）');
+    if($('payoffLump')) $('payoffLump').innerHTML = yen(Math.round(gPayoffLump))+'<small>円</small>';
+    if($('payoffSub')) $('payoffSub').textContent =
+      (ageMode ? ('借入から '+py+'年目（'+payAgeShown+'歳）に一括返済すると完済。')
+               : ('借入から '+py+'年目に一括返済すると完済。'))
+      + '今から '+py+'年間で用意する想定です（元利均等・ボーナス分を除く概算）。'
+      + (usedDefault ? '　※未入力のため「完済の5年前」を初期表示しています。' : '')
+      + (!ageMode ? '　※「借入時の年齢」を入れると年齢で指定できます。' : '');
+    payoffYieldUpdate();
     renderEarlyLate();
   }
 
   function payoffYieldUpdate(){
-    if(!(gPayoffLump>0) || !(gPayoffYears>0)){ if($('payoffYieldOut'))$('payoffYieldOut').innerHTML=''; return; }
+    if(!(gPayoffLump>0) || !(gPayoffYears>0)){ if($('payoffYieldOut'))$('payoffYieldOut').innerHTML=''; if($('fundRefPayoff'))$('fundRefPayoff').innerHTML=''; return; }
     const y=iv('yieldPayoff'); const yieldPct=isFinite(y)?Math.max(0,y):0;
     const need=Math.round(neededMonthly(gPayoffLump, yieldPct, gPayoffYears));
     if($('payoffYieldSub')) $('payoffYieldSub').innerHTML='一括返済額 <b>'+yen(Math.round(gPayoffLump))+' 円</b> を、今から '+gPayoffYears+'年間で積み立てて用意する場合の毎月額です。';
@@ -2270,7 +2319,7 @@
       '<div class="yo-lead">想定利回り <b>'+(Math.round(yieldPct*100)/100)+'%</b> で '+gPayoffYears+'年間運用して '+yen(Math.round(gPayoffLump))+'円 を用意する場合</div>'+
       '<div class="yo-amt">'+yen(need)+'<small> 円 / 月</small></div>'+
       '<div class="yo-note">元本（毎月 '+yen(need)+'円 ×'+(gPayoffYears*12)+'回）の合計 '+yen(need*gPayoffYears*12)+'円。差額は運用益で補う概算です。</div>';
-    renderFundRef('fundBodyPayoff', gPayoffLump, gPayoffYears);
+    renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], gPayoffYears, 'yieldPayoff');
   }
 
   // 早い繰上げほど利息が減る：序盤5年（借入2年後〜）vs 終盤5年（完済直前）
@@ -2648,9 +2697,6 @@
   document.querySelectorAll('input[name=method]').forEach(el=>{
     el.addEventListener('change', stressTest);
   });
-  document.querySelectorAll('input[name=fundBase]').forEach(el=>{
-    el.addEventListener('change', stressTest);
-  });
   // 想定利回りセレクタ（チップ＋入力）：金利上昇の積立／完済の積立
   Array.prototype.forEach.call(document.querySelectorAll('.yp-chips'), function(row){
     var target=row.getAttribute('data-target');
@@ -2664,18 +2710,63 @@
   });
   if($('yieldStress')){ attachClear($('yieldStress')); ['input','change'].forEach(function(ev){ $('yieldStress').addEventListener(ev, stressYieldUpdate); }); }
   if($('yieldPayoff')){ attachClear($('yieldPayoff')); ['input','change'].forEach(function(ev){ $('yieldPayoff').addEventListener(ev, payoffYieldUpdate); }); }
-  // 完済年齢：変更で残債・積立を再計算し、グラフの縦ラインも完済年に合わせる
-  if($('payoffAge')){
-    attachClear($('payoffAge'));
-    $('payoffAge').addEventListener('change', function(){
-      payoffSim();
-      if(gPayoffYears>0 && $('focusYear')){ $('focusYear').value=gPayoffYears; $('focusYear').classList.remove('pristine'); renderStatement(); }
-    });
+  // 完済：残債・積立を再計算し、グラフの縦ラインも完済年に合わせる
+  function payoffRecalc(){
+    payoffSim();
+    if(gPayoffYears>0 && $('focusYear')){ $('focusYear').value=gPayoffYears; $('focusYear').classList.remove('pristine'); renderStatement(); }
   }
+  // 完済年齢：入力欄（ドロワー）と結果欄を相互同期
+  function syncPayoffAge(fromEl, toEl){ if(toEl){ toEl.value=fromEl.value; toEl.classList.toggle('pristine', fromEl.classList.contains('pristine')); } }
+  if($('payoffAge') && $('payoffAgeR')){
+    attachClear($('payoffAge')); attachClear($('payoffAgeR'));
+    $('payoffAge').addEventListener('input', function(){ syncPayoffAge($('payoffAge'),$('payoffAgeR')); });
+    $('payoffAge').addEventListener('change', function(){ syncPayoffAge($('payoffAge'),$('payoffAgeR')); payoffRecalc(); });
+    $('payoffAgeR').addEventListener('input', function(){ syncPayoffAge($('payoffAgeR'),$('payoffAge')); });
+    $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge($('payoffAgeR'),$('payoffAge')); payoffRecalc(); });
+  }
+  // 完済時期（年目：借入年齢が未入力のとき）
+  if($('payoffYearR')){ attachClear($('payoffYearR')); $('payoffYearR').addEventListener('change', payoffRecalc); }
+  // ◀▶（年齢／年目）
+  function stepField(id, delta, mode){
+    var el=$(id); if(!el) return;
+    var years=Math.round(iv('years')||0);
+    var av=iv('borrowerAge'); var startAge=(av&&av>0)?Math.round(av):null;
+    var cur=iv(id);
+    if(!isFinite(cur)){ // 空欄なら現在の実効値（完済5年前）から
+      var defPy=Math.max(1,Math.min(years-1,years-5));
+      cur = (mode==='age' && startAge!=null) ? (startAge+defPy) : defPy;
+    }
+    el.value=Math.round(cur)+delta; el.classList.remove('pristine');
+    if(mode==='age' && $('payoffAge')) syncPayoffAge(el, $('payoffAge'));
+    payoffRecalc();
+  }
+  if($('payoffPrev')) $('payoffPrev').addEventListener('click', function(){ stepField('payoffAgeR',-1,'age'); });
+  if($('payoffNext')) $('payoffNext').addEventListener('click', function(){ stepField('payoffAgeR',1,'age'); });
+  if($('payoffPrevY')) $('payoffPrevY').addEventListener('click', function(){ stepField('payoffYearR',-1,'year'); });
+  if($('payoffNextY')) $('payoffNextY').addEventListener('click', function(){ stepField('payoffYearR',1,'year'); });
+
   ['principal','rate','years','bonusRatio','borrowerAge'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', payoffSim);
   });
   document.querySelectorAll('input[name=method]').forEach(el=>{ el.addEventListener('change', payoffSim); });
+
+  // グラフをタップ／左右ドラッグで「経過年」を動かす
+  (function(){
+    var el=$('stripChart'); if(!el) return;
+    var dragging=false;
+    function toYear(clientX){
+      var wrap=el.querySelector('.chart-wrap'); if(!wrap||!gLastYearly||!gLastYearly.length) return null;
+      var rect=wrap.getBoundingClientRect(); if(rect.width<=0) return null;
+      var f=(clientX-rect.left)/rect.width; f=Math.max(0,Math.min(1,f));
+      var N=gLastYearly.length;
+      return Math.max(1, Math.min(N, Math.round(f*(N-1))+1));
+    }
+    function apply(clientX){ var y=toYear(clientX); if(y==null) return; var fy=$('focusYear'); if(fy){ fy.value=y; fy.classList.remove('pristine'); } renderStatement(); }
+    el.addEventListener('pointerdown', function(e){ dragging=true; try{el.setPointerCapture(e.pointerId);}catch(x){} apply(e.clientX); });
+    el.addEventListener('pointermove', function(e){ if(dragging) apply(e.clientX); });
+    window.addEventListener('pointerup', function(){ dragging=false; });
+    el.addEventListener('pointercancel', function(){ dragging=false; });
+  })();
 
   $('diagBtn').addEventListener('click', diagnose);
   ['income','otherDebt','burdenRatio','autoRatio','diagRate','stressRate','diagYears'].forEach(id=>{
@@ -2941,7 +3032,6 @@
   });
   $('stressClear').addEventListener('click', ()=>{
     $('scenario1').value = 0.5; $('scenario2').value = 1.0; $('saveYears').value = 10;
-    document.querySelector('input[name=fundBase][value="1"]').checked = true;
     if($('yieldStress')) $('yieldStress').value = 6;
     stressTest();
   });
