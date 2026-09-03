@@ -148,17 +148,18 @@
   body{padding-bottom:104px;} /* 右下FABの余白 */
 
   /* 右下フローティング入力ボタン（FAB） */
+  /* FABはグラフの元金（ティール）と色が被らないよう濃紺×ゴールド縁で独立させる */
   .fab-input{
     position:fixed;right:22px;bottom:24px;width:62px;height:62px;border-radius:50%;
-    background:var(--principal);color:#fff;border:1px solid var(--principal);
-    box-shadow:0 12px 30px -8px rgba(27,42,74,.5);z-index:60;cursor:pointer;
+    background:var(--text);color:var(--gold);border:2px solid var(--gold);
+    box-shadow:0 12px 30px -8px rgba(27,42,74,.55);z-index:60;cursor:pointer;
     display:flex;align-items:center;justify-content:center;padding:0;
     transition:transform .22s ease, background .2s, filter .2s;
   }
   .fab-input .fab-ico{font-size:24px;line-height:1;transition:transform .22s ease;}
-  .fab-input::after{content:"入力";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--principal);font-weight:700;letter-spacing:.04em;white-space:nowrap;}
-  .fab-input:hover{filter:brightness(1.08);}
-  .fab-input.on{background:var(--gold);border-color:var(--gold-soft);}
+  .fab-input::after{content:"入力";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text);font-weight:700;letter-spacing:.04em;white-space:nowrap;}
+  .fab-input:hover{filter:brightness(1.15);}
+  .fab-input.on{background:var(--gold);color:#fff;border-color:var(--gold-soft);}
   .fab-input.on .fab-ico{transform:rotate(45deg);}
   .fab-input.on::after{content:"閉じる";color:var(--gold-soft);}
 
@@ -421,10 +422,22 @@
   .stmt-axis{display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin-top:6px;font-family:var(--mono);}
   .swatch.bal{width:16px;height:0;background:none;border-top:2px dashed var(--gold-soft);}
 
+  /* 結果画面から借入条件を直接変更するクイックバー（ドロワーと連動） */
+  .quick-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;background:#f4f1e8;border-bottom:1px solid var(--border);}
+  .qb-field{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:text;}
+  .qb-field:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
+  .qb-k{font-size:0.7rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
+  .qb-u{font-size:0.68rem;color:var(--text-dim);white-space:nowrap;}
+  .qb-field input{width:66px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:transparent;border:none;outline:none;padding:1px 0;}
+  .qb-field input.pristine{color:#a2a8b5;}
+  .qb-reset{margin-left:auto;flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:7px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .qb-reset:hover{background:var(--rose);color:#fff;border-color:var(--rose);}
+
   /* パターン比較 */
-  .cmp-add-row{padding:12px 24px 0;}
-  .cmp-add-btn{width:100%;font-family:var(--gothic);font-size:0.9rem;font-weight:600;color:#fff;background:var(--principal);border:1px solid var(--principal);border-radius:8px;padding:11px 16px;cursor:pointer;transition:all .15s;}
-  .cmp-add-btn:hover{filter:brightness(1.05);}
+  .share-row{display:flex;align-items:center;gap:12px;padding:12px 24px 0;}
+  .share-row .interest-share{padding:0;flex:1 1 auto;min-width:0;}
+  .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .cmp-add-btn:hover{background:var(--gold-soft);}
   .cmp-add-btn:active{transform:translateY(1px);}
   .cmp-panel{max-width:1080px;margin:20px auto 0;padding:18px 20px;}
   .cmp-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
@@ -457,6 +470,20 @@
   .gf-readout{margin-top:12px;}
   .gf-year-head{font-size:0.82rem;color:var(--text);font-weight:600;margin-bottom:8px;}
   .gf-year-head .gf-age{color:var(--gold-soft);font-family:var(--mono);margin-left:6px;font-weight:400;}
+  /* ◯年目の内訳：返済額が元金・利息の上にまたぎ、縦は1/2ずつ。割合は右で2行ぶん */
+  .gf-breakdown{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .gf-breakdown .gf-total{grid-column:1 / span 2;grid-row:1;margin-bottom:0;}
+  .gf-breakdown .bd-p{grid-column:1;grid-row:2;}
+  .gf-breakdown .bd-i{grid-column:2;grid-row:2;}
+  .gf-breakdown .bd-s{grid-column:3;grid-row:1 / span 2;display:flex;flex-direction:column;justify-content:center;}
+  @container (max-width:430px){
+    .gf-breakdown{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;}
+    .gf-breakdown .gf-total{grid-column:1 / span 2;grid-row:1;}
+    .gf-breakdown .bd-p{grid-column:1;grid-row:2;}
+    .gf-breakdown .bd-i{grid-column:2;grid-row:2;}
+    .gf-breakdown .bd-s{grid-column:1 / span 2;grid-row:3;}
+    .gf-breakdown .bd-s .k br{display:none;}
+  }
   .gf-total{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:#eef2f6;border:1px solid var(--border-soft);border-radius:7px;padding:9px 13px;margin-bottom:8px;}
   .gf-total .gt-k{font-size:0.76rem;color:var(--text-dim);font-weight:600;}
   .gf-total .gt-v{font-family:var(--mono);font-size:1.2rem;color:var(--text);font-weight:600;}
@@ -473,6 +500,7 @@
   .gf-span .sr .mono{font-family:var(--mono);}
   .gf-span .sr.pc .mono{color:var(--principal);}
   .gf-span .sr.ic .mono{color:var(--interest);}
+  .gf-span .sr-pct{font-size:0.74rem;color:var(--text-dim);margin-left:4px;}
   .gf-grid.two{grid-template-columns:repeat(2,1fr);}
   .gf-cell .sr{padding:3px 0;}
   .gf-cell .sr.pc .mono{color:var(--principal);}
@@ -832,7 +860,6 @@
       <button type="button" class="tab" data-mod="base" aria-pressed="true">返済＋金利上昇積立</button>
       <button type="button" class="tab" data-mod="m21" aria-pressed="false"><span class="tnum">2-1</span>借入可能額</button>
       <button type="button" class="tab" data-mod="m23" aria-pressed="false"><span class="tnum">2-3</span>賃貸転用</button>
-      <button type="button" class="tab" data-mod="m24" aria-pressed="false"><span class="tnum">2-4</span>買う vs 借りる</button>
       <button type="button" class="tab" data-mod="m25" aria-pressed="false"><span class="tnum">2-5</span>住宅ローン控除</button>
     </div>
   </div>
@@ -917,6 +944,14 @@
 
     <!-- RESULTS PANEL -->
     <div class="panel">
+      <!-- 結果画面から借入条件を直接変更（ドロワーの入力欄と双方向連動） -->
+      <div class="quick-bar">
+        <label class="qb-field"><span class="qb-k">借入</span><input type="text" inputmode="numeric" id="qPrincipal"><span class="qb-u">万円</span></label>
+        <label class="qb-field"><span class="qb-k">金利</span><input type="text" inputmode="decimal" id="qRate"><span class="qb-u">%</span></label>
+        <label class="qb-field"><span class="qb-k">ボーナス</span><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
+        <button type="button" class="qb-reset" id="qReset">全クリア</button>
+      </div>
+
       <div class="headline-figure">
         <div class="headline-label">毎月の返済額（初回）</div>
         <div class="headline-value" id="monthlyPayment">—</div>
@@ -938,23 +973,15 @@
         </div>
       </div>
 
-      <div class="interest-share" id="interestShare"></div>
-
-      <div class="cmp-add-row">
-        <button type="button" class="cmp-add-btn" id="cmpAdd">＋ この条件を比較に追加</button>
+      <div class="share-row">
+        <div class="interest-share" id="interestShare"></div>
+        <button type="button" class="cmp-add-btn" id="cmpAdd" title="この条件を比較に追加">＋追加</button>
       </div>
 
       <div class="strip-section">
         <div class="strip-title">元利内訳ステートメント</div>
-        <div class="strip-sub">毎年の返済に占める元金（下）・利息（上）の割合と、残高の推移（点線・借入額に対する割合）</div>
-        <div class="legend">
-          <span><span class="swatch pcol"></span>元金</span>
-          <span><span class="swatch icol"></span>利息</span>
-          <span><span class="swatch bal"></span>残高</span>
-        </div>
-        <div id="stripChart"></div>
 
-        <!-- グラフ操作：経過年（縦ライン）＋試算期間（四角） -->
+        <!-- 経過年（縦ライン）＋試算期間（四角）→ その下にグラフ -->
         <div class="graph-focus">
           <div class="gf-controls">
             <div class="gf-ctrl">
@@ -970,6 +997,14 @@
               <span class="gf-unit">年間</span>
             </div>
           </div>
+
+          <div class="legend">
+            <span><span class="swatch pcol"></span>元金</span>
+            <span><span class="swatch icol"></span>利息</span>
+            <span><span class="swatch bal"></span>残高</span>
+          </div>
+          <div id="stripChart"></div>
+
           <div class="gf-readout" id="gfReadout"></div>
         </div>
       </div>
@@ -1201,9 +1236,9 @@
       </div>
 
       <!-- 繰上げは早いほど利息が減る：序盤5年 vs 終盤5年 -->
-      <div class="strip-section">
+      <div class="strip-section" id="earlyLateSection">
         <div class="strip-title">繰上げは「早いほど」利息が減る</div>
-        <div class="strip-sub">同じ5年間でも、序盤は返済に占める利息が大きいので、早い時期の繰上げ・完済ほど<b>減らせる利息</b>が大きくなります。</div>
+        <div class="strip-sub" id="earlyLateLead">同じ5年間でも、序盤は返済に占める利息が大きいので、早い時期の繰上げ・完済ほど<b>減らせる利息</b>が大きくなります。</div>
         <div class="gf-grid two" style="margin-top:12px;">
           <div class="gf-cell"><div class="k" id="earlyHead">序盤5年（借入2年後〜）</div>
             <div class="sr pc" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>元金</span><span class="mono" id="earlyP">—</span></div>
@@ -1475,156 +1510,6 @@
     </div>
   </div>
 
-  <!-- ============ 2-4. 買う vs 借り続ける 比較試算 ============ -->
-  <div class="section-heading">
-    <span class="num">診断 2-4</span>
-    <h2>買う vs 借り続ける（累計支出の比較）<span class="badge">概算・目安</span></h2>
-  </div>
-  <p class="section-body lead" style="color:var(--text-dim);font-size:0.78rem;margin-top:8px;">
-    購入した場合と、賃貸に住み続けた場合の一定期間の累計支出を比較します。将来の家賃上昇率・資産価値は不確実性が高いため、シナリオを切り替えて幅で確認してください。
-  </p>
-
-  <div class="section-body">
-    <div class="grid">
-
-      <!-- INPUT: 営業操作パネル -->
-      <div class="panel">
-        <div class="ledger-title">比較条件</div>
-
-        <div class="field-row">
-          <label>シナリオ（将来前提）</label>
-          <div class="radio-group">
-            <label><input type="radio" name="scenario" value="conservative"> 保守的</label>
-            <label><input type="radio" name="scenario" value="standard" checked> 標準</label>
-            <label><input type="radio" name="scenario" value="optimistic"> 楽観</label>
-          </div>
-          <div class="field-hint">シナリオを選ぶと「家賃上昇率」と「売却時の残価率」を目安値に設定します（個別に上書きも可能）。</div>
-        </div>
-
-        <div class="field-row">
-          <label for="rentNow">現在の家賃（月額）</label>
-          <div class="field-input">
-            <input type="number" id="rentNow" value="120000" min="0" step="1000">
-            <span class="unit">円 / 月</span>
-          </div>
-          <div class="field-hint">実際に毎月支払っている家賃を円で入力してください。<b>共益費・管理費を含む総額</b>で入力するのが実態に近くなります（駐車場代・更新料は含みません）。</div>
-        </div>
-
-        <div class="field-row">
-          <label for="rentGrowth">家賃上昇率（年）</label>
-          <div class="field-input">
-            <input type="number" id="rentGrowth" value="1.0" min="-5" max="10" step="0.1">
-            <span class="unit">% / 年</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="liveYears">想定居住年数</label>
-          <div class="field-input">
-            <input type="number" id="liveYears" value="35" min="1" max="60" step="1">
-            <span class="unit">年</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="propPrice">物件価格（売却額の算定用）</label>
-          <div class="field-input">
-            <input type="number" id="propPrice" value="4000" min="0" step="10">
-            <span class="unit">万円</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="residualPct">売却時の残価率（居住年数経過後）</label>
-          <div class="field-input">
-            <input type="number" id="residualPct" value="70" min="0" max="200" step="1">
-            <span class="unit">%</span>
-          </div>
-          <div class="field-hint" id="resaleHint"></div>
-        </div>
-
-        <div class="field-row">
-          <label for="propTax">固定資産税・都市計画税（年）</label>
-          <div class="field-input">
-            <input type="number" id="propTax" value="12" min="0" step="0.5">
-            <span class="unit">万円 / 年</span>
-          </div>
-          <label class="toggle-row" for="propTaxAuto">
-            <input type="checkbox" id="propTaxAuto">
-            物件価格から概算する（目安：物件価格の約0.3%/年）
-          </label>
-          <div class="field-hint" id="propTaxHint">チェックすると「物件価格 × 0.3%」でざっくり自動入力します。実際は土地・建物の課税標準額（住宅用地の1/6特例・新築軽減・経年減価等）で大きく変わるため、正確な額は課税明細書でご確認ください。手入力するとチェックは外れます。</div>
-        </div>
-
-        <div class="field-row">
-          <label for="ownMgmt">管理費・修繕積立金（月額）</label>
-          <div class="field-input">
-            <input type="number" id="ownMgmt" value="2" min="0" step="0.1">
-            <span class="unit">万円 / 月</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="fireIns">火災保険料（1年あたり）</label>
-          <div class="field-input">
-            <input type="number" id="fireIns" value="1" min="0" step="0.5">
-            <span class="unit">万円 / 年</span>
-          </div>
-          <div class="field-hint">火災保険（＋地震保険）は5〜10年分をまとめて契約・一括払いするのが一般的です。ここには<b>契約総額を年数で割った「1年あたりの目安額」</b>を入力してください（例：10年で20万円 → 年2万円）。</div>
-        </div>
-
-        <div class="action-row">
-          <button class="table-toggle" id="compareBtn" style="border-color:var(--gold);color:var(--gold);">比較する</button>
-          <button class="btn-clear" id="compareClear" type="button">クリア</button>
-        </div>
-      </div>
-
-      <!-- RESULT: 顧客向け結果パネル -->
-      <div class="panel">
-        <div class="headline-figure">
-          <div class="headline-label" id="cmpHeadLabel">居住期間の累計支出の差</div>
-          <div class="headline-value" id="cmpHeadline">—</div>
-          <div class="headline-sub" id="cmpHeadSub"></div>
-        </div>
-
-        <div class="stat-strip four">
-          <div class="stat">
-            <div class="stat-label">賃貸継続 累計</div>
-            <div class="stat-value mono" id="rentTotal">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">購入 総支出</div>
-            <div class="stat-value mono" id="buyTotal">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">売却想定額</div>
-            <div class="stat-value teal mono" id="resaleVal">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">購入 実質コスト</div>
-            <div class="stat-value mono" id="buyNet">—</div>
-          </div>
-        </div>
-
-        <div class="compare-strip">
-          <div class="compare-cell">
-            <div class="stat-label">賃貸継続（累計支出）</div>
-            <div class="stat-value mono" id="cmpRent">—</div>
-          </div>
-          <div class="compare-cell">
-            <div class="stat-label">購入（実質コスト＝総支出−売却額）</div>
-            <div class="stat-value mono" id="cmpBuy">—</div>
-          </div>
-        </div>
-
-        <div class="source-note">
-          <strong style="color:var(--text);">計算方法・前提：</strong>賃貸継続＝現在の家賃を家賃上昇率で複利成長させ、居住年数分を累計。購入 総支出＝ローン返済（上の「借入条件」から居住年数分）＋固定資産税・都市計画税＋管理費・修繕積立金＋火災保険等の累計。購入 実質コスト＝総支出−売却想定額（物件価格×残価率）。<strong style="color:var(--text);">頭金・購入諸費用（登記・仲介・ローン手数料等）、賃貸の更新料・引越費用、金利変動、インフレ、税制優遇（住宅ローン控除）は含めていません。</strong>将来の家賃・資産価値は不確実性が高いため、シナリオを切り替えて幅でご確認ください。あくまで概算・目安です。
-        </div>
-      </div>
-
-    </div>
-  </div>
-
   <!-- ============ 2-5. 住宅ローン控除の試算 ============ -->
   <div class="section-heading">
     <span class="num">診断 2-5</span>
@@ -1640,6 +1525,11 @@
       <!-- INPUT: 営業操作パネル -->
       <div class="panel">
         <div class="ledger-title">控除の条件</div>
+
+        <div class="field-row">
+          <label>試算のベース（「返済＋金利上昇積立」から引き継ぎ）</label>
+          <div class="field-hint" id="creditBase" style="margin-top:0;color:var(--text);"></div>
+        </div>
 
         <div class="field-row">
           <label for="moveInYear">入居年</label>
@@ -1771,7 +1661,9 @@
     <div class="na-title">注記（計算方法・前提・出典）</div>
 
     <p><strong>返済・グラフの計算方法：</strong>本シミュレーションは元利均等・元金均等の一般的な計算式に基づく概算です。ボーナス返済分は借入元本の一定割合を切り出し、月々分は月次複利、ボーナス分は半年複利として簡易計算しています。実際の金融機関の返済予定表は、初回返済日の端数計算・うるう年の扱い・手数料等により本ツールの数値と若干異なる場合があります。金利は入力時点の想定値であり、将来の金利変動（変動金利の場合）は反映していません。<strong>住宅ローン控除等の税制優遇は含まれていません。</strong><br>
-    グラフの<b>縦ライン＝選択した「経過年」</b>、<b>四角＝経過年から「試算期間」年ぶんの範囲</b>です。①元金②利息③割合は経過年の<b>単年</b>、④は試算期間の<b>合計</b>（いずれも万円未満を四捨五入）。<b>割合＝利息÷その年の返済額</b>（結果・償還表の「利息割合」も同じ定義。ページ上部の「利息の割合」は 利息合計÷総返済額）。年齢は<b>「借入時の年齢」＋経過年数</b>（各年の初め時点）で、償還表・グラフに表示します。</p>
+    グラフの<b>縦ライン＝選択した「経過年」</b>、<b>四角＝経過年から「試算期間」年ぶんの範囲</b>です（グラフはタップ／左右ドラッグでも経過年を動かせます）。「◯年目の内訳」の返済額・元金・利息・割合は経過年の<b>単年</b>、「◯〜◯年目の合計」は試算期間の<b>合計</b>（いずれも万円未満を四捨五入）。<b>割合＝利息÷返済額</b>で、単年（内訳）・期間合計・償還表の「利息割合」すべて同じ定義です。結果上部の<b>「総返済額に占める利息の割合」＝利息合計÷総返済額</b>（全期間ベース）。年齢は<b>「借入時の年齢」＋経過年数</b>（各年の初め時点）で、グラフ・償還表・住宅ローン控除の推移に表示します。<br>
+    <strong>結果画面のクイックバー：</strong>結果の上にある「借入・金利・ボーナス」は入力欄（✎入力）と同じ値を指しており、どちらを変えても双方に反映され、全シートが再計算されます。「全クリア」はすべての入力を初期値に戻します。<br>
+    <strong>「＋追加」（パターン比較）：</strong>その時点の借入条件と結果（毎月返済・総返済額・元金・利息・利息割合）を控えて一覧に並べます。総返済額が近くても元金と利息の内訳が変わることを比較するための機能で、保存はブラウザを閉じるまでの一時的なものです。</p>
 
     <p><strong>金利上昇・別枠積立の前提：</strong>上の「借入条件」と同じ借入元本・返済期間・返済方法で、金利だけを上昇させたときの毎月返済額（初回）を再計算し、現行金利との差額を「毎月の積立目標額」として表示しています（ボーナス返済分を除いた毎月返済額どうしの比較）。実際の変動金利は上昇の時期・幅・見直しルールにより異なり、本試算は一定幅で即時上昇した場合の概算です。<br>
     <strong>「元の月額に戻す一括返済」：</strong>積立期間の年数だけ現行金利で返済した時点の残債に対し、上昇後の金利・残存期間で毎月返済額が現行水準に一致するよう、必要な一括返済額を逆算した概算です（元利均等・ボーナス分を除く。手数料・端数は考慮していません）。<br>
@@ -1780,6 +1672,8 @@
 
     <p><strong>「◯歳で完済」の計算方法：</strong>「借入時の年齢」と「完済したい年齢」の差を経過年数とし、その時点の残債（元利均等・ボーナス分を除く）を<b>一括返済に必要な元金</b>として表示します。さらにその金額を、今から完済年齢までの年数・選んだ想定利回りで積み立てて用意する場合の毎月額を逆算しています（期末つみたて・月複利、税・手数料は考慮せず）。<br>
     <strong>「繰上げは早いほど利息が減る」：</strong>同じ5年間でも、序盤（借入2年後からの5年）は返済に占める利息が大きく、終盤（完済直前の5年）は利息がわずかです。両区間の元金・利息を並べ、早い時期の繰上げ・完済ほど<b>減らせる利息（消える利息）</b>が大きいことを示しています。返済期間が短い場合は各区間を期間内にクランプします。</p>
+
+    <p><strong>住宅ローン控除の引き継ぎ：</strong>控除の試算は「返済＋金利上昇積立」で入力した<b>借入金額・金利・返済期間・返済方法・ボーナス返済</b>をそのまま引き継ぎ、その年末ローン残高をもとに計算します（入力パネル上部に引き継いだ条件を表示）。控除額は「min(年末残高, 借入限度額)×0.7%」の概算で、<strong>実際の控除は納税額（所得税＋翌年住民税、住民税分は年9.75万円が上限）の範囲に限られます。</strong>控除期間が返済期間より長い場合、完済後の年は残高0として計算します。年齢は「借入時の年齢」から各年を表示しています。</p>
   </div>
 </main>
 
@@ -1994,18 +1888,19 @@
     const sumPay = sumP+sumI;
     const ageHead = (a!=null&&!isNaN(a)) ? '<span class="gf-age">'+(a+sy-1)+'歳時点</span>' : '';
     const ageSpan = (a!=null&&!isNaN(a)) ? '（'+(a+sy-1)+'〜'+(a+endY-1)+'歳）' : '';
+    const spanShare = sumPay>0 ? sumI/sumPay*100 : 0;
     $('gfReadout').innerHTML =
       '<div class="gf-year-head">'+sy+'年目の内訳'+ageHead+'</div>'+
-      '<div class="gf-total"><span class="gt-k">返済額（元金＋利息）</span><span class="gt-v">'+toMan(row.payment)+'<small> 万円</small></span></div>'+
-      '<div class="gf-grid">'+
-        '<div class="gf-cell pc"><div class="k">うち 元金</div><div class="v">'+toMan(row.principal)+'<small> 万円</small></div></div>'+
-        '<div class="gf-cell ic"><div class="k">うち 利息</div><div class="v">'+toMan(row.interest)+'<small> 万円</small></div></div>'+
-        '<div class="gf-cell"><div class="k">利息の割合<br>（返済額に占める）</div><div class="v">'+share.toFixed(1)+'<small> %</small></div></div>'+
+      '<div class="gf-breakdown">'+
+        '<div class="gf-total"><span class="gt-k">返済額（元金＋利息）</span><span class="gt-v">'+toMan(row.payment)+'<small> 万円</small></span></div>'+
+        '<div class="gf-cell pc bd-p"><div class="k">うち 元金</div><div class="v">'+toMan(row.principal)+'<small> 万円</small></div></div>'+
+        '<div class="gf-cell ic bd-i"><div class="k">うち 利息</div><div class="v">'+toMan(row.interest)+'<small> 万円</small></div></div>'+
+        '<div class="gf-cell bd-s"><div class="k">利息の割合<br>（返済額に占める）</div><div class="v">'+share.toFixed(1)+'<small> %</small></div></div>'+
       '</div>'+
       '<div class="gf-span">'+
         '<div class="sh">'+sy+'〜'+endY+'年目（'+(endY-sy+1)+'年間）の合計'+ageSpan+'</div>'+
         '<div class="sr pc"><span>元金の合計</span><span class="mono">'+toMan(sumP)+' 万円</span></div>'+
-        '<div class="sr ic"><span>利息の合計</span><span class="mono">'+toMan(sumI)+' 万円</span></div>'+
+        '<div class="sr ic"><span>利息の合計</span><span class="mono">'+toMan(sumI)+' 万円<span class="sr-pct">（'+spanShare.toFixed(1)+'%）</span></span></div>'+
         '<div class="sr"><span>返済額の合計</span><span class="mono">'+toMan(sumPay)+' 万円</span></div>'+
       '</div>';
   }
@@ -2073,7 +1968,7 @@
 
     // 利息の割合（総返済額に占める）
     const sharePct = totalPayment>0 ? totalInterest/totalPayment*100 : 0;
-    $('interestShare').innerHTML = '利息の割合（総返済額に占める）：<b>'+sharePct.toFixed(1)+'%</b>　（利息合計 ÷ 総返済額）';
+    $('interestShare').innerHTML = '総返済額に占める利息の割合：<b>'+sharePct.toFixed(1)+'%</b>';
 
     // パターン比較用に現在の条件・結果を保存
     const bonusPrincipalMan = Math.round(bonusPrincipal/10000);
@@ -2109,6 +2004,8 @@
         '<td>'+yen(row.balance)+'</td>';
       tbody.appendChild(tr);
     });
+
+    syncQuickBar();
   }
 
   // ============ 2-1. 借入可能額診断 ============
@@ -2412,24 +2309,36 @@
     renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], gPayoffYears, 'yieldPayoff');
   }
 
-  // 早い繰上げほど利息が減る：序盤5年（借入2年後〜）vs 終盤5年（完済直前）
+  // 早い繰上げほど利息が減る：序盤（借入2年後〜）vs 終盤（完済直前）を同じ長さ・重複なしで比較
   function renderEarlyLate(){
-    if(!gLastYearly || !gLastYearly.length) return;
+    var sec=$('earlyLateSection');
+    if(!gLastYearly || !gLastYearly.length){ if(sec) sec.style.display='none'; return; }
     const N=gLastYearly.length; const a=gStartAge;
-    const eStart=Math.min(N,3), eEnd=Math.min(N,eStart+4);
-    const lEnd=N, lStart=Math.max(1,N-4);
+    // 返済期間が2年未満だと2区間を取れないため非表示（誤解を招く比較を出さない）
+    if(N < 2){ if(sec) sec.style.display='none'; return; }
+    if(sec) sec.style.display='';
+    // 窓の長さ：最大5年、かつ期間の半分まで（2区間が重ならないようにする）
+    const W = Math.max(1, Math.min(5, Math.floor(N/2)));
+    const eStart = Math.max(1, Math.min(3, N - 2*W + 1)); // 通常は3年目（借入2年後）から
+    const eEnd = eStart + W - 1;
+    const lEnd = N, lStart = N - W + 1;
     function sums(s,e){ let p=0,i=0; for(let y=s;y<=e;y++){ const rr=gLastYearly[y-1]; if(rr){p+=rr.principal;i+=rr.interest;} } return {p:p,i:i}; }
     const E=sums(eStart,eEnd), L=sums(lStart,lEnd);
     const ageR=(s,e)=> (a!=null&&!isNaN(a)) ? '（'+(a+s-1)+'〜'+(a+e-1)+'歳）' : '';
-    if($('earlyHead')) $('earlyHead').innerHTML='序盤5年（'+eStart+'〜'+eEnd+'年目）'+ageR(eStart,eEnd);
-    if($('lateHead')) $('lateHead').innerHTML='終盤5年（'+lStart+'〜'+lEnd+'年目）'+ageR(lStart,lEnd);
+    if($('earlyHead')) $('earlyHead').innerHTML='序盤'+W+'年（'+eStart+'〜'+eEnd+'年目）'+ageR(eStart,eEnd);
+    if($('lateHead')) $('lateHead').innerHTML='終盤'+W+'年（'+lStart+'〜'+lEnd+'年目）'+ageR(lStart,lEnd);
     if($('earlyP')) $('earlyP').textContent=toMan(E.p)+' 万円';
     if($('earlyI')) $('earlyI').textContent=toMan(E.i)+' 万円';
     if($('lateP')) $('lateP').textContent=toMan(L.p)+' 万円';
     if($('lateI')) $('lateI').textContent=toMan(L.i)+' 万円';
-    const diff=Math.max(0, E.i-L.i);
+    const diff=Math.abs(E.i-L.i);
     if($('earlyLateOut')) $('earlyLateOut').innerHTML=
-      '<div class="yo-lead">同じ5年間でも、序盤の利息は <b>'+toMan(E.i)+'万円</b>、終盤は <b>'+toMan(L.i)+'万円</b>。序盤のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息（消える利息）が大きくなります。</b></div>';
+      '<div class="yo-lead">同じ'+W+'年間でも、序盤の利息は <b>'+toMan(E.i)+'万円</b>、終盤は <b>'+toMan(L.i)+'万円</b>。'+
+      (E.i > L.i
+        ? '序盤のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息（消える利息）が大きくなります。</b>'
+        : '差は <b>'+toMan(diff)+'万円</b> です（返済期間が短いため差は小さくなります）。')+
+      '</div>';
+    if($('earlyLateLead')) $('earlyLateLead').innerHTML='同じ'+W+'年間でも、序盤は返済に占める利息が大きいので、早い時期の繰上げ・完済ほど<b>減らせる利息</b>が大きくなります。';
   }
 
   // ============ 2-3. 賃貸（投資用）転用シミュレーション ============
@@ -2532,113 +2441,6 @@
     el.addEventListener('change', convertSim);
   });
 
-  // ============ 2-4. 買う vs 借り続ける 比較試算 ============
-  const SCENARIOS = {
-    conservative: {rentGrowth:0.0, residualPct:50},
-    standard:     {rentGrowth:1.0, residualPct:70},
-    optimistic:   {rentGrowth:2.0, residualPct:90},
-  };
-
-  function compareSim(){
-    const rentMonthly = iv('rentNow') || 0; // 円で入力
-    const g = (iv('rentGrowth') || 0) / 100;
-    const liveYears = Math.max(1, iv('liveYears') || 1);
-    const propPriceMan = iv('propPrice') || 0;
-    const propPrice = propPriceMan * 10000;
-    const residualPct = Math.max(0, iv('residualPct') || 0);
-    // 固定資産税：物件価格からの概算（約0.3%/年）を選んだ場合は自動入力
-    if($('propTaxAuto').checked){ $('propTax').value = (propPriceMan * 0.003).toFixed(1); fmtNum($('propTax')); $('propTax').classList.remove('pristine'); }
-    const propTaxAnnual = (iv('propTax') || 0) * 10000;
-    const ownMgmtAnnual = (iv('ownMgmt') || 0) * 10000 * 12;
-    const fireInsAnnual = (iv('fireIns') || 0) * 10000;
-
-    // 賃貸継続：現在家賃を毎年 g で複利成長させ累計（初年度は現在家賃）
-    let rentTotal = 0;
-    const rentAnnual0 = rentMonthly * 12;
-    for(let k=0;k<liveYears;k++){
-      rentTotal += rentAnnual0 * Math.pow(1+g, k);
-    }
-
-    // 購入：ローン返済（居住年数分）＋固定資産税＋管理費修繕＋火災保険
-    const {yearly} = computeBaseYearly();
-    let loanTotal = 0;
-    for(let y=0;y<liveYears;y++){
-      if(yearly[y]) loanTotal += yearly[y].payment;
-    }
-    const buyTotal = loanTotal
-      + propTaxAnnual * liveYears
-      + ownMgmtAnnual * liveYears
-      + fireInsAnnual * liveYears;
-    const resaleVal = propPrice * (residualPct/100);
-    const buyNet = buyTotal - resaleVal;
-
-    const diff = rentTotal - buyNet; // 正なら購入がお得
-
-    // 売却額ヒント
-    $('resaleHint').textContent = '売却想定額 ≒ ' + Math.round(resaleVal/10000).toLocaleString('ja-JP') + '万円（物件価格×残価率）';
-
-    // ヘッドライン
-    const man = v => Math.round(Math.abs(v)/10000).toLocaleString('ja-JP');
-    const head = $('cmpHeadline');
-    if(Math.abs(diff) < 5000){ // ほぼ拮抗
-      head.innerHTML = 'ほぼ同等';
-      head.style.color = 'var(--gold)';
-      $('cmpHeadSub').textContent = liveYears + '年間の実質的な累計支出はほぼ同水準です';
-    } else if(diff > 0){
-      head.innerHTML = '購入が <span class="mono">' + man(diff) + '</span><small>万円 お得</small>';
-      head.style.color = 'var(--teal)';
-      $('cmpHeadSub').textContent = liveYears + '年間で、購入（実質コスト）が賃貸継続より累計で少ない試算です';
-    } else {
-      head.innerHTML = '賃貸が <span class="mono">' + man(diff) + '</span><small>万円 お得</small>';
-      head.style.color = 'var(--rose)';
-      $('cmpHeadSub').textContent = liveYears + '年間で、賃貸継続のほうが累計支出が少ない試算です';
-    }
-
-    $('rentTotal').textContent = yen(rentTotal) + ' 円';
-    $('buyTotal').textContent = yen(buyTotal) + ' 円';
-    $('resaleVal').textContent = yen(resaleVal) + ' 円';
-    $('buyNet').textContent = yen(buyNet) + ' 円';
-
-    // 比較セル：安いほうをティール
-    const rentCell = $('cmpRent'), buyCell = $('cmpBuy');
-    rentCell.textContent = yen(rentTotal) + ' 円';
-    buyCell.textContent = yen(buyNet) + ' 円';
-    rentCell.className = 'stat-value mono ' + (rentTotal <= buyNet ? 'cf-pos' : 'cf-neg');
-    buyCell.className = 'stat-value mono ' + (buyNet < rentTotal ? 'cf-pos' : 'cf-neg');
-  }
-
-  function applyScenario(){
-    const sel = document.querySelector('input[name=scenario]:checked');
-    const preset = SCENARIOS[sel ? sel.value : 'standard'];
-    if(preset){
-      $('rentGrowth').value = preset.rentGrowth;
-      $('residualPct').value = preset.residualPct;
-    }
-    compareSim();
-  }
-
-  $('compareBtn').addEventListener('click', compareSim);
-  document.querySelectorAll('input[name=scenario]').forEach(el=>{
-    el.addEventListener('change', applyScenario);
-  });
-  $('propTaxAuto').addEventListener('change', compareSim);
-  // 固定資産税を手入力したら自動概算を解除
-  $('propTax').addEventListener('input', ()=>{ $('propTaxAuto').checked = false; });
-  ['principal','rate','years','bonusRatio','rentNow','rentGrowth','liveYears','propPrice','residualPct','propTax','ownMgmt','fireIns'].forEach(id=>{
-    $(id).addEventListener('change', compareSim);
-  });
-  document.querySelectorAll('input[name=method]').forEach(el=>{
-    el.addEventListener('change', compareSim);
-  });
-  // クリア（買う vs 借りる）
-  $('compareClear').addEventListener('click', ()=>{
-    $('rentNow').value = 120000; $('rentGrowth').value = 1.0; $('liveYears').value = 35;
-    $('propPrice').value = 4000; $('residualPct').value = 70; $('propTaxAuto').checked = false;
-    $('propTax').value = 12; $('ownMgmt').value = 2; $('fireIns').value = 1;
-    document.querySelector('input[name=scenario][value=standard]').checked = true;
-    compareSim();
-  });
-
   // ============ 2-5. 住宅ローン控除の試算 ============
   const CREDIT_RATE = 0.007; // 控除率 0.7%（確認済み）
   // 2024・2025年入居の借入限度額（万円）— 一次資料 001887903.pdf の確認済み転記
@@ -2708,6 +2510,20 @@
     confirmEl.classList.add('hidden');
     resultEl.classList.add('hidden');
 
+    // 「返済＋金利上昇積立」の借入条件をそのまま引き継いでいることを明示（対象外の場合も表示）
+    const cbMethod = document.querySelector('input[name=method]:checked');
+    const cbPrincipal = iv('principal') || 0;
+    const cbBonusMan = Math.round(bonusPrincipalOf(cbPrincipal*10000)/10000);
+    const cbAge = iv('borrowerAge');
+    if($('creditBase')) $('creditBase').textContent =
+      '借入 ' + cbPrincipal.toLocaleString('ja-JP') + '万円' +
+      '／金利 ' + (iv('rate')||0) + '％' +
+      '／' + (iv('years')||0) + '年' +
+      '／' + ((cbMethod && cbMethod.value==='equalPrincipal') ? '元金均等' : '元利均等') +
+      (cbBonusMan>0 ? '／ボーナス分 ' + cbBonusMan.toLocaleString('ja-JP') + '万円' : '') +
+      ((cbAge && cbAge>0) ? '／借入時 ' + Math.round(cbAge) + '歳' : '') +
+      ' の年末残高を使用';
+
     const e = creditEligibility();
 
     if(e.status === 'zero-env'){
@@ -2759,12 +2575,13 @@
     const maxD = rows.length ? rows[0].deduction : 1;
     const stripEl = $('creditStrip');
     stripEl.innerHTML = '';
+    const cAge = (cbAge && cbAge>0) ? Math.round(cbAge) : null;
     rows.forEach(r=>{
       const pct = maxD > 0 ? (r.deduction/maxD*100) : 0;
       const div = document.createElement('div');
       div.className = 'strip-row';
       div.innerHTML =
-        '<span class="strip-year">' + r.year + '年目</span>' +
+        '<span class="strip-year">' + r.year + '年目' + (cAge!=null ? '<small>（'+(cAge+r.year-1)+'歳）</small>' : '') + '</span>' +
         '<span class="strip-bar"><span class="credit" style="width:' + pct.toFixed(2) + '%"></span></span>' +
         '<span class="strip-balance">' + yen(r.deduction) + '円</span>';
       stripEl.appendChild(div);
@@ -2772,10 +2589,10 @@
   }
 
   $('creditBtn').addEventListener('click', renderCredit);
-  ['principal','rate','years','bonusRatio','moveInYear','envCategory','keizoku','household','floorArea','totalIncome'].forEach(id=>{
-    $(id).addEventListener('change', renderCredit);
+  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','floorArea','totalIncome'].forEach(id=>{
+    if($(id)) $(id).addEventListener('change', renderCredit);
   });
-  document.querySelectorAll('input[name=method], input[name=buildType]').forEach(el=>{
+  document.querySelectorAll('input[name=method], input[name=buildType], input[name=bonusMode]').forEach(el=>{
     el.addEventListener('change', renderCredit);
   });
 
@@ -2864,7 +2681,47 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); stressTest(); convertSim(); compareSim(); renderCredit(); }
+  function recalcAll(){ calculate(); payoffSim(); stressTest(); convertSim(); renderCredit(); }
+
+  // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
+  function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
+  function qBonusTargetId(){ return bonusIsAmount() ? 'bonusAmount' : 'bonusRatio'; }
+  var QUICK_MAP = [['qPrincipal', function(){ return 'principal'; }], ['qRate', function(){ return 'rate'; }], ['qBonus', qBonusTargetId]];
+
+  // ドロワー側の値をクイックバーへ反映（入力中の欄は上書きしない）
+  function syncQuickBar(){
+    var amt = bonusIsAmount();
+    QUICK_MAP.forEach(function(pair){
+      var q=$(pair[0]), src=$(pair[1]());
+      if(!q || !src) return;
+      if(document.activeElement === q) return; // 打ち込み中はキャレットを壊さない
+      q.value = src.value;
+      q.classList.toggle('pristine', src.classList.contains('pristine'));
+    });
+    if($('qBonusUnit')) $('qBonusUnit').textContent = amt ? '万円' : '%';
+  }
+
+  // クイックバー側の変更をドロワーへ書き戻して全再計算
+  function wireQuickBar(){
+    QUICK_MAP.forEach(function(pair){
+      var q=$(pair[0]); if(!q || q.dataset.qb) return; q.dataset.qb='1';
+      q.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
+      ['input','change'].forEach(function(ev){
+        q.addEventListener(ev, function(){
+          var src=$(pair[1]()); if(!src) return;
+          src.value = q.value;
+          src.classList.remove('pristine');
+          q.classList.remove('pristine');
+          recalcAll(); diagnose();
+        });
+      });
+      q.addEventListener('blur', function(){
+        var src=$(pair[1]());
+        if(src && String(src.value).trim()!==''){ try{ fmtNum(src); }catch(_){} }
+        syncQuickBar();
+      });
+    });
+  }
 
   $('calcBtn').addEventListener('click', calculate);
   if($('cmpAdd')) $('cmpAdd').addEventListener('click', addPattern);
@@ -2930,7 +2787,7 @@
   // 教育資金シミュレーター風：結果は全幅表示、入力は下部ドロワーに集約（右下FABで開閉）
   function setupPresentation(){
     var main = document.querySelector('main');
-    var KEYS = ['base','m21','m23','m24','m25']; // 2-2は返済ページ(base)に統合済み
+    var KEYS = ['base','m21','m23','m25']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
     var groups = [];
     Array.prototype.forEach.call(main.children, function(el){
       if(el.classList.contains('disclaimer')){ if(groups[0]) groups[0].nodes.push(el); return; }
@@ -2982,7 +2839,7 @@
     });
 
     // FP流の数値入力へ変換：金額欄はカンマ整形＋フォーカスでクリア、その他数値欄はフォーカスで全選択
-    var MONEY = {principal:1,income:1,otherDebt:1,bonusAmount:1,rentNow:1,propPrice:1,propTax:1,ownMgmt:1,mgmtCost:1,rent:1,fireIns:1,totalIncome:1,ppAmount:1};
+    var MONEY = {principal:1,income:1,otherDebt:1,bonusAmount:1,mgmtCost:1,rent:1,totalIncome:1};
     Array.prototype.forEach.call(dbody.querySelectorAll('input'), function(el){
       if(el.type==='checkbox' || el.type==='radio' || el.id==='custName') return;
       if(el.type==='number') el.type='text';
@@ -3002,7 +2859,7 @@
       });
     });
 
-    var TITLES = {base:'返済・金利上昇の入力', m21:'借入可能額 診断の入力', m23:'賃貸転用の入力', m24:'買う vs 借りる の入力', m25:'住宅ローン控除の入力'};
+    var TITLES = {base:'返済・金利上昇の入力', m21:'借入可能額 診断の入力', m23:'賃貸転用の入力', m25:'住宅ローン控除の入力'};
 
     function show(key, doScroll){
       groups.forEach(function(g){
@@ -3101,16 +2958,20 @@
     });
     $('custLoad').addEventListener('click', function(){
       var name = $('custList').value; if(!name){ note('読み込む顧客を選んでください'); return; }
-      var o = getCustomers(); if(o[name]){ applyState(o[name]); setPristineAll(false); $('custName').value = name; note('「'+name+'」を読み込みました'); }
+      var o = getCustomers(); if(o[name]){ applyState(o[name]); setPristineAll(false); syncQuickBar(); $('custName').value = name; note('「'+name+'」を読み込みました'); }
     });
     $('custDel').addEventListener('click', function(){
       var name = $('custList').value; if(!name){ note('削除する顧客を選んでください'); return; }
       var o = getCustomers(); delete o[name]; setCustomers(o); refreshCustList(); note('「'+name+'」を削除しました');
     });
-    $('resetAll').addEventListener('click', function(){
+    function doResetAll(msg){
       applyState(INITIAL_STATE); setPristineAll(true); $('custName').value = ''; $('custList').value = '';
-      note('全ての入力を初期値に戻しました');
-    });
+      syncQuickBar();
+      if(msg) note(msg);
+    }
+    $('resetAll').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
+    // 結果画面のクイックバーにある「全クリア」も同じ全リセットを実行
+    if($('qReset')) $('qReset').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
     refreshCustList();
 
     show('base', false);
@@ -3144,9 +3005,11 @@
   diagnose();
   stressTest();
   convertSim();
-  compareSim();
   renderCredit();
   setupPresentation();
+  // ドロワーへの入力移動・pristine適用が済んだあとにクイックバーを配線・同期する
+  wireQuickBar();
+  syncQuickBar();
 })();
 </script>
 
