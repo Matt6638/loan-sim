@@ -150,6 +150,8 @@
   /* 右下フローティング入力ボタン（FAB） */
   /* FABはグラフの元金（ティール）と色が被らないよう濃紺×ゴールド縁で独立させる */
   .fab-input.fab-hidden{display:none;}
+  .qb-print{flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--gold-soft);border-radius:7px;padding:0 12px;height:34px;cursor:pointer;transition:all .15s;white-space:nowrap;margin-left:auto;}
+  .qb-print:hover{background:var(--gold);color:#fff;border-color:var(--gold);}
   /* 設定＝歯車の輪郭だけ（枠・背景なし） */
   .qb-gear{flex:0 0 auto;width:30px;height:34px;padding:0;background:none;border:none;color:var(--gold-soft);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:color .15s,transform .15s;}
   .qb-gear svg{width:21px;height:21px;display:block;}
@@ -211,7 +213,7 @@
   .drawer-tools[open] .dt-summary::before{content:'▾';}
   .dt-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:8px;}
   .dt-row{display:flex;gap:8px;align-items:center;}
-  .drawer-tools #custName, .drawer-tools #custList{flex:1 1 auto;min-width:0;font-family:var(--gothic);font-size:0.86rem;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
+  .drawer-tools #custName, .drawer-tools #custList{flex:1 1 auto;min-width:0;font-family:var(--gothic);font-size:16px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
   .dt-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.82rem;font-weight:600;color:var(--text-dim);background:#f0ece0;border:1px solid var(--border);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .dt-btn:hover{border-color:var(--gold-soft);color:var(--text);}
   .dt-save{background:var(--principal);color:#fff;border-color:var(--principal);}
@@ -256,10 +258,7 @@
   /* タブ選択時、モジュール先頭が固定タブバーに隠れないよう余白を確保 */
   .grid, .section-heading{scroll-margin-top:64px;}
   /* スクロールで単元の先頭にピタッと止まる（proximity＝近づいたときだけ吸着し、読みを妨げない） */
-  html{scroll-snap-type:y proximity;scroll-padding-top:58px;}
-  @media (prefers-reduced-motion:reduce){ html{scroll-snap-type:none;} }
-  /* scroll-padding-top だけで位置を合わせる（scroll-margin と二重に効くとズレるため 0 に上書き） */
-  .snap{scroll-snap-align:start;scroll-margin-top:0;}
+  html{scroll-padding-top:58px;}
 
   main{max-width:1080px;margin:0 auto;padding:24px 24px 0;}
 
@@ -336,11 +335,11 @@
     border:none;
     outline:none;
     color:var(--text);
-    font-size:1.05rem;
+    font-size:16px;
     width:100%;
     font-family:var(--mono);
   }
-  .field-input select{font-family:var(--gothic); font-size:0.95rem; cursor:pointer;}
+  .field-input select{font-family:var(--gothic); font-size:16px; cursor:pointer;}
   /* FP流：既定値はグレー表示（編集すると黒に） */
   .field-input input.pristine{color:#a2a8b5 !important;}
   .field-input select option{background:var(--panel);}
@@ -442,7 +441,8 @@
   .qb-field:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .qb-k{font-size:0.7rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
   .qb-u{font-size:0.68rem;color:var(--text-dim);white-space:nowrap;}
-  .qb-field input{width:66px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:transparent;border:none;outline:none;padding:1px 0;}
+  /* iOSは16px未満の入力欄にフォーカスすると自動ズームするため、入力欄は16px以上にする */
+  .qb-field input{width:66px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:transparent;border:none;outline:none;padding:1px 0;}
   .qb-field input#qAge{width:38px;}
   .qb-field input#qRate{width:48px;}
   .qb-field input#qYears{width:38px;}
@@ -459,7 +459,7 @@
   .qb-seg-btn{font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--text-dim);background:#fff;border:none;border-right:1px solid var(--border);padding:0 10px;cursor:pointer;white-space:nowrap;transition:all .12s;}
   .qb-seg-btn:last-child{border-right:none;}
   .qb-seg-btn.on{background:var(--gold);color:#fff;}
-  .qb-reset{margin-left:auto;flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:0 12px;height:34px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .qb-reset{flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:0 12px;height:34px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .qb-reset:hover{background:var(--rose);color:#fff;border-color:var(--rose);}
   /* iPhone縦：4項目＋全クリアが余計な行を作らないよう詰める */
   @media (max-width:480px){
@@ -470,11 +470,11 @@
     .qb-k{font-size:0.66rem;}
     .qb-u{font-size:0.62rem;}
     .qb-field{padding:4px 6px;gap:3px;}
-    .qb-field input{width:46px;font-size:0.86rem;}
-    .qb-field input#qAge{width:26px;}
-    .qb-field input#qRate{width:32px;}
-    .qb-field input#qYears{width:26px;}
-    .qb-field input#qIncome{width:40px;}
+    .qb-field input{width:52px;font-size:16px;}
+    .qb-field input#qAge{width:30px;}
+    .qb-field input#qRate{width:38px;}
+    .qb-field input#qYears{width:30px;}
+    .qb-field input#qIncome{width:46px;}
     .qb-k{font-size:0.62rem;}
     .qb-u{font-size:0.58rem;}
     .qb-seg-btn{font-size:0.65rem;padding:5px 7px;}
@@ -570,7 +570,7 @@
   .gf-span-note{font-size:0.72rem;color:var(--text-dim);white-space:nowrap;}
   .gf-span-note b{font-family:var(--mono);color:var(--gold-soft);font-size:0.86rem;}
   .grid-settings{margin:0;padding:0;gap:0;}
-  .gf-ctrl input{width:58px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 8px;}
+  .gf-ctrl input{width:60px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:5px 8px;}
   .gf-ctrl input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .gf-arrow{width:30px;height:30px;flex:0 0 auto;border:1px solid var(--border);background:#fff;color:var(--gold-soft);border-radius:6px;font-size:0.8rem;cursor:pointer;line-height:1;transition:all .12s;}
   .gf-arrow:hover{border-color:var(--gold);color:var(--gold);background:#fffdf8;}
@@ -605,7 +605,7 @@
   /* 完済コントロール（結果欄で年齢を編集） */
   .payoff-ctrl{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:10px 12px;background:#faf8f2;border:1px solid var(--border-soft);border-radius:8px;margin:4px 0 2px;}
   .payoff-ctrl .gf-label{font-size:0.76rem;color:var(--gold-soft);font-weight:600;white-space:nowrap;}
-  .payoff-ctrl input{width:64px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 8px;}
+  .payoff-ctrl input{width:64px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 8px;}
   .payoff-ctrl input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .payoff-ctrl .gf-unit{font-size:0.74rem;color:var(--text-dim);}
 
@@ -614,7 +614,7 @@
   .yield-picker .yp-label{font-size:0.76rem;color:var(--gold-soft);font-weight:600;white-space:nowrap;}
   .yield-picker .yp-chips{margin-top:0;}
   .yield-picker .yp-input{width:auto;flex:0 0 auto;padding:6px 10px;}
-  .yield-picker .yp-input input{width:56px;text-align:right;font-size:0.98rem;}
+  .yield-picker .yp-input input{width:58px;text-align:right;font-size:16px;}
   .yield-out{margin-top:12px;background:#f3f6f5;border:1px solid var(--border-soft);border-left:3px solid var(--principal);border-radius:7px;padding:12px 14px;}
   .yield-out .yo-lead{font-size:0.76rem;color:var(--text-dim);margin-bottom:5px;line-height:1.5;}
   .yield-out .yo-amt{font-family:var(--mono);font-size:1.5rem;color:var(--principal);font-weight:500;}
@@ -711,6 +711,84 @@
   .note-ref{font-size:0.72rem;color:var(--text-dim);line-height:1.6;padding:12px 20px 16px;}
   .note-ref b{color:var(--gold-soft);}
 
+  /* ===== iPad/PC：1単元を1画面に収める（左＝金額・円グラフ／右＝グラフと内訳） ===== */
+  @media (min-width:900px){
+    .res-panel{display:grid;grid-template-columns:minmax(320px,0.9fr) 1.1fr;align-items:start;}
+    .res-panel > .quick-bar{grid-column:1 / -1;}
+    .res-panel > .headline-figure{grid-column:1;grid-row:2;padding:16px 22px 6px;}
+    .res-panel > .total-pie{grid-column:1;grid-row:3;border-bottom:none;padding:12px 22px 18px;}
+    .res-panel > .strip-section{grid-column:2;grid-row:2 / span 2;border-left:1px solid var(--border);padding:16px 20px 10px;}
+    .res-panel > #tableToggle,
+    .res-panel > .table-wrap,
+    .res-panel > .note-ref{grid-column:1 / -1;}
+    .res-panel .headline-value{font-size:2.1rem;}
+    .res-panel .tp-svg{width:118px;height:118px;}
+    .res-panel .tp-chart{width:118px;}
+    .res-panel .stmt-svg{height:200px;}
+    /* 余白を詰めて縦を短く */
+    .sub-heading{margin-top:30px;}
+    .sub-lead{margin:6px 0 12px;}
+    .strip-section{padding:16px 20px 6px;}
+    .headline-figure{padding:18px 24px 6px;}
+    .scenario-card{padding:16px 18px 18px;}
+    .field-row{padding:12px 20px;}
+    .gf-controls{padding:9px 12px;}
+    .gf-readout{margin-top:9px;}
+    .gf-cell{padding:7px 10px;}
+    .yield-picker{padding:9px 12px;}
+    .yield-out{padding:10px 12px;}
+    .note-ref{padding:10px 20px 12px;}
+  }
+  @media (min-width:1200px){
+    .grid{max-width:1240px;}
+    .section-body, .cmp-panel, .disclaimer{max-width:1240px;}
+  }
+
+  /* ===== 印刷（A4 PDF）用 ===== */
+  .print-only{display:none;}
+  @media print{
+    @page{size:A4 portrait;margin:12mm 11mm;}
+    html,body{background:#fff !important;padding:0 !important;margin:0 !important;font-size:10.5px;}
+    .print-only{display:block;}
+    /* 操作系はすべて隠す */
+    .tabnav, .quick-bar, .input-drawer, .drawer-scrim, .fab-input,
+    .table-toggle, .cmp-add-btn, .cmp-toggle-btn, .qb-print, .qb-gear,
+    .gf-controls, .gf-line-label, .need-input-msg, .chip-row, .action-row,
+    .btn-clear, .fund-pick, .yield-picker, .fund-ref, #cmpPanel{display:none !important;}
+    main{padding:0 !important;}
+    .grid{display:block !important;max-width:none !important;margin:0 !important;padding:0 !important;}
+    .res-panel{display:block !important;}
+    .panel{border:1px solid #d8d2c4 !important;box-shadow:none !important;border-radius:6px !important;margin:0 0 7mm !important;break-inside:avoid;}
+    .section-body{max-width:none !important;padding:0 !important;}
+    .headline-figure{padding:8px 12px 4px !important;}
+    .headline-value{font-size:1.6rem !important;}
+    .total-pie{padding:8px 12px !important;}
+    .tp-svg,.tp-chart{width:96px !important;height:auto !important;}
+    .strip-section{padding:8px 12px !important;}
+    .stmt-svg{height:120px !important;}
+    .scenario-card{padding:8px 10px !important;}
+    .scenario-save{font-size:1.1rem !important;}
+    .sub-heading{margin:5mm 0 2mm !important;break-after:avoid;}
+    .section-heading{margin:6mm 0 2mm !important;break-after:avoid;}
+    .table-wrap{display:block !important;padding:6px 10px 10px !important;overflow:visible !important;}
+    .tw-head .qb-seg{display:none !important;}
+    table{font-size:8.6px !important;}
+    thead{display:table-header-group;}
+    tr{break-inside:avoid;}
+    .note-ref{display:none !important;}
+    .notes-appendix{break-before:page;background:#fff !important;border:none !important;font-size:8.8px !important;}
+    /* 印刷ヘッダー */
+    .print-head{border-bottom:2px solid #1b2a4a;padding-bottom:3mm;margin-bottom:5mm;}
+    .print-head .ph-brand{font-family:var(--mincho);font-size:15px;font-weight:600;color:#1b2a4a;letter-spacing:.04em;}
+    .print-head .ph-cond{font-size:10px;color:#1b2a4a;margin-top:2mm;font-weight:600;}
+    .print-head .ph-meta{font-size:9px;color:#5a5a5a;margin-top:1mm;}
+    /* 免責 */
+    .print-disc{break-inside:avoid;border:1px solid #b5623a;border-radius:4px;padding:3mm 4mm;margin-top:5mm;font-size:8.6px;line-height:1.65;color:#3a3a3a;}
+    .print-disc .pd-title{font-weight:700;color:#b5623a;margin-bottom:1.5mm;font-size:9.4px;}
+    .print-disc p{margin:0 0 1.5mm;}
+    .print-disc p:last-child{margin-bottom:0;}
+  }
+
   /* section divider between modules */
   .section-heading{
     max-width:1080px;
@@ -762,7 +840,7 @@
   .fund-table td{text-align:right;padding:9px 8px;border-bottom:1px dashed var(--border);vertical-align:middle;}
   .fund-name{font-size:0.75rem;line-height:1.45;}
   .fund-since{display:block;font-size:0.63rem;color:var(--text-dim);}
-  .fund-r-input{
+  .fund-r-input{font-size:16px;
     width:78px;text-align:right;font-family:var(--mono);font-size:0.82rem;
     background:#fcfbf8;border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--text);
   }
@@ -959,6 +1037,13 @@
   </div>
 </nav>
 
+<!-- 印刷（A4 PDF）専用のヘッダー。画面では非表示 -->
+<div class="print-only print-head" id="printHead">
+  <div class="ph-brand">住宅ローン返済シミュレーション</div>
+  <div class="ph-cond" id="printCond"></div>
+  <div class="ph-meta" id="printMeta"></div>
+</div>
+
 <main>
   <div class="grid">
 
@@ -1037,7 +1122,7 @@
     </div>
 
     <!-- RESULTS PANEL -->
-    <div class="panel">
+    <div class="panel res-panel">
       <!-- 結果画面から借入条件を直接変更（ドロワーの入力欄と双方向連動） -->
       <div class="quick-bar">
         <div class="qb-main">
@@ -1061,6 +1146,7 @@
           </div>
         </div>
         <button type="button" class="qb-reset" id="qReset">全クリア</button>
+        <button type="button" class="qb-print" id="qPrint" title="A4のPDFを作成して保存・共有">📄 出力</button>
         <button type="button" class="qb-gear" id="qGear" aria-label="設定" title="設定（金利上昇・完済などの詳細条件）">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3.2"></circle>
@@ -1070,7 +1156,7 @@
         </div>
       </div>
 
-      <div class="headline-figure hf-with-btn snap">
+      <div class="headline-figure hf-with-btn">
         <div class="headline-label">毎月の返済額（初回）</div>
         <div class="headline-value" id="monthlyPayment">—</div>
         <div class="need-input-msg" id="needInput" style="display:none;"></div>
@@ -1091,7 +1177,7 @@
         </div>
       </div>
 
-      <div class="strip-section snap">
+      <div class="strip-section">
         <div class="strip-title">元利内訳ステートメント</div>
 
         <!-- 経過年（縦ライン）＋試算期間（四角）→ その下にグラフ -->
@@ -1186,8 +1272,61 @@
     </div>
   </div>
 
+  <!-- ===== 親子リレー返済 ===== -->
+  <div class="sub-heading">
+    <span class="num">親子リレー</span>
+    <h3>親子リレー返済</h3>
+  </div>
+
+  <div class="grid" id="relayGrid">
+    <!-- INPUT（設定ドロワーへ移動される） -->
+    <div class="panel">
+      <div class="ledger-title">親子リレーの条件</div>
+      <div class="field-row">
+        <label class="toggle-row" for="relayOn" style="margin-top:0;">
+          <input type="checkbox" id="relayOn">
+          <span>親子リレー返済で試算する</span>
+        </label>
+        <div class="field-hint">親（借入者）が途中まで返済し、以降をお子さまが引き継ぐ返済方法です。上部の「年齢」を親の年齢として使います。</div>
+      </div>
+      <div class="field-row">
+        <label for="childAge">お子さまの年齢（借入時）</label>
+        <div class="field-input"><input type="text" inputmode="numeric" id="childAge" placeholder="35"><span class="unit">歳</span></div>
+      </div>
+      <div class="field-row">
+        <label for="relayAge">引き継ぐ時期（親の年齢）</label>
+        <div class="field-input"><input type="text" inputmode="numeric" id="relayAge" placeholder="70"><span class="unit">歳</span></div>
+        <div class="field-hint">未入力なら<b>親が70歳</b>になる時点で引き継ぐものとして試算します。</div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="panel" id="relayPanel">
+      <div class="headline-figure">
+        <div class="headline-label" id="relayHeadLabel">親が返済する期間の負担（元金＋利息）</div>
+        <div class="headline-value" id="relayParentPay">—</div>
+        <div class="headline-sub" id="relaySub"></div>
+      </div>
+      <div class="scenario-grid">
+        <div class="scenario-card">
+          <span class="scenario-tag">親の返済</span>
+          <div class="scenario-save-label" id="relayParentTerm">—</div>
+          <div class="scenario-save" id="relayParentTotal">—</div>
+          <div class="scenario-detail">うち 元金 <span class="mono" id="relayParentP">—</span><br>うち 利息 <span class="mono" id="relayParentI">—</span><br>引き継ぎ時の残債 <span class="mono" id="relayHandover">—</span></div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-tag">子の返済</span>
+          <div class="scenario-save-label" id="relayChildTerm">—</div>
+          <div class="scenario-save" id="relayChildTotal">—</div>
+          <div class="scenario-detail">うち 元金 <span class="mono" id="relayChildP">—</span><br>うち 利息 <span class="mono" id="relayChildI">—</span><br>完済時のお子さまの年齢 <span class="mono" id="relayChildEndAge">—</span></div>
+        </div>
+      </div>
+      <div class="note-ref">※ 毎月の返済額は全期間同じ（上の「毎月の返済額」）で、<b>誰が払うか</b>だけが引き継ぎ時期で変わります。団体信用生命保険の加入者・住宅ローン控除の適用・持分割合の扱いは金融機関ごとに異なるため本試算には含めていません。詳しくはページ末尾の<b>「注記」</b>を参照。</div>
+    </div>
+  </div>
+
   <!-- ===== ◯歳で完済（繰上げ完済） ===== -->
-  <div class="sub-heading snap">
+  <div class="sub-heading">
     <span class="num">完済</span>
     <h3>◯歳で完済する</h3>
   </div>
@@ -1251,7 +1390,7 @@
     </div>
   </div>
   <!-- ===== 金利上昇に備えた別枠積立（返済シミュレーションのページに統合） ===== -->
-  <div class="sub-heading snap">
+  <div class="sub-heading">
     <span class="num">金利上昇</span>
     <h3>金利上昇に備えた別枠積立</h3>
   </div>
@@ -1769,7 +1908,16 @@
     </div>
   </div>
 
-  <div class="disclaimer notes-appendix snap" id="notesAppendix">
+  <!-- 印刷（A4 PDF）専用の免責。画面では非表示 -->
+  <div class="print-only print-disc">
+    <div class="pd-title">ご確認ください（免責事項）</div>
+    <p>本書は住宅ローンのご返済イメージを共有するための<strong>参考資料</strong>であり、融資の可否・条件・金額を保証するものではありません。記載の金額・年数・割合は入力条件にもとづく<strong>概算</strong>で、実際の金融機関の審査結果・返済予定表・税額とは異なります。</p>
+    <p>金利は入力時点の想定値であり、変動金利の場合の将来の金利変動、繰上返済手数料、保証料、火災保険料、団体信用生命保険料、諸費用、登記費用等は含まれていません。税制・審査基準は改正されるため、住宅ローン控除等の適用可否・金額は最新の国税庁情報および税務署・税理士等の専門家にご確認ください。</p>
+    <p>投資信託等の利回りは過去の実績または想定値であり、将来の運用成果を保証・示唆するものではありません。元本割れの可能性があります。本書は特定の金融商品の売買を推奨・勧誘するものではありません。</p>
+    <p><strong>本書の内容にもとづく判断・行動の結果について、作成者および提供者は一切の責任を負いません。</strong>ご契約にあたっては必ず金融機関の正式な書面をご確認ください。</p>
+  </div>
+
+  <div class="disclaimer notes-appendix" id="notesAppendix">
     <div class="na-title">注記（計算方法・前提・出典）</div>
     <p><strong>本ツールに表示される金額・年数・割合はすべて「概算・目安」です。</strong>実際の金融機関の審査・返済予定表・税額とは異なる場合があります。税制・審査基準は改正されるため、適用の可否や金額は必ず最新の一次情報および金融機関・税理士等の専門家にご確認ください。</p>
 
@@ -1785,6 +1933,8 @@
 
     <p><strong>「◯歳で完済」の計算方法：</strong>「借入時の年齢」と「完済したい年齢」の差を経過年数とし、その時点の残債（元利均等・ボーナス分を除く）を<b>一括返済に必要な元金</b>として表示します。さらにその金額を、今から完済年齢までの年数・選んだ想定利回りで積み立てて用意する場合の毎月額を逆算しています（期末つみたて・月複利、税・手数料は考慮せず）。<br>
     <strong>「繰上げは早いほど利息が減る」：</strong>同じ5年間でも、序盤（借入2年後からの5年）は返済に占める利息が大きく、終盤（完済直前の5年）は利息がわずかです。両区間の元金・利息を並べ、早い時期の繰上げ・完済ほど<b>減らせる利息（消える利息）</b>が大きいことを示しています。返済期間が短い場合は各区間を期間内にクランプします。</p>
+
+    <p><strong>親子リレー返済：</strong>毎月の返済額・総返済額は通常の返済と同じで、<b>引き継ぎ時期（親の年齢）を境に、誰が払うかを分けて表示</b>しています。親の負担＝引き継ぎまでの返済額、子の負担＝それ以降の返済額です。実際の親子リレーローンでは、<strong>返済期間をお子さまの年齢を基準に設定できる（＝親が高齢でも長期が組める）</strong>点が特徴ですが、<strong>団体信用生命保険の加入者・住宅ローン控除の適用や持分割合・相続時の扱いは金融機関や個別事情で異なる</strong>ため、本試算には含めていません。取扱いの可否・条件は必ず金融機関にご確認ください。</p>
 
     <p><strong>住宅ローン控除の引き継ぎ：</strong>控除の試算は「返済＋金利上昇積立」で入力した<b>借入金額・金利・返済期間・返済方法・ボーナス返済</b>をそのまま引き継ぎ、その年末ローン残高をもとに計算します（入力パネル上部に引き継いだ条件を表示）。控除額は「min(年末残高, 借入限度額)×0.7%」の概算で、<strong>実際の控除は納税額（所得税＋翌年住民税、住民税分は年9.75万円が上限）の範囲に限られます。</strong>控除期間が返済期間より長い場合、完済後の年は残高0として計算します。年齢は「借入時の年齢」から各年を表示しています。</p>
   </div>
@@ -2003,6 +2153,8 @@
     if((el=$('lump1'))) el.textContent='—';
     if((el=$('lump2'))) el.textContent='—';
     ['save1','save2','stressed1','stressed2','cum1','cum2'].forEach(function(id){ var e=$(id); if(e) e.innerHTML='—'; });
+    ['relayParentPay','relayParentTotal','relayChildTotal','relayParentP','relayParentI','relayChildP','relayChildI','relayHandover','relayChildEndAge'].forEach(function(id){ var e=$(id); if(e) e.innerHTML='—'; });
+    ['relaySub','relayParentTerm','relayChildTerm'].forEach(function(id){ var e=$(id); if(e) e.textContent=''; });
     gLastYearly=null; gLastSummary=null;
     if((el=$('cmpAdd'))) el.style.display='none';
     if((el=$('cmpToggle'))) el.style.display='none';
@@ -2447,6 +2599,54 @@
 
   // ============ ◯歳で完済（繰上げ完済）＋早い繰上げほど利息が減る ============
   var gPayoffLump=0, gPayoffYears=0;
+  // ============ 親子リレー返済（誰がどれだけ払うかを分解して見せる） ============
+  function relaySim(){
+    var grid=$('relayGrid'), on=$('relayOn') && $('relayOn').checked;
+    // グリッドは設定ドロワーへ入力パネルが移動しているため、見出しと結果パネルの表示を切り替える
+    var head=$('relayPanel') ? $('relayPanel').closest('.grid').previousElementSibling : null;
+    if($('relayPanel')) $('relayPanel').closest('.grid').style.display = on ? '' : 'none';
+    if(head && head.classList.contains('sub-heading')) head.style.display = on ? '' : 'none';
+    if(!on || !baseReady()) return;
+
+    var principalYen=(iv('principal')||0)*10000;
+    var rate=iv('rate')||0, years=Math.round(iv('years')||0);
+    var r=(rate/100)/12, n=years*12;
+    var mp = principalYen - bonusPrincipalOf(principalYen);
+    var parentAge = Math.round(iv('borrowerAge')||0);
+    var childAgeRaw = iv('childAge');
+    var childAge = (isFinite(childAgeRaw) && childAgeRaw>0) ? Math.round(childAgeRaw) : null;
+    var relayRaw = iv('relayAge');
+    var relayAge = (isFinite(relayRaw) && relayRaw>0) ? Math.round(relayRaw) : 70; // 既定は親70歳で引き継ぎ
+
+    // 引き継ぎ月（親が relayAge になる時点）。返済期間内にクランプ
+    var handMonth = Math.max(1, Math.min(n-1, (relayAge - parentAge)*12));
+    var A = annuityPayment(mp, r, n);
+    var bal = mp, pP=0, pI=0;
+    for(var k=0;k<handMonth;k++){ var it=bal*r; var pr=A-it; if(pr>bal)pr=bal; pP+=pr; pI+=it; bal=Math.max(0,bal-pr); }
+    var handoverBal = bal;
+    var cP=0, cI=0;
+    for(var j=handMonth;j<n;j++){ var it2=bal*r; var pr2=A-it2; if(pr2>bal)pr2=bal; cP+=pr2; cI+=it2; bal=Math.max(0,bal-pr2); }
+
+    var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+    var pYears = Math.floor(handMonth/12), pMon = handMonth%12;
+    var cMonths = n - handMonth, cYears = Math.floor(cMonths/12), cMon = cMonths%12;
+
+    $('relayParentPay').innerHTML = man(pP+pI)+'<small>万円</small>';
+    $('relaySub').textContent = '毎月の返済額は全期間 '+yen(A)+' 円（ボーナス分を除く）。'+
+      '親が '+parentAge+'歳〜'+relayAge+'歳、以降をお子さまが引き継ぎます。';
+    $('relayParentTerm').textContent = '親の返済期間 '+pYears+'年'+(pMon?pMon+'ヶ月':'')+'（'+parentAge+'〜'+relayAge+'歳）';
+    $('relayParentTotal').innerHTML = man(pP+pI)+'<small> 万円</small>';
+    $('relayParentP').textContent = man(pP)+' 万円';
+    $('relayParentI').textContent = man(pI)+' 万円';
+    $('relayHandover').textContent = man(handoverBal)+' 万円';
+    $('relayChildTerm').textContent = '子の返済期間 '+cYears+'年'+(cMon?cMon+'ヶ月':'')+
+      (childAge!=null ? '（'+(childAge+(relayAge-parentAge))+'歳〜）' : '');
+    $('relayChildTotal').innerHTML = man(cP+cI)+'<small> 万円</small>';
+    $('relayChildP').textContent = man(cP)+' 万円';
+    $('relayChildI').textContent = man(cI)+' 万円';
+    $('relayChildEndAge').textContent = (childAge!=null) ? (childAge+years)+' 歳' : '—（お子さまの年齢を入力）';
+  }
+
   function payoffSim(){
     if(!baseReady()) return;
     const principalYen=(iv('principal')||0)*10000;
@@ -2827,6 +3027,11 @@
     attachClear($('payoffAge'));
     $('payoffAge').addEventListener('change', payoffRecalc);
   }
+  // 親子リレー
+  ['childAge','relayAge'].forEach(function(id){ if($(id)){ attachClear($(id)); $(id).addEventListener('change', relaySim); } });
+  if($('relayOn')) $('relayOn').addEventListener('change', relaySim);
+  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge'].forEach(function(id){ if($(id)) $(id).addEventListener('change', relaySim); });
+  document.querySelectorAll('input[name=method], input[name=bonusMode]').forEach(function(el){ el.addEventListener('change', relaySim); });
 
   ['principal','rate','years','bonusRatio','borrowerAge'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', payoffSim);
@@ -2884,7 +3089,7 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); stressTest(); convertSim(); renderCredit(); }
+  function recalcAll(){ calculate(); payoffSim(); relaySim(); stressTest(); convertSim(); renderCredit(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
@@ -2969,6 +3174,20 @@
   }
 
   $('calcBtn').addEventListener('click', calculate);
+  // A4 PDF 出力（OSの印刷ダイアログから「PDFとして保存」「共有」ができる）
+  function doPrint(){
+    if(!baseReady()){ window.alert('先に 借入・年齢・年収・金利・返済期間 を入力してください。'); return; }
+    var name = ($('custName') && $('custName').value.trim()) ? $('custName').value.trim()+' 様' : '';
+    var d = new Date();
+    var ymd = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+    if($('printCond')) $('printCond').textContent = (name ? name+'　' : '') + (($('pieCond')||{}).textContent||'');
+    if($('printMeta')) $('printMeta').textContent = '作成日：'+ymd+'　／　本資料は概算・目安であり、融資条件を保証するものではありません（詳細は末尾の免責事項をご確認ください）';
+    var wrap=$('tableWrap'), wasOpen=wrap && wrap.classList.contains('open');
+    if(wrap && !wasOpen) wrap.classList.add('open');
+    window.print();
+    if(wrap && !wasOpen) setTimeout(function(){ wrap.classList.remove('open'); }, 500);
+  }
+  if($('qPrint')) $('qPrint').addEventListener('click', doPrint);
   if($('cmpAdd')) $('cmpAdd').addEventListener('click', addPattern);
   if($('cmpClear')) $('cmpClear').addEventListener('click', function(){ gPatterns=[]; var p=$('cmpPanel'); if(p) p.dataset.open='0'; renderPatterns(); });
   if($('cmpToggle')) $('cmpToggle').addEventListener('click', function(){
@@ -3272,11 +3491,13 @@
   stressTest();
   convertSim();
   renderCredit();
+  relaySim();
   setupPresentation();
   // ドロワーへの入力移動・pristine適用が済んだあとにクイックバーを配線・同期する
   wireQuickBar();
   syncQuickBar();
   renderPatterns();
+  relaySim();
 })();
 </script>
 
