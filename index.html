@@ -463,23 +463,38 @@
   .qb-reset{flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:0 12px;height:34px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .qb-reset:hover{background:var(--rose);color:#fff;border-color:var(--rose);}
   /* iPhone縦：4項目＋全クリアが余計な行を作らないよう詰める */
-  @media (max-width:480px){
-    .quick-bar{padding:10px 12px;}
-    .qb-main{gap:6px;}
-
-    .qb-field{padding:4px 7px;gap:4px;}
-    .qb-k{font-size:0.66rem;}
-    .qb-u{font-size:0.62rem;}
-    .qb-field{padding:4px 6px;gap:3px;}
-    .qb-field input{width:52px;font-size:16px;}
-    .qb-field input#qAge{width:30px;}
-    .qb-field input#qRate{width:38px;}
-    .qb-field input#qYears{width:30px;}
-    .qb-field input#qIncome{width:46px;}
-    .qb-k{font-size:0.62rem;}
-    .qb-u{font-size:0.58rem;}
-    .qb-seg-btn{font-size:0.65rem;padding:5px 7px;}
-    .qb-reset{margin-left:0;font-size:0.66rem;padding:5px 9px;}
+  /* 画面幅で長短ラベルを切り替える */
+  .lbl-short{display:none;}
+  @media (max-width:560px){
+    .lbl-full{display:none;}
+    .lbl-short{display:inline;}
+  }
+  @media (max-width:560px){
+    /* iPhone：横幅をいっぱいに使い、1行にできるだけ多くの項目を入れる */
+    main{padding-left:6px !important;padding-right:6px !important;}
+    .grid{gap:14px;}
+    .panel{border-radius:8px;}
+    .quick-bar{padding:8px 6px;}
+    .qb-main{gap:4px;}
+    .qb-field{padding:0 5px;gap:2px;height:32px;}
+    .qb-k{font-size:0.6rem;letter-spacing:-0.02em;}
+    .qb-u{font-size:0.54rem;letter-spacing:-0.04em;}
+    /* 入力はiOSの自動ズームを避けるため16pxを維持しつつ、幅は桁数ぴったりに */
+    .qb-field input{font-size:16px;padding:0;}
+    .qb-field input#qPrincipal{width:44px;}
+    .qb-field input#qAge{width:22px;}
+    .qb-field input#qIncome{width:36px;}
+    .qb-field input#qRate{width:31px;}
+    .qb-field input#qYears{width:22px;}
+    .qb-field input#qBonus{width:31px;}
+    .qb-seg{height:32px;}
+    .qb-seg-btn{font-size:0.64rem;padding:0 6px;}
+    .qb-bonus{gap:4px;}
+    .qb-bonus-btn{font-size:0.66rem;padding:0 7px;height:32px;}
+    .qb-reset{margin-left:0;font-size:0.64rem;padding:0 7px;height:32px;}
+    .qb-print{margin-left:0;font-size:0.9rem;padding:0 7px;height:32px;}
+    .qb-gear{width:24px;height:32px;margin-left:auto;}
+    .qb-gear svg{width:19px;height:19px;}
   }
 
   /* パターン比較 */
@@ -1297,11 +1312,11 @@
         <label class="qb-field"><span class="qb-k">金利</span><input type="text" inputmode="decimal" id="qRate"><span class="qb-u">%</span></label>
         <label class="qb-field"><span class="qb-k">期間</span><input type="text" inputmode="numeric" id="qYears"><span class="qb-u">年</span></label>
         <div class="qb-seg" id="qMethod">
-          <button type="button" class="qb-seg-btn on" data-method="equalPayment">元利均等</button>
-          <button type="button" class="qb-seg-btn" data-method="equalPrincipal">元金均等</button>
+          <button type="button" class="qb-seg-btn on" data-method="equalPayment"><span class="lbl-full">元利均等</span><span class="lbl-short">元利</span></button>
+          <button type="button" class="qb-seg-btn" data-method="equalPrincipal"><span class="lbl-full">元金均等</span><span class="lbl-short">元金</span></button>
         </div>
         <div class="qb-bonus" id="qBonusWrap">
-          <button type="button" class="qb-bonus-btn" id="qBonusBtn">ボーナス <span id="qBonusSummary">なし</span></button>
+          <button type="button" class="qb-bonus-btn" id="qBonusBtn"><span class="lbl-full">ボーナス</span><span class="lbl-short">ボ</span> <span id="qBonusSummary">なし</span></button>
           <div class="qb-bonus-body">
             <div class="qb-seg" id="qBonusMode">
               <button type="button" class="qb-seg-btn on" data-bmode="ratio">％</button>
@@ -1310,8 +1325,8 @@
             <label class="qb-field"><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
           </div>
         </div>
-        <button type="button" class="qb-reset" id="qReset">全クリア</button>
-        <button type="button" class="qb-print" id="qPrint" title="A4のPDFを作成して保存・共有">📄 出力</button>
+        <button type="button" class="qb-reset" id="qReset"><span class="lbl-full">全クリア</span><span class="lbl-short">クリア</span></button>
+        <button type="button" class="qb-print" id="qPrint" title="A4のPDFを作成して保存・共有"><span class="lbl-full">📄 出力</span><span class="lbl-short">📄</span></button>
         <button type="button" class="qb-gear" id="qGear" aria-label="設定" title="設定（金利上昇・完済などの詳細条件）">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3.2"></circle>
@@ -1686,12 +1701,12 @@
             <div class="stat-value pcol mono" id="waitNowTotal">—</div>
           </div>
           <div class="stat">
-            <div class="stat-label" id="waitLaterLabel">待つ（金利上昇）：総額</div>
-            <div class="stat-value icol mono" id="waitLaterTotal">—</div>
-          </div>
-          <div class="stat">
             <div class="stat-label" id="waitFlatLabel">待つ（金利そのまま）：総額</div>
             <div class="stat-value mono" id="waitFlatTotal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label" id="waitLaterLabel">待つ（金利上昇）：総額</div>
+            <div class="stat-value icol mono" id="waitLaterTotal">—</div>
           </div>
           <div class="stat">
             <div class="stat-label">完済年齢</div>
@@ -2952,19 +2967,19 @@
     $('waitBars').innerHTML =
       row('今すぐ買う（合計 '+man(nowTotal)+'万円）', [
         {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}]) +
-      row(wy+'年後に買う・金利＋'+(Math.round(upPct*100)/100)+'%（合計 '+man(laterTotal)+'万円）', [
-        {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}]) +
       row(wy+'年後に買う・金利そのまま（合計 '+man(flatTotal)+'万円）', [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}]);
+        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}]) +
+      row(wy+'年後に買う・金利＋'+(Math.round(upPct*100)/100)+'%（合計 '+man(laterTotal)+'万円）', [
+        {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
+        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}]);
 
     $('waitDetail').innerHTML =
       '<b>今すぐ買う</b>：借入 ' + man(price) + '万円／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(now.pay) + '円、利息 ' + man(now.i) + '万円<br>' +
-      '<b>' + wy + '年後に買う</b>：家賃 ' + man(rentTotal) + '万円＋頭金 ' + man(down) + '万円／借入 ' + man(borrowLater) + '万円' +
+      '<b>' + wy + '年後に買う（金利そのまま）</b>：家賃 ' + man(rentTotal) + '万円＋頭金 ' + man(down) + '万円／借入 ' + man(borrowLater) + '万円' +
       (pricePct!==0 ? '（物件価格 ' + man(futurePrice) + '万円）' : '') +
-      '／金利 ' + (Math.round((rate+upPct)*100)/100) + '％／' + years + '年　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円<br>' +
-      '<b>' + wy + '年後・金利そのまま</b>：同じ条件で金利 ' + rate + '％のまま　→　毎月 ' + yen(flat.pay) + '円、利息 ' + man(flat.i) + '万円（金利上昇との差 ' + man(laterTotal-flatTotal) + '万円）';
+      '／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(flat.pay) + '円、利息 ' + man(flat.i) + '万円<br>' +
+      '<b>' + wy + '年後に買う（金利＋' + (Math.round(upPct*100)/100) + '%）</b>：同じ条件で金利 ' + (Math.round((rate+upPct)*100)/100) + '％　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円（金利そのままとの差 ' + man(laterTotal-flatTotal) + '万円）';
 
     if($('waitHelp')) $('waitHelp').innerHTML =
       '<b>比べているもの</b>：どちらも同じ物件を手に入れるまでに払うお金の合計です。今すぐ買う＝ローンの元金＋利息。' + wy + '年後に買う＝その間の家賃＋ためた頭金＋ローンの元金＋利息。<br>' +
