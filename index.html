@@ -485,8 +485,13 @@
   .need-input-msg{font-size:0.82rem;color:var(--gold-soft);background:#faf8f2;border:1px dashed var(--gold-soft);border-radius:7px;padding:8px 12px;margin-top:8px;line-height:1.6;}
   .need-input-msg b{color:var(--rose);}
   .cmp-add-btn:disabled{opacity:.35;cursor:not-allowed;}
+  /* 説明を隠す「？」ボタン */
+  .help-btn{width:19px;height:19px;margin-left:7px;padding:0;border-radius:50%;border:1px solid var(--gold-soft);background:#fff;color:var(--gold-soft);font-size:0.68rem;font-weight:700;line-height:1;cursor:pointer;vertical-align:middle;transition:all .15s;}
+  .help-btn:hover, .help-btn.on{background:var(--gold);color:#fff;border-color:var(--gold);}
+  .help-body{font-size:0.74rem;color:var(--text-dim);line-height:1.65;background:#faf8f2;border:1px solid var(--border-soft);border-radius:7px;padding:9px 12px;margin-top:8px;}
+  .help-body b{color:var(--text);}
   .hf-with-btn{position:relative;}
-  .hf-actions{position:absolute;right:24px;bottom:10px;display:flex;align-items:center;gap:8px;}
+  .hf-actions{position:absolute;right:24px;top:12px;display:flex;align-items:center;gap:8px;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .cmp-add-btn:hover{background:var(--gold-soft);}
   .cmp-add-btn:active{transform:translateY(1px);}
@@ -538,7 +543,7 @@
   .cmp-toggle-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .cmp-toggle-btn:hover{background:var(--gold);color:#fff;border-color:var(--gold);}
   @media (max-width:480px){
-    .hf-actions{right:16px;bottom:8px;}
+    .hf-actions{right:14px;top:10px;}
     /* 金利上昇：見出し〜シナリオ②までを1画面に収める（縦を詰め、2枚を横並びに） */
     .sub-heading{margin-top:26px;}
     .sub-heading h3{font-size:0.98rem;}
@@ -595,11 +600,12 @@
 
   /* グラフの縦ライン下の年齢ラベル（ドラッグで移動できる） */
   .chart-wrap{position:relative;touch-action:pan-y;cursor:default;}
-  .gf-line-label{position:absolute;transform:translate(-50%,-50%);background:var(--text);color:#fff;font-family:var(--mono);font-size:0.78rem;font-weight:700;line-height:1.15;padding:6px 11px;border-radius:8px;white-space:nowrap;text-align:center;pointer-events:auto;cursor:grab;touch-action:none;box-shadow:0 4px 14px rgba(27,42,74,.45);border:2px solid var(--gold);z-index:3;}
+  .gf-line-label{position:absolute;transform:translate(-50%,-50%);background:#c2410c;color:#fff;font-family:var(--mono);font-size:0.82rem;font-weight:700;line-height:1.2;padding:6px 12px;border-radius:8px;white-space:nowrap;text-align:center;pointer-events:auto;cursor:grab;touch-action:none;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:3;}
   .gf-line-label:active{cursor:grabbing;}
   .gf-line-label .ll-y{display:block;}
-  .gf-line-label .ll-age{display:block;color:var(--gold);font-size:0.72rem;margin-top:1px;}
-  .gf-line-label::after{content:"✥";display:block;font-size:0.6rem;opacity:.8;margin-top:2px;color:var(--gold);}
+  .gf-line-label .ll-age{display:block;color:#ffe9d5;font-size:0.74rem;margin-top:1px;}
+  /* 線そのものを掴めるように、線の位置に透明な当たり判定を重ねる */
+  .gf-line-grab{position:absolute;top:0;bottom:0;width:34px;transform:translateX(-50%);cursor:ew-resize;touch-action:none;z-index:2;}
   .chart-hint{font-size:0.66rem;color:var(--text-dim);margin-top:4px;text-align:center;}
 
   /* 完済コントロール（結果欄で年齢を編集） */
@@ -675,7 +681,12 @@
   .tw-head .tw-title{font-family:var(--mincho);font-size:0.9rem;color:var(--gold-soft);font-weight:600;}
   .table-wrap{padding:16px 20px 20px; overflow-x:auto; display:none;}
   .table-wrap.open{display:block;}
-  table{width:100%; border-collapse:collapse; font-size:0.82rem;}
+  table{width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed;}
+  thead th small{display:block;font-size:0.82em;font-weight:400;opacity:.85;}
+  #tableWrap table td, #tableWrap table th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #tableWrap table th:nth-child(1), #tableWrap table td:nth-child(1){width:7%;}
+  #tableWrap table th:nth-child(2), #tableWrap table td:nth-child(2){width:8%;}
+  #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){width:11%;}
   thead th{
     text-align:right;
     font-weight:500;
@@ -1031,7 +1042,15 @@
   .tw-head{margin-bottom:3px !important;}
   .tw-head .qb-seg{display:none !important;}
   .tw-head .tw-title{font-size:8.6px !important;}
-  table{font-size:7.2px !important;width:100% !important;}
+  table{font-size:7px !important;width:100% !important;table-layout:fixed !important;}
+  #tableWrap table th:nth-child(1), #tableWrap table td:nth-child(1){width:5% !important;}
+  #tableWrap table th:nth-child(2), #tableWrap table td:nth-child(2){width:6% !important;}
+  #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){width:9% !important;}
+  #tableWrap table th:nth-child(3), #tableWrap table td:nth-child(3),
+  #tableWrap table th:nth-child(4), #tableWrap table td:nth-child(4),
+  #tableWrap table th:nth-child(5), #tableWrap table td:nth-child(5){width:16% !important;}
+  #tableWrap table th:nth-child(7), #tableWrap table td:nth-child(7){width:16% !important;}
+  thead th small{font-size:0.8em !important;}
   thead{display:table-header-group;}
   thead th{padding:2px 3px !important;font-size:6.8px !important;}
   tbody td{padding:1.4px 3px !important;}
@@ -1243,18 +1262,9 @@
       <div class="strip-section">
         <div class="strip-title">元利内訳ステートメント</div>
 
-        <!-- 経過年（縦ライン）＋試算期間（四角）→ その下にグラフ -->
+        <!-- 赤い縦線をスワイプして年を選ぶ -->
         <div class="graph-focus">
-          <div class="gf-controls">
-            <div class="gf-ctrl">
-              <span class="gf-label">経過年</span>
-              <button type="button" class="gf-arrow" id="gfPrev" aria-label="1年前">◀</button>
-              <input type="text" inputmode="numeric" id="focusYear" value="10">
-              <span class="gf-unit">年目</span>
-              <button type="button" class="gf-arrow" id="gfNext" aria-label="1年後">▶</button>
-            </div>
-            <span class="gf-span-note">試算期間 <b id="gfSpanEcho">5</b> 年間（設定で変更）</span>
-          </div>
+          <input type="hidden" id="focusYear" value="10">
 
           <div class="legend">
             <span><span class="swatch pcol"></span>元金</span>
@@ -1279,8 +1289,8 @@
         <table>
           <thead>
             <tr>
-              <th>年</th>
-              <th class="age-col">年齢</th>
+              <th>年<small>（年目）</small></th>
+              <th class="age-col">年齢<small>（歳）</small></th>
               <th>年間返済額</th>
               <th>元金</th>
               <th>利息</th>
@@ -1295,20 +1305,6 @@
       <div class="note-ref">※ 返済・グラフ・償還表の計算方法／利息割合・年齢の定義は、ページ末尾の<b>「注記」</b>を参照。</div>
     </div>
 
-  </div>
-
-  <!-- グラフの表示設定（この .panel は設定ドロワーへ移動される） -->
-  <div class="grid grid-settings">
-    <div class="panel">
-      <div class="ledger-title">グラフの表示設定</div>
-      <div class="field-row">
-        <label for="focusSpan">試算期間（グラフの四角で囲む年数）</label>
-        <div class="field-input">
-          <input type="text" inputmode="numeric" id="focusSpan" value="5">
-          <span class="unit">年間</span>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- ===== パターン比較（借入条件を並べて比較） ===== -->
@@ -1373,7 +1369,7 @@
         <details class="fund-ref">
           <summary>投資信託の過去実績（年率）を利回りの目安にする</summary>
           <div class="fr-body">
-            <div class="strip-sub" style="margin-top:0;">下表は代表的なインデックス投信の<b>過去実績（年率）</b>です。数値をタップすると上の「想定利回り」に反映します。将来の成果を保証するものではありません。</div>
+            <div class="strip-sub" style="margin-top:0;" id="fundRefNotePayoff"></div>
             <div id="fundRefPayoff"></div>
           </div>
         </details>
@@ -1381,19 +1377,22 @@
 
       <!-- 繰上げは早いほど利息が減る：序盤5年 vs 終盤5年 -->
       <div class="strip-section" id="earlyLateSection">
-        <div class="strip-title">繰上げは「早いほど」利息が減る</div>
-        <div class="strip-sub" id="earlyLateLead">同じ5年間でも、序盤は返済に占める利息が大きいので、早い時期の繰上げ・完済ほど<b>減らせる利息</b>が大きくなります。</div>
-        <div class="gf-grid two" style="margin-top:12px;">
-          <div class="gf-cell"><div class="k" id="earlyHead">序盤5年（借入2年後〜）</div>
+        <div class="strip-title">繰上げは「早いほど」利息が減る
+          <button type="button" class="help-btn" id="earlyLateHelpBtn" aria-label="説明">？</button>
+        </div>
+        <div class="help-body" id="earlyLateHelp" style="display:none;"></div>
+        <div class="gf-grid two" style="margin-top:10px;">
+          <div class="gf-cell"><div class="k" id="earlyHead">序盤</div>
+            <div class="sr" style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:600;"><span>元利合計</span><span class="mono" id="earlyT">—</span></div>
             <div class="sr pc" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>元金</span><span class="mono" id="earlyP">—</span></div>
             <div class="sr ic" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>利息</span><span class="mono" id="earlyI">—</span></div>
           </div>
-          <div class="gf-cell"><div class="k" id="lateHead">終盤5年（完済直前）</div>
+          <div class="gf-cell"><div class="k" id="lateHead">終盤</div>
+            <div class="sr" style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:600;"><span>元利合計</span><span class="mono" id="lateT">—</span></div>
             <div class="sr pc" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>元金</span><span class="mono" id="lateP">—</span></div>
             <div class="sr ic" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>利息</span><span class="mono" id="lateI">—</span></div>
           </div>
         </div>
-        <div class="yield-out" id="earlyLateOut" style="border-left-color:var(--gold);"></div>
       </div>
 
       <div class="note-ref">※ 完済（一括返済額＝残債）・積立・「早いほど利息が減る」の前提は、ページ末尾の<b>「注記」</b>を参照。</div>
@@ -1501,7 +1500,7 @@
         <details class="fund-ref">
           <summary>投資信託の過去実績（年率）を利回りの目安にする</summary>
           <div class="fr-body">
-            <div class="strip-sub" style="margin-top:0;">下表は代表的なインデックス投信の<b>過去実績（年率）</b>です。数値をタップすると上の「想定利回り」に反映します。将来の成果を保証するものではありません。</div>
+            <div class="strip-sub" style="margin-top:0;" id="fundRefNoteStress"></div>
             <div id="fundRefStress"></div>
             <div class="warn-banner amber" style="margin-top:14px;border-radius:6px;border-bottom:none;">
               <span class="warn-title">これは投資の勧誘・推奨ではありません</span>
@@ -1652,7 +1651,11 @@
           <div class="headline-sub" id="borrowSub"></div>
         </div>
 
-        <div class="stat-strip">
+        <div class="stat-strip four">
+          <div class="stat">
+            <div class="stat-label">年収倍率（参考）</div>
+            <div class="stat-value mono" id="incomeMultiple">—</div>
+          </div>
           <div class="stat">
             <div class="stat-label">年間返済額の上限</div>
             <div class="stat-value mono" id="annualCap">—</div>
@@ -1662,8 +1665,8 @@
             <div class="stat-value teal mono" id="monthlyCap">—</div>
           </div>
           <div class="stat">
-            <div class="stat-label">年収倍率（参考）</div>
-            <div class="stat-value mono" id="incomeMultiple">—</div>
+            <div class="stat-label">返済負担率</div>
+            <div class="stat-value mono" id="burdenActual">—</div>
           </div>
         </div>
 
@@ -1912,6 +1915,19 @@
             <span class="unit">万円</span>
           </div>
           <div class="field-hint">上部の「年収」を入れると同じ額がここに入ります。<b>合計所得金額は給与所得控除を引いた後の金額</b>で、実際は年収より少なくなります（年収をそのまま入れているため、所得要件2,000万円の判定は<b>厳しめ</b>に出ます）。正確に判定する場合はこの欄を直接ご入力ください。</div>
+        </div>
+
+        <div class="field-row">
+          <label for="incomeTax">年間の所得税額（源泉徴収票の「源泉徴収税額」）</label>
+          <div class="field-input">
+            <input type="number" id="incomeTax" placeholder="未入力なら上限なしで計算" min="0" step="1">
+            <span class="unit">万円 / 年</span>
+          </div>
+          <label class="toggle-row" for="useTaxCap">
+            <input type="checkbox" id="useTaxCap">
+            納税額の範囲で控除額を頭打ちにする
+          </label>
+          <div class="field-hint">住宅ローン控除は<b>納めた税金から差し引く制度</b>のため、年収が低く納税額が少ないと控除しきれません。上限＝<b>所得税額＋住民税からの控除（年9.75万円が上限）</b>。所得税額は源泉徴収票の「源泉徴収税額」をご入力ください。</div>
         </div>
 
         <div class="action-row">
@@ -2167,15 +2183,10 @@
     let overlay='';
     const sy = opts.selectYear ? Math.max(1, Math.min(N, Math.round(opts.selectYear))) : 0;
     const sp = opts.spanYears ? Math.max(1, Math.round(opts.spanYears)) : 0;
-    if(sy>0 && sp>0){
-      const lx = x0 + bw*(sy-1);
-      const rx = Math.min(x0+plotW, x0 + bw*Math.min(N, sy-1+sp));
-      // 点線をはっきりした色にし、内側を同色の薄いマスクで塗って範囲を分かりやすくする
-      overlay += '<rect x="'+lx.toFixed(2)+'" y="'+y0+'" width="'+(rx-lx).toFixed(2)+'" height="'+plotH+'" fill="#c2410c" fill-opacity="0.13" stroke="#c2410c" stroke-opacity="1" stroke-width="2.2" stroke-dasharray="7 4" vector-effect="non-scaling-stroke"/>';
-    }
     if(sy>0){
       const lx=xAt(sy-1).toFixed(2);
-      overlay += '<line x1="'+lx+'" y1="'+y0+'" x2="'+lx+'" y2="'+(y0+plotH)+'" stroke="var(--gold-soft)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>';
+      // 赤い1本線。線そのものをスワイプして動かす
+      overlay += '<line x1="'+lx+'" y1="'+y0+'" x2="'+lx+'" y2="'+(y0+plotH)+'" stroke="#c2410c" stroke-width="3" vector-effect="non-scaling-stroke"/>';
     }
 
     const svg='<svg class="stmt-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'+
@@ -2188,10 +2199,12 @@
     // 縦ライン下の年齢ラベル（HTMLで重ねる。SVGは横方向に伸縮するため文字は入れない）
     let lineLabel='';
     if(sy>0){
-      let fp = xAt(sy-1)/W*100; fp = Math.max(4, Math.min(96, fp));
+      let fp = xAt(sy-1)/W*100; fp = Math.max(2, Math.min(98, fp));
       const ly = Math.max(0, Math.min(1, opts.labelY!=null ? opts.labelY : 0.62));
       const ageLine = (a!=null && !isNaN(a)) ? '<span class="ll-age">'+(a+sy-1)+'歳</span>' : '';
-      lineLabel = '<div class="gf-line-label" style="left:'+fp.toFixed(2)+'%;top:'+(ly*100).toFixed(2)+'%"><span class="ll-y">'+sy+'年目</span>'+ageLine+'</div>';
+      // 線そのものを掴めるようにする透明な帯 ＋ 年・年齢のラベル
+      lineLabel = '<div class="gf-line-grab" style="left:'+fp.toFixed(2)+'%"></div>' +
+        '<div class="gf-line-label" style="left:'+fp.toFixed(2)+'%;top:'+(ly*100).toFixed(2)+'%"><span class="ll-y">'+sy+'年目</span>'+ageLine+'</div>';
     }
     return '<div class="chart-wrap">'+svg+lineLabel+'</div>' +
       '<div class="stmt-axis"><span>1年目'+ageTxt(0)+'</span><span>'+N+'年目'+ageTxt(N-1)+'</span></div>';
@@ -2264,23 +2277,14 @@
   }
   function toMan(v){ return Math.round(v/10000).toLocaleString('ja-JP'); }
 
-  // 試算期間（年数）と、それを完済年内に収めるための「経過年」の上限
-  function focusSpanNow(){
-    const N = gLastYearly ? gLastYearly.length : 0; if(!N) return 1;
-    return Math.max(1, Math.min(N, Math.round(iv('focusSpan')||1)));
-  }
-  function focusMaxYear(){
-    const N = gLastYearly ? gLastYearly.length : 0; if(!N) return 1;
-    return Math.max(1, N - focusSpanNow() + 1); // 例）完済35年・試算期間5年 → 31年目まで（31〜35年目）
-  }
+  function focusMaxYear(){ return gLastYearly ? gLastYearly.length : 1; }
 
   function renderStatement(){
     if(!gLastYearly || !gLastYearly.length) return;
     const N = gLastYearly.length;
-    const sp = focusSpanNow();                                   // 試算期間はそのまま維持し
-    if($('gfSpanEcho')) $('gfSpanEcho').textContent = sp;
+    const sp = 0;                                                 // 四角（試算期間）は廃止
     let sy = Math.round(iv('focusYear')||1);
-    sy = Math.max(1, Math.min(focusMaxYear(), sy));               // 経過年のほうを上限で止める
+    sy = Math.max(1, Math.min(N, sy));                            // 1年目〜完済年まで自由に動かせる
     const a = gStartAge;
     $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a, labelY:gLabelY});
 
@@ -2402,7 +2406,6 @@
 
     // グラフの状態を保存し、経過年・試算期間の指定で描画
     gLastYearly = yearly; gLastPrincipal = principal;
-    // 経過年・試算期間のクランプ（返済期間を超えないように）
     if($('focusYear')){ let fy=Math.round(iv('focusYear')||1); if(fy>years) $('focusYear').value=years; if(fy<1) $('focusYear').value=1; }
     renderStatement();
 
@@ -2411,11 +2414,11 @@
     const uf = (gTableUnit==='yen') ? (v=>yen(v)) : (v=>Math.round(v/10000).toLocaleString('ja-JP'));
     tbody.innerHTML = '';
     yearly.forEach(row=>{
-      const ageCell = (gStartAge!=null) ? (gStartAge+row.year-1)+'歳' : '—';
+      const ageCell = (gStartAge!=null) ? String(gStartAge+row.year-1) : '—';
       const rowShare = row.payment>0 ? (row.interest/row.payment*100) : 0;
       const tr = document.createElement('tr');
       tr.innerHTML =
-        '<td>'+row.year+'年目</td>' +
+        '<td>'+row.year+'</td>' +
         '<td class="age-col">'+ageCell+'</td>' +
         '<td>'+uf(row.payment)+'</td>' +
         '<td>'+uf(row.principal)+'</td>' +
@@ -2453,14 +2456,13 @@
     const otherDebtMan = iv('otherDebt') || 0;
     const useStress = $('stressRate').checked;
 
-    // 審査金利トグル：オンなら金利入力を審査金利として扱う（未変更なら目安値を充てる）
-    if(useStress){
-      $('diagRate').value = STRESS_RATE;
-    }
-    const rate = iv('diagRate') || 0;
+    // 審査金利トグル：オンなら「入力した金利」と「審査金利3.0%」の高いほうで審査する
+    const inputRate = iv('diagRate') || 0;
+    const rate = useStress ? Math.max(inputRate, STRESS_RATE) : inputRate;
     const years = iv('diagYears') || 0;
-    syncStressRate(useStress ? 'a' : 'a');
-    if($('diagRateEcho')) $('diagRateEcho').textContent = rate + (useStress ? '（審査金利）' : '');
+    syncStressRate('a');
+    if($('diagRateEcho')) $('diagRateEcho').textContent =
+      rate + (useStress ? (inputRate > STRESS_RATE ? '（入力金利が3%超のためそのまま適用）' : '（審査金利3.0%を適用）') : '');
 
     // 返済負担率：自動設定チェック時は年収から決定して入力欄に反映
     if($('autoRatio').checked){
@@ -2481,6 +2483,10 @@
     $('annualCap').textContent = yen(annualCap) + ' 円';
     $('monthlyCap').textContent = yen(monthlyCap) + ' 円';
     $('incomeMultiple').textContent = multiple > 0 ? multiple.toFixed(1) + ' 倍' : '—';
+    // 実際の返済負担率＝（この借入の年間返済額＋他の借入）÷ 年収
+    const annualPayOfBorrow = monthlyCap * 12;
+    const burdenActual = incomeMan > 0 ? (annualPayOfBorrow + otherDebtMan*10000) / (incomeMan*10000) * 100 : 0;
+    $('burdenActual').textContent = burdenActual > 0 ? burdenActual.toFixed(1) + ' %' : '—';
 
     $('diagCondition').textContent =
       '適用返済負担率 ' + ratioPct + '％' +
@@ -2548,9 +2554,9 @@
       const cumulative = diff * 12 * saveYears;
       $('tag'+i).textContent = '＋' + delta + '%';
       $('save'+i).innerHTML = yen(diff) + '<small>円 / 月</small>';
-      $('stressed'+i).textContent = yen(stressed) + ' 円';
+      $('stressed'+i).textContent = yen(stressed) + ' 円';  // 月額なので円のまま
       $('cumLabel'+i).textContent = saveYears + '年間の積立累計';
-      $('cum'+i).textContent = yen(cumulative) + ' 円';
+      $('cum'+i).textContent = Math.round(cumulative/10000).toLocaleString('ja-JP') + ' 万円';
       diffs[i] = diff;
 
       // 元の月額に戻す一括返済額
@@ -2583,8 +2589,12 @@
     {key:'bal8',  name:'eMAXIS Slim バランス（8資産均等型）',          since:'2017年5月設定',  r:{1:24.71, 3:13.68, 5:10.22}},
     {key:'depo',  name:'定期預金（保守ケースの参考値）',                since:'実績値ではありません', r:{1:0.30, 3:0.30, 5:0.30}, manual:true},
   ];
-  // 積立年数に対して使う過去リターンの期間（実績のある 1/3/5年 から選ぶ）
-  function fundHorizon(saveYears){ return saveYears >= 5 ? 5 : (saveYears >= 3 ? 3 : 1); }
+  // 積立年数に最も近い実績期間を選ぶ（各ファンドの実績は 1/3/5年 のみ。設定から約8〜9年のため10年超の実績は存在しない）
+  function fundHorizon(saveYears){
+    var avail=[1,3,5], best=avail[0], bd=Infinity;
+    avail.forEach(function(h){ var d=Math.abs(h-saveYears); if(d<bd){ bd=d; best=h; } });
+    return best;
+  }
   const fundOverride = {}; // 営業が上書きした年率（銘柄キー→%）
 
   // 毎月P円を年率r%でn年積み立てた場合の評価額（期末払い・月複利）
@@ -2620,6 +2630,11 @@
       body += '<tr>' + cells + '</tr>';
     });
     cont.innerHTML = '<table class="fund-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+    var noteEl = $(containerId === 'fundRefPayoff' ? 'fundRefNotePayoff' : 'fundRefNoteStress');
+    if(noteEl) noteEl.innerHTML =
+      '積立期間 <b>'+years+'年</b> に対し、各ファンドの<b>過去'+h+'年（年率）</b>の実績を表示しています（'+FUND_ASOF+'基準）。' +
+      (Math.abs(h-years)>0.5 ? '<b>各ファンドは設定から約8〜9年のため'+years+'年ちょうどの実績はなく、最も近い期間で代用しています。</b>' : '') +
+      '数値をタップすると上の「想定利回り」に反映します。将来の成果を保証するものではありません。';
     Array.prototype.forEach.call(cont.querySelectorAll('.fund-pick'), function(btn){
       btn.addEventListener('click', function(){
         const el = $(yieldInputId); if(!el) return;
@@ -2638,14 +2653,14 @@
     const years = gStressSaveYears;
     const y = iv('yieldStress'); const yieldPct = isFinite(y) ? Math.max(0,y) : 0;
     if($('stressYieldSub')) $('stressYieldSub').innerHTML =
-      '想定利回り <b>' + (Math.round(yieldPct*100)/100) + '%</b> で ' + years + '年間運用して、増額分を用意する場合の毎月の積立額です（シナリオ①・②）。';
+      '想定利回り <b>' + (Math.round(yieldPct*100)/100) + '%</b> で ' + years + '年間運用した場合の、毎月の積立額です（シナリオ①・②）。';
     let html = '';
     gStressScenarios.forEach(function(s){
       const need = Math.round(neededMonthly(s.target, yieldPct, years));
       const saved = Math.max(0, s.cash - need);
       html +=
         '<div class="yo-block">' +
-        '<div class="yo-lead"><b>シナリオ' + s.mark + '（＋' + s.delta + '%）</b>　積立目標（累計）<b class="yo-goal">' + yen(s.target) + '円</b></div>' +
+        '<div class="yo-lead"><b>シナリオ' + s.mark + '（＋' + s.delta + '%）</b>　積立目標（累計）<b class="yo-goal">' + Math.round(s.target/10000).toLocaleString('ja-JP') + '万円</b></div>' +
         '<div class="yo-arrow">' +
           '<div class="ya-cap c1">現金でためる</div>' +
           '<div class="ya-cap c2">運用でためる</div>' +
@@ -2653,7 +2668,6 @@
           '<div class="ya-ar">→</div>' +
           '<div class="ya-amt inv">' + yen(need) + '<small>円/月</small></div>' +
         '</div>' +
-        '<div class="yo-note">' + (saved>0 ? '毎月 <b>' + yen(saved) + '円</b> 少なくて済みます' : '現金とほぼ同じ') + '</div>' +
         '</div>';
     });
     if($('stressYieldOut')) $('stressYieldOut').innerHTML = html;
@@ -2775,7 +2789,7 @@
     if(sec) sec.style.display='';
     // 窓の長さ：最大5年、かつ期間の半分まで（2区間が重ならないようにする）
     const W = Math.max(1, Math.min(5, Math.floor(N/2)));
-    const eStart = Math.max(1, Math.min(3, N - 2*W + 1)); // 通常は3年目（借入2年後）から
+    const eStart = Math.max(1, Math.min(2, N - 2*W + 1)); // 通常は2年目から
     const eEnd = eStart + W - 1;
     const lEnd = N, lStart = N - W + 1;
     function sums(s,e){ let p=0,i=0; for(let y=s;y<=e;y++){ const rr=gLastYearly[y-1]; if(rr){p+=rr.principal;i+=rr.interest;} } return {p:p,i:i}; }
@@ -2783,18 +2797,18 @@
     const ageR=(s,e)=> (a!=null&&!isNaN(a)) ? '（'+(a+s-1)+'〜'+(a+e-1)+'歳）' : '';
     if($('earlyHead')) $('earlyHead').innerHTML='序盤'+W+'年（'+eStart+'〜'+eEnd+'年目）'+ageR(eStart,eEnd);
     if($('lateHead')) $('lateHead').innerHTML='終盤'+W+'年（'+lStart+'〜'+lEnd+'年目）'+ageR(lStart,lEnd);
+    if($('earlyT')) $('earlyT').textContent=toMan(E.p+E.i)+' 万円';
+    if($('lateT')) $('lateT').textContent=toMan(L.p+L.i)+' 万円';
     if($('earlyP')) $('earlyP').textContent=toMan(E.p)+' 万円';
     if($('earlyI')) $('earlyI').textContent=toMan(E.i)+' 万円';
     if($('lateP')) $('lateP').textContent=toMan(L.p)+' 万円';
     if($('lateI')) $('lateI').textContent=toMan(L.i)+' 万円';
     const diff=Math.abs(E.i-L.i);
-    if($('earlyLateOut')) $('earlyLateOut').innerHTML=
-      '<div class="yo-lead">同じ'+W+'年間でも、序盤の利息は <b>'+toMan(E.i)+'万円</b>、終盤は <b>'+toMan(L.i)+'万円</b>。'+
-      (E.i > L.i
-        ? '序盤のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息（消える利息）が大きくなります。</b>'
-        : '差は <b>'+toMan(diff)+'万円</b> です（返済期間が短いため差は小さくなります）。')+
-      '</div>';
-    if($('earlyLateLead')) $('earlyLateLead').innerHTML='同じ'+W+'年間でも、序盤は返済に占める利息が大きいので、早い時期の繰上げ・完済ほど<b>減らせる利息</b>が大きくなります。';
+    if($('earlyLateHelp')) $('earlyLateHelp').innerHTML=
+      '同じ'+W+'年間でも、序盤は返済額に占める利息が大きく、終盤はほとんどが元金です。'+
+      '序盤の利息は <b>'+toMan(E.i)+'万円</b>、終盤は <b>'+toMan(L.i)+'万円</b>で、'+
+      (E.i > L.i ? '序盤のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息が大きくなります。</b>'
+                 : '差は <b>'+toMan(diff)+'万円</b> です（返済期間が短いため差は小さくなります）。');
   }
 
   // ============ 2-3. 賃貸（投資用）転用シミュレーション ============
@@ -3011,20 +3025,28 @@
     resultEl.classList.remove('hidden');
     const {yearly} = computeBaseYearly();
     const limitYen = e.limit * 10000;
-    let total = 0, first = 0;
+    // 納税額の上限（所得税＋住民税9.75万円）。チェックONかつ所得税額の入力があるときだけ適用
+    const RESIDENT_TAX_CAP = 97500; // 住民税からの控除上限（年）※確認済みの数値
+    const taxOn = $('useTaxCap') && $('useTaxCap').checked;
+    const incomeTaxYen = (iv('incomeTax')||0) * 10000;
+    const payableCap = (taxOn && incomeTaxYen > 0) ? (incomeTaxYen + RESIDENT_TAX_CAP) : Infinity;
+    let total = 0, first = 0, cappedAny = false;
     const rows = [];
     for(let y=0; y<e.term; y++){
       const balance = yearly[y] ? yearly[y].balance : 0;
       const eligible = Math.min(balance, limitYen);
-      const deduction = Math.max(0, eligible) * CREDIT_RATE;
+      const raw = Math.max(0, eligible) * CREDIT_RATE;
+      const deduction = Math.min(raw, payableCap);
+      if(deduction < raw - 1) cappedAny = true;
       if(y === 0) first = deduction;
       total += deduction;
-      rows.push({year:y+1, deduction});
+      rows.push({year:y+1, deduction, raw});
     }
 
     $('creditTotal').innerHTML = Math.round(total/10000).toLocaleString('ja-JP') + '<small>万円</small>';
     $('creditTotalSub').textContent =
-      '控除率0.7%・' + e.term + '年間の合計（年末残高×0.7%を借入限度' + e.limit.toLocaleString('ja-JP') + '万円の範囲で計算）';
+      '控除率0.7%・' + e.term + '年間の合計（年末残高×0.7%を借入限度' + e.limit.toLocaleString('ja-JP') + '万円の範囲で計算）' +
+      (cappedAny ? '　※納税額（所得税' + (iv('incomeTax')||0) + '万円＋住民税9.75万円）の範囲で頭打ちにしています' : '');
     $('creditTerm').textContent = e.term + ' 年';
     $('creditLimit').textContent = e.limit.toLocaleString('ja-JP') + ' 万円';
     $('creditFirst').textContent = yen(first) + ' 円';
@@ -3047,7 +3069,7 @@
   }
 
   $('creditBtn').addEventListener('click', renderCredit);
-  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','floorArea','totalIncome'].forEach(id=>{
+  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','floorArea','totalIncome','incomeTax','useTaxCap'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', renderCredit);
   });
   document.querySelectorAll('input[name=method], input[name=buildType], input[name=bonusMode]').forEach(el=>{
@@ -3128,14 +3150,16 @@
       if(changed) renderStatement();
     }
     el.addEventListener('pointerdown', function(e){
-      // 「◯年目◯歳」の箱をつかんだときだけ動かす。棒グラフを押しただけでは何も動かさない
-      var onLabel = e.target && e.target.closest && e.target.closest('.gf-line-label');
-      if(!onLabel){ dragging=false; return; }
-      dragging=true; dragMode='label';
+      // 赤い線（またはラベル）を掴んだときだけ動かす。棒グラフを押しただけでは動かさない
+      var t = e.target && e.target.closest ? e.target : null;
+      var onLabel = t && t.closest('.gf-line-label');
+      var onLine  = t && t.closest('.gf-line-grab');
+      if(!onLabel && !onLine){ dragging=false; return; }
+      dragging=true; dragMode = onLabel ? 'label' : 'line';
       try{el.setPointerCapture(e.pointerId);}catch(x){}
-      apply(e.clientX, e.clientY);
+      apply(e.clientX, onLabel ? e.clientY : null);
     });
-    el.addEventListener('pointermove', function(e){ if(dragging) apply(e.clientX, e.clientY); });
+    el.addEventListener('pointermove', function(e){ if(dragging) apply(e.clientX, dragMode==='label' ? e.clientY : null); });
     window.addEventListener('pointerup', function(){ dragging=false; });
     el.addEventListener('pointercancel', function(){ dragging=false; });
   })();
@@ -3187,6 +3211,17 @@
     });
   }
 
+  // 必須5項目が「すべて」埋まった瞬間にキーボードを閉じる（入力途中では閉じない）
+  var gWasReady = false;
+  function autoCloseKeypad(){
+    var ready = baseReady();
+    if(ready && !gWasReady){
+      var el = document.activeElement;
+      if(el && el.tagName === 'INPUT' && el.blur) setTimeout(function(){ try{ el.blur(); }catch(_){} }, 220);
+    }
+    gWasReady = ready;
+  }
+
   // クイックバー側の変更をドロワーへ書き戻して全再計算
   function wireQuickBar(){
     // ボーナス欄の開閉
@@ -3227,7 +3262,7 @@
           q.classList.remove('pristine');
           // 年収は 2-1 借入可能額と 2-5 住宅ローン控除（所得要件）に反映する
           if(pair[0]==='qIncome' && $('totalIncome')){ $('totalIncome').value = q.value; $('totalIncome').classList.remove('pristine'); }
-          recalcAll(); diagnose();
+          recalcAll(); diagnose(); autoCloseKeypad();
         });
       });
       q.addEventListener('blur', function(){
@@ -3253,6 +3288,12 @@
     if(wrap && !wasOpen) setTimeout(function(){ wrap.classList.remove('open'); }, 500);
   }
   if($('qPrint')) $('qPrint').addEventListener('click', doPrint);
+  if($('earlyLateHelpBtn')) $('earlyLateHelpBtn').addEventListener('click', function(){
+    var b=$('earlyLateHelp'); if(!b) return;
+    var open = b.style.display!=='none';
+    b.style.display = open ? 'none' : '';
+    this.classList.toggle('on', !open);
+  });
   if($('cmpAdd')) $('cmpAdd').addEventListener('click', addPattern);
   if($('cmpClear')) $('cmpClear').addEventListener('click', function(){ gPatterns=[]; var p=$('cmpPanel'); if(p) p.dataset.open='0'; renderPatterns(); });
   if($('cmpToggle')) $('cmpToggle').addEventListener('click', function(){
@@ -3267,22 +3308,6 @@
   document.querySelectorAll('input[name=method]').forEach(el=>{
     el.addEventListener('change', calculate);
   });
-  // グラフ操作：経過年（縦ライン）／試算期間（四角）／◀▶
-  function clampFocusInputs(){
-    if(!gLastYearly||!gLastYearly.length) return;
-    const sp=focusSpanNow();
-    let sy=Math.round(iv('focusYear')||1); sy=Math.max(1,Math.min(focusMaxYear(),sy));
-    if($('focusYear')){ $('focusYear').value=sy; $('focusYear').classList.remove('pristine'); }
-    if($('focusSpan')){ $('focusSpan').value=sp; $('focusSpan').classList.remove('pristine'); }
-    if($('gfSpanEcho')) $('gfSpanEcho').textContent = sp;
-  }
-  ['focusYear','focusSpan'].forEach(id=>{
-    const el=$(id); if(el){ attachClear(el); el.setAttribute('inputmode','numeric');
-      el.addEventListener('input', renderStatement);
-      el.addEventListener('change', ()=>{ clampFocusInputs(); renderStatement(); }); }
-  });
-  if($('gfPrev')) $('gfPrev').addEventListener('click', ()=>{ const el=$('focusYear'); el.value=Math.max(1,(Math.round(iv('focusYear')||1))-1); el.classList.remove('pristine'); renderStatement(); });
-  if($('gfNext')) $('gfNext').addEventListener('click', ()=>{ const el=$('focusYear'); el.value=Math.min(focusMaxYear(),(Math.round(iv('focusYear')||1))+1); el.classList.remove('pristine'); renderStatement(); });
   // ボーナス指定方法（割合／金額）の切替と、金額入力・モードの全モジュール反映
   document.querySelectorAll('input[name=bonusMode]').forEach(el=>{
     el.addEventListener('change', ()=>{
@@ -3298,7 +3323,6 @@
     $('principal').value = 4000; $('rate').value = 1.5; $('years').value = 35;
     if($('borrowerAge')) $('borrowerAge').value = 40;
     if($('focusYear')) $('focusYear').value = 10;
-    if($('focusSpan')) $('focusSpan').value = 5;
     document.querySelector('input[name=method][value=equalPayment]').checked = true;
     document.querySelector('input[name=bonusMode][value=ratio]').checked = true;
     $('bonusRatio').value = 0; $('bonusAmount').value = 0;
