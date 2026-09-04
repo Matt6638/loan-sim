@@ -157,7 +157,7 @@
     transition:transform .22s ease, background .2s, filter .2s;
   }
   .fab-input .fab-ico{font-size:24px;line-height:1;transition:transform .22s ease;}
-  .fab-input::after{content:"入力";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text);font-weight:700;letter-spacing:.04em;white-space:nowrap;}
+  .fab-input::after{content:"設定";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text);font-weight:700;letter-spacing:.04em;white-space:nowrap;}
   .fab-input:hover{filter:brightness(1.15);}
   .fab-input.on{background:var(--gold);color:#fff;border-color:var(--gold-soft);}
   .fab-input.on .fab-ico{transform:rotate(45deg);}
@@ -192,6 +192,8 @@
   .drawer-body{flex:1 1 auto;overflow-y:auto;padding:2px 8px 24px;-webkit-overflow-scrolling:touch;}
   /* ドロワー内の入力パネルは枠を外してフラットに、アクティブなモジュールのみ表示 */
   .input-drawer .panel{border:none;box-shadow:none;border-radius:0;overflow:visible;}
+  /* 借入条件は結果画面上部のクイックバーに集約したため、設定ドロワーには出さない（値の保持のみ） */
+  .input-drawer .dpanel.dp-hidden{display:none !important;}
   .drawer-body .dpanel{display:none;}
   .drawer-body .dpanel.on{display:block;}
   .drawer-body .dpanel + .dpanel{border-top:1px solid var(--border-soft);margin-top:6px;}
@@ -423,7 +425,13 @@
   .swatch.bal{width:16px;height:0;background:none;border-top:2px dashed var(--gold-soft);}
 
   /* 結果画面から借入条件を直接変更するクイックバー（ドロワーと連動） */
-  .quick-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;background:#f4f1e8;border-bottom:1px solid var(--border);}
+  .quick-bar{padding:12px 16px;background:#f4f1e8;border-bottom:1px solid var(--border);}
+  .qb-main{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;}
+  .qb-presets{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);}
+  .qb-pg{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .qb-pk{font-size:0.66rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
+  .qb-chips{margin-top:0;gap:5px;}
+  .qb-chips .chip{font-size:0.74rem;padding:4px 9px;}
   .qb-field{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:text;}
   .qb-field:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .qb-k{font-size:0.7rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
@@ -431,24 +439,37 @@
   .qb-field input{width:66px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:transparent;border:none;outline:none;padding:1px 0;}
   .qb-field input#qAge{width:38px;}
   .qb-field input#qRate{width:48px;}
+  .qb-field input#qYears{width:38px;}
   .qb-field input.pristine{color:#a2a8b5;}
+  .qb-seg{display:inline-flex;flex:0 0 auto;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:#fff;}
+  .qb-seg-btn{font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--text-dim);background:#fff;border:none;border-right:1px solid var(--border);padding:7px 10px;cursor:pointer;white-space:nowrap;transition:all .12s;}
+  .qb-seg-btn:last-child{border-right:none;}
+  .qb-seg-btn.on{background:var(--gold);color:#fff;}
   .qb-reset{margin-left:auto;flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:7px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .qb-reset:hover{background:var(--rose);color:#fff;border-color:var(--rose);}
   /* iPhone縦：4項目＋全クリアが余計な行を作らないよう詰める */
   @media (max-width:480px){
-    .quick-bar{gap:6px;padding:10px 12px;}
+    .quick-bar{padding:10px 12px;}
+    .qb-main{gap:6px;}
+    .qb-presets{gap:5px 8px;margin-top:8px;padding-top:8px;}
+    .qb-chips .chip{font-size:0.7rem;padding:3px 7px;}
     .qb-field{padding:4px 7px;gap:4px;}
     .qb-k{font-size:0.66rem;}
     .qb-u{font-size:0.62rem;}
-    .qb-field input{width:54px;font-size:0.9rem;}
-    .qb-field input#qAge{width:30px;}
-    .qb-field input#qRate{width:38px;}
-    .qb-reset{margin-left:0;font-size:0.7rem;padding:6px 10px;}
+    .qb-field{padding:4px 6px;gap:3px;}
+    .qb-field input{width:46px;font-size:0.86rem;}
+    .qb-field input#qAge{width:26px;}
+    .qb-field input#qRate{width:32px;}
+    .qb-field input#qYears{width:26px;}
+    .qb-k{font-size:0.62rem;}
+    .qb-u{font-size:0.58rem;}
+    .qb-seg-btn{font-size:0.65rem;padding:5px 7px;}
+    .qb-reset{margin-left:0;font-size:0.66rem;padding:5px 9px;}
   }
 
   /* パターン比較 */
   .share-row{display:flex;align-items:center;gap:12px;padding:12px 24px 0;}
-  .share-row .interest-share{padding:0;flex:1 1 auto;min-width:0;}
+  .share-row .share-spacer{flex:1 1 auto;min-width:0;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .cmp-add-btn:hover{background:var(--gold-soft);}
   .cmp-add-btn:active{transform:translateY(1px);}
@@ -491,6 +512,11 @@
   /* パターン比較の開閉ボタン */
   .cmp-toggle-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .cmp-toggle-btn:hover{background:var(--gold);color:#fff;border-color:var(--gold);}
+  /* iPhone：右下の設定ボタン（FAB）と重ならないよう、比較ボタンは左寄せにする */
+  @media (max-width:480px){
+    .share-row .share-spacer{display:none;}
+    .share-row{justify-content:flex-start;}
+  }
 
   /* 結果：利息割合の一行 */
   .interest-share{padding:12px 24px 0;font-size:0.86rem;color:var(--text-dim);}
@@ -526,7 +552,7 @@
   button, .chip, .gf-arrow, .fund-pick, .tab, .yield-picker, .gf-controls, .graph-focus, input, select, label{touch-action:manipulation;}
 
   /* グラフの縦ライン下の年齢ラベル（ドラッグで移動できる） */
-  .chart-wrap{position:relative;touch-action:pan-y;cursor:ew-resize;}
+  .chart-wrap{position:relative;touch-action:none;cursor:move;}
   .gf-line-label{position:absolute;bottom:26px;transform:translateX(-50%);background:var(--gold-soft);color:#fff;font-family:var(--mono);font-size:0.62rem;line-height:1.25;padding:3px 8px;border-radius:6px;white-space:nowrap;text-align:center;pointer-events:none;box-shadow:0 2px 6px rgba(27,42,74,.25);}
   .gf-line-label::after{content:"◀▶";display:block;font-size:0.5rem;opacity:.75;margin-top:1px;letter-spacing:1px;}
   .chart-hint{font-size:0.66rem;color:var(--text-dim);margin-top:4px;text-align:center;}
@@ -964,11 +990,28 @@
     <div class="panel">
       <!-- 結果画面から借入条件を直接変更（ドロワーの入力欄と双方向連動） -->
       <div class="quick-bar">
+        <div class="qb-main">
         <label class="qb-field"><span class="qb-k">借入</span><input type="text" inputmode="numeric" id="qPrincipal"><span class="qb-u">万円</span></label>
         <label class="qb-field"><span class="qb-k">年齢</span><input type="text" inputmode="numeric" id="qAge"><span class="qb-u">歳</span></label>
         <label class="qb-field"><span class="qb-k">金利</span><input type="text" inputmode="decimal" id="qRate"><span class="qb-u">%</span></label>
+        <label class="qb-field"><span class="qb-k">期間</span><input type="text" inputmode="numeric" id="qYears"><span class="qb-u">年</span></label>
+        <div class="qb-seg" id="qMethod">
+          <button type="button" class="qb-seg-btn on" data-method="equalPayment">元利均等</button>
+          <button type="button" class="qb-seg-btn" data-method="equalPrincipal">元金均等</button>
+        </div>
         <label class="qb-field"><span class="qb-k">ボーナス</span><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
         <button type="button" class="qb-reset" id="qReset">全クリア</button>
+        </div>
+        <div class="qb-presets">
+          <div class="qb-pg"><span class="qb-pk">金利</span>
+          <div class="chip-row qb-chips" data-target="rate">
+            <button type="button" class="chip">0.3</button><button type="button" class="chip">0.5</button><button type="button" class="chip">0.7</button><button type="button" class="chip">1.0</button><button type="button" class="chip">1.5</button><button type="button" class="chip">2.0</button>
+          </div></div>
+          <div class="qb-pg"><span class="qb-pk">期間</span>
+          <div class="chip-row qb-chips" data-target="years">
+            <button type="button" class="chip">20</button><button type="button" class="chip">25</button><button type="button" class="chip">30</button><button type="button" class="chip">35</button><button type="button" class="chip">40</button><button type="button" class="chip">50</button>
+          </div></div>
+        </div>
       </div>
 
       <div class="headline-figure">
@@ -987,7 +1030,7 @@
       </div>
 
       <div class="share-row">
-        <div class="interest-share" id="interestShare"></div>
+        <div class="share-spacer"></div>
         <button type="button" class="cmp-add-btn" id="cmpAdd" title="この条件を比較に追加">＋追加</button>
         <button type="button" class="cmp-toggle-btn" id="cmpToggle" style="display:none;">比較を見る</button>
       </div>
@@ -1115,7 +1158,7 @@
         <div class="yield-picker">
           <span class="yp-label">想定利回り（年率）</span>
           <div class="chip-row yp-chips" data-target="yieldPayoff">
-            <button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
+            <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
           </div>
           <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldPayoff" value="6"><span class="unit">%</span></div>
         </div>
@@ -1243,7 +1286,7 @@
         <div class="yield-picker">
           <span class="yp-label">想定利回り（年率）</span>
           <div class="chip-row yp-chips" data-target="yieldStress">
-            <button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
+            <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
           </div>
           <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldStress" value="6"><span class="unit">%</span></div>
         </div>
@@ -1835,7 +1878,10 @@
     if(sy>0 && sp>0){
       const lx = x0 + bw*(sy-1);
       const rx = Math.min(x0+plotW, x0 + bw*Math.min(N, sy-1+sp));
-      overlay += '<rect x="'+lx.toFixed(2)+'" y="'+y0+'" width="'+(rx-lx).toFixed(2)+'" height="'+plotH+'" fill="var(--gold)" fill-opacity="0.10" stroke="var(--gold)" stroke-opacity="0.6" stroke-width="1.2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
+      // 四角は左右（経過年）だけでなく上下にも動かせる。boxY は 0（上端）〜1（下端）
+      const bh = plotH*BOX_H;
+      const by = y0 + (plotH-bh)*clamp(opts.boxY!=null ? opts.boxY : 0.5);
+      overlay += '<rect x="'+lx.toFixed(2)+'" y="'+by.toFixed(2)+'" width="'+(rx-lx).toFixed(2)+'" height="'+bh.toFixed(2)+'" fill="var(--gold)" fill-opacity="0.13" stroke="var(--gold)" stroke-opacity="0.8" stroke-width="1.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
     }
     if(sy>0){
       const lx=xAt(sy-1).toFixed(2);
@@ -1862,6 +1908,8 @@
 
   // グラフ描画用の直近の状態（経過年・試算期間の操作で再描画）
   var gLastYearly=null, gLastPrincipal=0, gStartAge=null;
+  var BOX_H = 0.55;      // 試算期間の四角の高さ（グラフ高さに対する比率）
+  var gBoxY = 0.5;       // 四角の上下位置（0＝上端／1＝下端）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
   // パターン比較：現在の条件・結果を一覧に追加していく
@@ -1913,7 +1961,7 @@
     let sy = Math.round(iv('focusYear')||1);
     sy = Math.max(1, Math.min(focusMaxYear(), sy));               // 経過年のほうを上限で止める
     const a = gStartAge;
-    $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a});
+    $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a, boxY:gBoxY});
 
     const row = gLastYearly[sy-1];
     const share = row.payment>0 ? row.interest/row.payment*100 : 0;
@@ -2006,7 +2054,6 @@
 
     // 利息の割合（総返済額に占める）
     const sharePct = totalPayment>0 ? totalInterest/totalPayment*100 : 0;
-    $('interestShare').innerHTML = '総返済額に占める利息の割合：<b>'+sharePct.toFixed(1)+'%</b>';
 
     // パターン比較用に現在の条件・結果を保存
     const bonusPrincipalMan = Math.round(bonusPrincipal/10000);
@@ -2340,7 +2387,7 @@
     if($('payoffYieldOut')) $('payoffYieldOut').innerHTML=
       '<div class="yo-lead">想定利回り <b>'+(Math.round(yieldPct*100)/100)+'%</b> で '+gPayoffYears+'年間運用して '+yen(Math.round(gPayoffLump))+'円 を用意する場合</div>'+
       '<div class="yo-amt">'+yen(need)+'<small> 円 / 月</small></div>'+
-      '<div class="yo-note">元本（毎月 '+yen(need)+'円 ×'+(gPayoffYears*12)+'回）の合計 '+yen(need*gPayoffYears*12)+'円。差額は運用益で補う概算です。</div>';
+      '<div class="yo-note">元本（毎月 '+yen(need)+'円 ×'+(gPayoffYears*12)+'回）の合計 '+yen(need*gPayoffYears*12)+'円。'+(yieldPct>0 ? '差額は運用益で補う概算です。' : '利回り0%のため運用益はなく、全額を自己資金で積む前提です。')+'</div>';
     renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], gPayoffYears, 'yieldPayoff');
   }
 
@@ -2705,15 +2752,28 @@
       // 1年目より左、および「試算期間が完済年を超える位置」より右では止める
       return Math.max(1, Math.min(focusMaxYear(), y));
     }
-    function apply(clientX){
-      var y=toYear(clientX); if(y==null) return;
-      var fy=$('focusYear'); if(!fy) return;
-      // 位置が変わらないときは再描画しない（端でドラッグし続けたときの点滅を防ぐ）
-      if(Math.round(iv('focusYear')||0) === y) return;
-      fy.value=y; fy.classList.remove('pristine'); renderStatement();
+    function apply(clientX, clientY){
+      var changed=false;
+      var y=toYear(clientX);
+      var fy=$('focusYear');
+      // 左右＝経過年（位置が変わらないときは再描画しない：端でのドラッグ時の点滅を防ぐ）
+      if(y!=null && fy && Math.round(iv('focusYear')||0) !== y){
+        fy.value=y; fy.classList.remove('pristine'); changed=true;
+      }
+      // 上下＝四角の位置（指の高さを四角の中心に合わせる）
+      var wrap=el.querySelector('.chart-wrap');
+      if(clientY!=null && wrap){
+        var r=wrap.getBoundingClientRect();
+        if(r.height>0){
+          var f=(clientY-r.top)/r.height;
+          var nb=Math.max(0, Math.min(1, (f-BOX_H/2)/(1-BOX_H)));
+          if(Math.abs(nb-gBoxY) > 0.004){ gBoxY=nb; changed=true; }
+        }
+      }
+      if(changed) renderStatement();
     }
-    el.addEventListener('pointerdown', function(e){ dragging=true; try{el.setPointerCapture(e.pointerId);}catch(x){} apply(e.clientX); });
-    el.addEventListener('pointermove', function(e){ if(dragging) apply(e.clientX); });
+    el.addEventListener('pointerdown', function(e){ dragging=true; try{el.setPointerCapture(e.pointerId);}catch(x){} apply(e.clientX, e.clientY); });
+    el.addEventListener('pointermove', function(e){ if(dragging) apply(e.clientX, e.clientY); });
     window.addEventListener('pointerup', function(){ dragging=false; });
     el.addEventListener('pointercancel', function(){ dragging=false; });
   })();
@@ -2729,7 +2789,7 @@
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
   function qBonusTargetId(){ return bonusIsAmount() ? 'bonusAmount' : 'bonusRatio'; }
-  var QUICK_MAP = [['qPrincipal', function(){ return 'principal'; }], ['qAge', function(){ return 'borrowerAge'; }], ['qRate', function(){ return 'rate'; }], ['qBonus', qBonusTargetId]];
+  var QUICK_MAP = [['qPrincipal', function(){ return 'principal'; }], ['qAge', function(){ return 'borrowerAge'; }], ['qRate', function(){ return 'rate'; }], ['qYears', function(){ return 'years'; }], ['qBonus', qBonusTargetId]];
 
   // ドロワー側の値をクイックバーへ反映（入力中の欄は上書きしない）
   function syncQuickBar(){
@@ -2742,10 +2802,24 @@
       q.classList.toggle('pristine', src.classList.contains('pristine'));
     });
     if($('qBonusUnit')) $('qBonusUnit').textContent = amt ? '万円' : '%';
+    // 返済方法のセグメント表示を同期
+    var mSel = document.querySelector('input[name=method]:checked');
+    var mv = mSel ? mSel.value : 'equalPayment';
+    Array.prototype.forEach.call(document.querySelectorAll('#qMethod .qb-seg-btn'), function(b){
+      b.classList.toggle('on', b.getAttribute('data-method')===mv);
+    });
   }
 
   // クイックバー側の変更をドロワーへ書き戻して全再計算
   function wireQuickBar(){
+    Array.prototype.forEach.call(document.querySelectorAll('#qMethod .qb-seg-btn'), function(b){
+      if(b.dataset.qb) return; b.dataset.qb='1';
+      b.addEventListener('click', function(){
+        var r=document.querySelector('input[name=method][value="'+b.getAttribute('data-method')+'"]');
+        if(!r) return; r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true}));
+        syncQuickBar();
+      });
+    });
     QUICK_MAP.forEach(function(pair){
       var q=$(pair[0]); if(!q || q.dataset.qb) return; q.dataset.qb='1';
       q.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
@@ -2869,7 +2943,7 @@
     document.body.appendChild(drawer);
     var scrim = document.createElement('div'); scrim.className = 'drawer-scrim'; document.body.appendChild(scrim);
     var fab = document.createElement('button'); fab.type='button'; fab.className='fab-input'; fab.id='fabInput';
-    fab.setAttribute('aria-label','入力'); fab.innerHTML = '<span class="fab-ico">✎</span>';
+    fab.setAttribute('aria-label','設定'); fab.innerHTML = '<span class="fab-ico">⚙</span>';
     document.body.appendChild(fab);
     var dbody = document.getElementById('drawerBody');
 
@@ -2882,7 +2956,12 @@
       });
       grids.forEach(function(gr){
         var input = gr.querySelector(':scope > .panel'); // 先頭パネル＝入力
-        if(input){ input.classList.add('dpanel'); input.setAttribute('data-mod', g.key); dbody.appendChild(input); }
+        if(input){
+          input.classList.add('dpanel'); input.setAttribute('data-mod', g.key);
+          // 借入条件は上部クイックバーに集約済み。値の保持のためDOMには残すが設定画面には出さない
+          if(input.querySelector('#principal')) input.classList.add('dp-hidden');
+          dbody.appendChild(input);
+        }
       });
     });
 
@@ -2896,7 +2975,7 @@
       else attachClear(el);
     });
     // プリセット選択チップ：クリックで対象の入力欄に値をセットして即時計算
-    Array.prototype.forEach.call(dbody.querySelectorAll('.chip-row'), function(row){
+    Array.prototype.forEach.call(document.querySelectorAll('.chip-row:not(.yp-chips)'), function(row){
       var target = row.getAttribute('data-target');
       Array.prototype.forEach.call(row.querySelectorAll('.chip'), function(btn){
         btn.addEventListener('click', function(){
@@ -2907,7 +2986,7 @@
       });
     });
 
-    var TITLES = {base:'返済・金利上昇の入力', m21:'借入可能額 診断の入力', m23:'賃貸転用の入力', m25:'住宅ローン控除の入力'};
+    var TITLES = {base:'設定（金利上昇・完済の条件）', m21:'借入可能額 診断の条件', m23:'賃貸転用の条件', m25:'住宅ローン控除の条件'};
 
     function show(key, doScroll){
       groups.forEach(function(g){
@@ -3015,6 +3094,7 @@
     });
     function doResetAll(msg){
       applyState(INITIAL_STATE); setPristineAll(true); $('custName').value = ''; $('custList').value = '';
+      gBoxY = 0.5; renderStatement();
       syncQuickBar();
       if(msg) note(msg);
     }
