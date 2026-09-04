@@ -411,12 +411,13 @@
 
   .strip-row{
     display:grid;
-    grid-template-columns:44px 1fr 90px;
+    grid-template-columns:auto 1fr auto;
     align-items:center;
     gap:12px;
     padding:3px 0;
   }
-  .strip-year{font-size:0.72rem;color:var(--text-dim);font-family: ui-monospace, monospace;}
+  .strip-year .sy-age{color:var(--text-dim);font-size:0.88em;margin-left:2px;}
+  .strip-year{font-size:0.72rem;color:var(--text-dim);font-family: ui-monospace, monospace;white-space:nowrap;}
   .strip-bar{
     height:9px;
     display:flex;
@@ -493,6 +494,17 @@
   .help-btn:hover, .help-btn.on{background:var(--gold);color:#fff;border-color:var(--gold);}
   .help-body{font-size:0.74rem;color:var(--text-dim);line-height:1.65;background:#faf8f2;border:1px solid var(--border-soft);border-radius:7px;padding:9px 12px;margin-top:8px;}
   .help-body b{color:var(--text);}
+  /* 早いほど有利：積み上げ棒（棒の中に金額を書く） */
+  .el-bars{margin-top:12px;}
+  .el-row{margin-bottom:12px;}
+  .el-head{font-size:0.74rem;color:var(--text-dim);font-weight:600;margin-bottom:4px;}
+  .el-bar{display:flex;height:38px;border-radius:6px;overflow:hidden;background:#f0ece0;}
+  .el-bar span{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.78rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
+  .el-bar .el-p{background:var(--principal);}
+  .el-bar .el-i{background:var(--interest);}
+  .el-bar .el-lab{font-size:0.68rem;opacity:.92;margin-right:4px;}
+  .el-legend{display:flex;gap:16px;font-size:0.72rem;color:var(--text-dim);}
+  .el-legend span{display:inline-flex;align-items:center;gap:5px;}
   .hf-with-btn{position:relative;}
   .hf-actions{position:absolute;right:24px;top:12px;display:flex;align-items:center;gap:8px;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
@@ -687,11 +699,14 @@
   .table-wrap.open{display:block;}
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   thead th small{display:block;font-size:0.82em;font-weight:400;opacity:.85;}
-  #tableWrap table th{white-space:normal;line-height:1.3;}
+  #tableWrap table th{white-space:nowrap;line-height:1.3;}
   #tableWrap table td{white-space:nowrap;}
-  /* 利息割合はスペースを取るため、狭い画面では隠す（iPad・PCでは表示） */
+  /* 見出し行はスクロールしても固定 */
+  #tableWrap{max-height:60vh;overflow-y:auto;}
+  #tableWrap thead th{position:sticky;top:0;z-index:2;}
+  /* 利息割合はスペースを取るため縦画面では隠す（iPhone横向き・iPad・PCでは表示） */
   #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){display:none;}
-  @media (min-width:768px){
+  @media (min-width:640px){
     #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){display:table-cell;}
   }
   thead th{
@@ -732,7 +747,7 @@
   /* 借入可能額：結果画面から審査金利を切り替える */
   .diag-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 16px;background:#f4f1e8;border-bottom:1px solid var(--border);}
   .diag-toggle{display:inline-flex;align-items:center;gap:7px;font-size:0.8rem;color:var(--text);cursor:pointer;font-weight:600;}
-  .diag-toggle input{accent-color:var(--gold);width:17px;height:17px;}
+  .diag-toggle input[type=checkbox]{accent-color:var(--gold);width:17px;height:17px;}
   .diag-rate{font-size:0.76rem;color:var(--text-dim);white-space:nowrap;}
   .diag-rate b{font-family:var(--mono);font-size:0.95rem;color:var(--gold-soft);}
   .inline-num{width:52px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
@@ -955,6 +970,7 @@
   .scenario-card:last-child{border-right:none;}
   .scenario-tag{
     display:inline-block;
+    align-self:flex-start;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size:0.82rem;
     color:var(--rose);
@@ -1054,15 +1070,18 @@
   .tw-head{margin-bottom:3px !important;}
   .tw-head .qb-seg{display:none !important;}
   .tw-head .tw-title{font-size:8.6px !important;}
-  table{font-size:7px !important;width:100% !important;table-layout:fixed !important;}
-  #tableWrap table th:nth-child(1), #tableWrap table td:nth-child(1){width:5% !important;}
-  #tableWrap table th:nth-child(2), #tableWrap table td:nth-child(2){width:6% !important;}
-  #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){width:9% !important;}
-  #tableWrap table th:nth-child(3), #tableWrap table td:nth-child(3),
-  #tableWrap table th:nth-child(4), #tableWrap table td:nth-child(4),
-  #tableWrap table th:nth-child(5), #tableWrap table td:nth-child(5){width:16% !important;}
-  #tableWrap table th:nth-child(7), #tableWrap table td:nth-child(7){width:16% !important;}
-  thead th small{font-size:0.8em !important;}
+  table{font-size:7.4px !important;width:100% !important;table-layout:fixed !important;}
+  #tableWrap{max-height:none !important;overflow:visible !important;}
+  #tableWrap thead th{position:static !important;}
+  /* 印刷では利息割合も表示し、7列を幅いっぱいに配分（合計100%） */
+  #tableWrap table th, #tableWrap table td{display:table-cell !important;white-space:nowrap !important;overflow:hidden !important;}
+  #tableWrap table th:nth-child(1), #tableWrap table td:nth-child(1){width:6% !important;}
+  #tableWrap table th:nth-child(2), #tableWrap table td:nth-child(2){width:7% !important;}
+  #tableWrap table th:nth-child(3), #tableWrap table td:nth-child(3){width:17% !important;}
+  #tableWrap table th:nth-child(4), #tableWrap table td:nth-child(4){width:17% !important;}
+  #tableWrap table th:nth-child(5), #tableWrap table td:nth-child(5){width:17% !important;}
+  #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){width:11% !important;}
+  #tableWrap table th:nth-child(7), #tableWrap table td:nth-child(7){width:25% !important;}
   thead{display:table-header-group;}
   thead th{padding:2px 3px !important;font-size:6.8px !important;}
   tbody td{padding:1.4px 3px !important;}
@@ -1123,11 +1142,11 @@
 <nav class="tabnav">
   <div class="tabnav-inner">
     <div class="tab-scroll">
-      <button type="button" class="tab" data-mod="base" aria-pressed="true">返済＋金利上昇積立</button>
-      <button type="button" class="tab" data-mod="m21" aria-pressed="false"><span class="tnum">2-1</span>借入可能額</button>
-      <button type="button" class="tab" data-mod="m23" aria-pressed="false"><span class="tnum">2-3</span>賃貸転用</button>
-      <button type="button" class="tab" data-mod="m25" aria-pressed="false"><span class="tnum">2-5</span>住宅ローン控除</button>
-      <button type="button" class="tab" data-mod="relay" aria-pressed="false"><span class="tnum">2-6</span>親子リレー</button>
+      <button type="button" class="tab" data-mod="base" aria-pressed="true">返済＋積立</button>
+      <button type="button" class="tab" data-mod="m21" aria-pressed="false">借入可能額</button>
+      <button type="button" class="tab" data-mod="m25" aria-pressed="false">住宅ローン控除</button>
+      <button type="button" class="tab" data-mod="relay" aria-pressed="false">親子リレー</button>
+      <button type="button" class="tab" data-mod="m23" aria-pressed="false">賃貸転用</button>
     </div>
   </div>
 </nav>
@@ -1302,8 +1321,8 @@
         <table>
           <thead>
             <tr>
-              <th>年<small>（年目）</small></th>
-              <th class="age-col">年齢<small>（歳）</small></th>
+              <th>年</th>
+              <th class="age-col">年齢</th>
               <th>年間返済額</th>
               <th>元金</th>
               <th>利息</th>
@@ -1401,17 +1420,16 @@
           <button type="button" class="help-btn" id="earlyLateHelpBtn" aria-label="説明">？</button>
         </div>
         <div class="help-body" id="earlyLateHelp" style="display:none;"></div>
-        <div class="gf-grid two" style="margin-top:10px;">
-          <div class="gf-cell"><div class="k" id="earlyHead">序盤</div>
-            <div class="sr" style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:600;"><span>元利合計</span><span class="mono" id="earlyT">—</span></div>
-            <div class="sr pc" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>元金</span><span class="mono" id="earlyP">—</span></div>
-            <div class="sr ic" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>利息</span><span class="mono" id="earlyI">—</span></div>
+        <div class="el-bars">
+          <div class="el-row">
+            <div class="el-head" id="earlyHead">序盤</div>
+            <div class="el-bar" id="earlyBar"></div>
           </div>
-          <div class="gf-cell"><div class="k" id="lateHead">終盤</div>
-            <div class="sr" style="display:flex;justify-content:space-between;font-size:0.84rem;font-weight:600;"><span>元利合計</span><span class="mono" id="lateT">—</span></div>
-            <div class="sr pc" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>元金</span><span class="mono" id="lateP">—</span></div>
-            <div class="sr ic" style="display:flex;justify-content:space-between;font-size:0.84rem;"><span>利息</span><span class="mono" id="lateI">—</span></div>
+          <div class="el-row">
+            <div class="el-head" id="lateHead">終盤</div>
+            <div class="el-bar" id="lateBar"></div>
           </div>
+          <div class="el-legend"><span><i class="tp-sw pcol"></i>元金</span><span><i class="tp-sw icol"></i>利息</span></div>
         </div>
       </div>
 
@@ -1538,7 +1556,6 @@
 
   <!-- ============ 2-1. 借入可能額診断 ============ -->
   <div class="section-heading">
-    <span class="num">診断 2-1</span>
     <h2>年収から借入可能額を診断</h2>
   </div>
 
@@ -1619,11 +1636,7 @@
           <div class="headline-sub" id="borrowSub"></div>
         </div>
 
-        <div class="stat-strip four">
-          <div class="stat">
-            <div class="stat-label">年収倍率（参考）</div>
-            <div class="stat-value mono" id="incomeMultiple">—</div>
-          </div>
+        <div class="stat-strip">
           <div class="stat">
             <div class="stat-label">年間返済額の上限</div>
             <div class="stat-value mono" id="annualCap">—</div>
@@ -1651,155 +1664,8 @@
     </div>
   </div>
 
-  <!-- ============ 2-3. 賃貸（投資マンション）転用シミュレーション ============ -->
-  <div class="section-heading">
-    <span class="num">診断 2-3</span>
-    <h2>賃貸（投資用）に転用した場合の試算</h2>
-  </div>
-  <p class="section-body lead" style="color:var(--text-dim);font-size:0.78rem;margin-top:8px;">
-    将来この住戸を賃貸に回した場合の年間キャッシュフローの目安です。転用には税制・ローン契約上の重大な制約があるため、下の注意書きを必ずご確認ください。
-  </p>
-
-  <div class="section-body">
-    <div class="grid">
-
-      <!-- INPUT: 営業操作パネル -->
-      <div class="panel">
-        <div class="ledger-title">転用条件</div>
-
-        <div class="field-row">
-          <label for="cvYear">転用時期（購入から何年後）</label>
-          <div class="field-input">
-            <input type="number" id="cvYear" value="10" min="1" max="50" step="1">
-            <span class="unit">年後</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="rent">想定家賃収入（月額）</label>
-          <div class="field-input">
-            <input type="number" id="rent" value="15" min="0" step="0.5">
-            <span class="unit">万円 / 月</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="vacancy">想定空室率</label>
-          <div class="field-input">
-            <input type="number" id="vacancy" value="5" min="0" max="100" step="1">
-            <span class="unit">%</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="mgmtCost">管理費・修繕積立金（月額）</label>
-          <div class="field-input">
-            <input type="number" id="mgmtCost" value="2" min="0" step="0.1">
-            <span class="unit">万円 / 月</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="mgmtFee">賃貸管理手数料（実効家賃に対して）</label>
-          <div class="field-input">
-            <input type="number" id="mgmtFee" value="5" min="0" max="100" step="0.5">
-            <span class="unit">%</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <label for="taxRate">不動産所得への課税（概算税率）</label>
-          <div class="field-input">
-            <select id="taxRate">
-              <option value="15">15%（所得税5%＋住民税10%目安）</option>
-              <option value="20" selected>20%（所得税10%＋住民税10%目安）</option>
-              <option value="30">30%（所得税20%＋住民税10%目安）</option>
-              <option value="33">33%（所得税23%＋住民税10%目安）</option>
-              <option value="43">43%（所得税33%＋住民税10%目安）</option>
-              <option value="50">50%（所得税40%＋住民税10%目安）</option>
-            </select>
-          </div>
-          <div class="field-hint">給与所得と合算した限界税率の目安です。実際の税額は各種控除・減価償却等で変わります。</div>
-        </div>
-
-        <div class="field-row">
-          <label>投資用ローンへの借換え</label>
-          <label class="toggle-row" for="refinance">
-            <input type="checkbox" id="refinance" checked>
-            転用時に借換える（金利上乗せを反映）
-          </label>
-          <div class="field-input" style="margin-top:10px;">
-            <span class="unit">借換え後金利</span>
-            <input type="number" id="refiRate" value="2.5" min="0" max="20" step="0.1">
-            <span class="unit">%</span>
-          </div>
-          <div class="field-hint">多くの住宅ローンは賃貸利用を禁止しており、転用時は不動産投資ローンへの借換えが必要になるのが一般的です。借換え後は残債を残存期間・上記金利で元利均等に組み直して試算します。</div>
-        </div>
-
-        <div class="action-row">
-          <button class="table-toggle" id="convBtn" style="border-color:var(--gold);color:var(--gold);">試算する</button>
-          <button class="btn-clear" id="convClear" type="button">クリア</button>
-        </div>
-      </div>
-
-      <!-- RESULT: 顧客向け結果パネル -->
-      <div class="panel">
-        <div class="warn-banner">
-          <span class="warn-title">住宅ローン控除は転用年以降 対象外</span>
-          住宅ローン控除は「主として居住の用に供する家屋」が要件のため、賃貸に転用した年以降は控除を受けられません（居住しなくなるため）。
-        </div>
-        <div class="warn-banner">
-          <span class="warn-title">賃貸目的の使用は契約違反となる場合があります</span>
-          フラット35をはじめ多くの住宅ローンは賃貸目的の使用を禁止しており、発覚すると一括返済を求められるリスクがあります。実務上は不動産投資ローンへの借換えが必要になり、金利は住宅ローンより高くなるのが一般的です。
-        </div>
-
-        <div class="headline-figure">
-          <div class="headline-label">転用後の年間キャッシュフロー（税引後・概算）</div>
-          <div class="headline-value" id="convCF">—</div>
-          <div class="headline-sub" id="convCFSub"></div>
-        </div>
-
-        <div class="stat-strip four">
-          <div class="stat">
-            <div class="stat-label">実効家賃収入（年）</div>
-            <div class="stat-value teal mono" id="cfRent">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">ローン返済（年）</div>
-            <div class="stat-value rose mono" id="cfLoan">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">諸経費（年）</div>
-            <div class="stat-value rose mono" id="cfExp">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">税金（年・概算）</div>
-            <div class="stat-value rose mono" id="cfTax">—</div>
-          </div>
-        </div>
-
-        <div class="compare-strip">
-          <div class="compare-cell">
-            <div class="stat-label">転用前：居住（年間のローン返済支出）</div>
-            <div class="stat-value cf-neg mono" id="cmpBefore">—</div>
-          </div>
-          <div class="compare-cell">
-            <div class="stat-label">転用後：賃貸（税引後キャッシュフロー）</div>
-            <div class="stat-value mono" id="cmpAfter">—</div>
-          </div>
-        </div>
-
-        <div class="source-note">
-          <strong style="color:var(--text);">計算方法・前提：</strong>実効家賃＝想定家賃×(1−空室率)。年間キャッシュフロー（税引後）＝実効家賃−ローン返済（元金＋利息）−管理費・修繕積立金−賃貸管理手数料−税金。税金は「実効家賃−諸経費−ローン利息分」を不動産所得とみなし、概算税率を乗じた目安です（<strong style="color:var(--text);">減価償却費・固定資産税・原状回復費・その他経費・損益通算は考慮していません</strong>）。ローン返済は上の「借入条件」の残債をもとに、借換えを選んだ場合は転用時点の残債を残存期間・借換え後金利で組み直して算出します。将来の家賃・空室率・税額は不確実性が高く、本試算はあくまで概算です。
-        </div>
-      </div>
-
-    </div>
-  </div>
-
   <!-- ============ 2-5. 住宅ローン控除の試算 ============ -->
   <div class="section-heading">
-    <span class="num">診断 2-5</span>
     <h2>住宅ローン控除の試算</h2>
   </div>
 
@@ -1957,7 +1823,6 @@
 
   <!-- ============ 親子リレー返済 ============ -->
   <div class="section-heading">
-    <span class="num">診断 2-6</span>
     <h2>親子リレー返済</h2>
   </div>
 
@@ -2003,6 +1868,151 @@
       <div class="note-ref">※ 毎月の返済額は全期間同じ（上の「毎月の返済額」）で、<b>誰が払うか</b>だけが引き継ぎ時期で変わります。団体信用生命保険の加入者・住宅ローン控除の適用・持分割合の扱いは金融機関ごとに異なるため本試算には含めていません。詳しくはページ末尾の<b>「注記」</b>を参照。</div>
     </div>
   </div>
+  </div>
+
+  <!-- ============ 2-3. 賃貸（投資マンション）転用シミュレーション ============ -->
+  <div class="section-heading">
+    <h2>賃貸（投資用）に転用した場合の試算</h2>
+  </div>
+  <p class="section-body lead" style="color:var(--text-dim);font-size:0.78rem;margin-top:8px;">
+    将来この住戸を賃貸に回した場合の年間キャッシュフローの目安です。転用には税制・ローン契約上の重大な制約があるため、下の注意書きを必ずご確認ください。
+  </p>
+
+  <div class="section-body">
+    <div class="grid">
+
+      <!-- INPUT: 営業操作パネル -->
+      <div class="panel">
+        <div class="ledger-title">転用条件</div>
+
+        <div class="field-row">
+          <label for="cvYear">転用時期（購入から何年後）</label>
+          <div class="field-input">
+            <input type="number" id="cvYear" value="10" min="1" max="50" step="1">
+            <span class="unit">年後</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label for="rent">想定家賃収入（月額）</label>
+          <div class="field-input">
+            <input type="number" id="rent" value="15" min="0" step="0.5">
+            <span class="unit">万円 / 月</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label for="vacancy">想定空室率</label>
+          <div class="field-input">
+            <input type="number" id="vacancy" value="5" min="0" max="100" step="1">
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label for="mgmtCost">管理費・修繕積立金（月額）</label>
+          <div class="field-input">
+            <input type="number" id="mgmtCost" value="2" min="0" step="0.1">
+            <span class="unit">万円 / 月</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label for="mgmtFee">賃貸管理手数料（実効家賃に対して）</label>
+          <div class="field-input">
+            <input type="number" id="mgmtFee" value="5" min="0" max="100" step="0.5">
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label for="taxRate">不動産所得への課税（概算税率）</label>
+          <div class="field-input">
+            <select id="taxRate">
+              <option value="15">15%（所得税5%＋住民税10%目安）</option>
+              <option value="20" selected>20%（所得税10%＋住民税10%目安）</option>
+              <option value="30">30%（所得税20%＋住民税10%目安）</option>
+              <option value="33">33%（所得税23%＋住民税10%目安）</option>
+              <option value="43">43%（所得税33%＋住民税10%目安）</option>
+              <option value="50">50%（所得税40%＋住民税10%目安）</option>
+            </select>
+          </div>
+          <div class="field-hint">給与所得と合算した限界税率の目安です。実際の税額は各種控除・減価償却等で変わります。</div>
+        </div>
+
+        <div class="field-row">
+          <label>投資用ローンへの借換え</label>
+          <label class="toggle-row" for="refinance">
+            <input type="checkbox" id="refinance" checked>
+            転用時に借換える（金利上乗せを反映）
+          </label>
+          <div class="field-input" style="margin-top:10px;">
+            <span class="unit">借換え後金利</span>
+            <input type="number" id="refiRate" value="2.5" min="0" max="20" step="0.1">
+            <span class="unit">%</span>
+          </div>
+          <div class="field-hint">多くの住宅ローンは賃貸利用を禁止しており、転用時は不動産投資ローンへの借換えが必要になるのが一般的です。借換え後は残債を残存期間・上記金利で元利均等に組み直して試算します。</div>
+        </div>
+
+        <div class="action-row">
+          <button class="table-toggle" id="convBtn" style="border-color:var(--gold);color:var(--gold);">試算する</button>
+          <button class="btn-clear" id="convClear" type="button">クリア</button>
+        </div>
+      </div>
+
+      <!-- RESULT: 顧客向け結果パネル -->
+      <div class="panel">
+        <div class="warn-banner">
+          <span class="warn-title">住宅ローン控除は転用年以降 対象外</span>
+          住宅ローン控除は「主として居住の用に供する家屋」が要件のため、賃貸に転用した年以降は控除を受けられません（居住しなくなるため）。
+        </div>
+        <div class="warn-banner">
+          <span class="warn-title">賃貸目的の使用は契約違反となる場合があります</span>
+          フラット35をはじめ多くの住宅ローンは賃貸目的の使用を禁止しており、発覚すると一括返済を求められるリスクがあります。実務上は不動産投資ローンへの借換えが必要になり、金利は住宅ローンより高くなるのが一般的です。
+        </div>
+
+        <div class="headline-figure">
+          <div class="headline-label">転用後の年間キャッシュフロー（税引後・概算）</div>
+          <div class="headline-value" id="convCF">—</div>
+          <div class="headline-sub" id="convCFSub"></div>
+        </div>
+
+        <div class="stat-strip four">
+          <div class="stat">
+            <div class="stat-label">実効家賃収入（年）</div>
+            <div class="stat-value teal mono" id="cfRent">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">ローン返済（年）</div>
+            <div class="stat-value rose mono" id="cfLoan">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">諸経費（年）</div>
+            <div class="stat-value rose mono" id="cfExp">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">税金（年・概算）</div>
+            <div class="stat-value rose mono" id="cfTax">—</div>
+          </div>
+        </div>
+
+        <div class="compare-strip">
+          <div class="compare-cell">
+            <div class="stat-label">転用前：居住（年間のローン返済支出）</div>
+            <div class="stat-value cf-neg mono" id="cmpBefore">—</div>
+          </div>
+          <div class="compare-cell">
+            <div class="stat-label">転用後：賃貸（税引後キャッシュフロー）</div>
+            <div class="stat-value mono" id="cmpAfter">—</div>
+          </div>
+        </div>
+
+        <div class="source-note">
+          <strong style="color:var(--text);">計算方法・前提：</strong>実効家賃＝想定家賃×(1−空室率)。年間キャッシュフロー（税引後）＝実効家賃−ローン返済（元金＋利息）−管理費・修繕積立金−賃貸管理手数料−税金。税金は「実効家賃−諸経費−ローン利息分」を不動産所得とみなし、概算税率を乗じた目安です（<strong style="color:var(--text);">減価償却費・固定資産税・原状回復費・その他経費・損益通算は考慮していません</strong>）。ローン返済は上の「借入条件」の残債をもとに、借換えを選んだ場合は転用時点の残債を残存期間・借換え後金利で組み直して算出します。将来の家賃・空室率・税額は不確実性が高く、本試算はあくまで概算です。
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- 印刷（A4 PDF）専用の免責。画面では非表示 -->
@@ -2451,10 +2461,7 @@
         '<td>'+uf(row.balance)+'</td>';
       tbody.appendChild(tr);
     });
-    const uLabel = (gTableUnit==='yen') ? '（円）' : '（万円）';
-    Array.prototype.forEach.call(document.querySelectorAll('#tableWrap thead th'), function(th,i){
-      if(i>=2 && i!==5) th.innerHTML = th.textContent.replace(/（.*）/,'') + '<small>'+uLabel+'</small>';
-    });
+    // 見出しの単位表記は不要（右上の 万円／円 の切替で分かるため）
 
     syncQuickBar();
   }
@@ -2506,7 +2513,6 @@
 
     $('annualCap').textContent = yen(annualCap) + ' 円';
     $('monthlyCap').textContent = yen(monthlyCap) + ' 円';
-    $('incomeMultiple').textContent = multiple > 0 ? multiple.toFixed(1) + ' 倍' : '—';
     // 返済負担率（＝返済比率）：いま入力している「実際の借入プラン」の年間返済額 ÷ 年収
     // ※上限から逆算した金額で計算すると必ず基準値と同じになってしまうため、実プランで算出する
     let planAnnual = 0;
@@ -2835,12 +2841,17 @@
     const ageR=(s,e)=> (a!=null&&!isNaN(a)) ? '（'+(a+s-1)+'〜'+(a+e-1)+'歳）' : '';
     if($('earlyHead')) $('earlyHead').innerHTML='序盤'+W+'年（'+eStart+'〜'+eEnd+'年目）'+ageR(eStart,eEnd);
     if($('lateHead')) $('lateHead').innerHTML='終盤'+W+'年（'+lStart+'〜'+lEnd+'年目）'+ageR(lStart,lEnd);
-    if($('earlyT')) $('earlyT').textContent=toMan(E.p+E.i)+' 万円';
-    if($('lateT')) $('lateT').textContent=toMan(L.p+L.i)+' 万円';
-    if($('earlyP')) $('earlyP').textContent=toMan(E.p)+' 万円';
-    if($('earlyI')) $('earlyI').textContent=toMan(E.i)+' 万円';
-    if($('lateP')) $('lateP').textContent=toMan(L.p)+' 万円';
-    if($('lateI')) $('lateI').textContent=toMan(L.i)+' 万円';
+    // 積み上げ棒（棒の中に金額を表示）。2本を同じ基準で比べられるよう最大の合計で正規化
+    const maxT = Math.max(E.p+E.i, L.p+L.i) || 1;
+    function bar(o){
+      const tot=o.p+o.i;
+      const wTot = tot/maxT*100;
+      const pPct = tot>0 ? o.p/tot*100 : 0, iPct = tot>0 ? o.i/tot*100 : 0;
+      return '<span class="el-p" style="flex:0 0 '+(wTot*pPct/100).toFixed(2)+'%"><span class="el-lab">元金</span>'+toMan(o.p)+'</span>'+
+             '<span class="el-i" style="flex:0 0 '+(wTot*iPct/100).toFixed(2)+'%"><span class="el-lab">利息</span>'+toMan(o.i)+'</span>';
+    }
+    if($('earlyBar')) $('earlyBar').innerHTML = bar(E);
+    if($('lateBar')) $('lateBar').innerHTML = bar(L);
     const diff=Math.abs(E.i-L.i);
     if($('earlyLateHelp')) $('earlyLateHelp').innerHTML=
       '同じ'+W+'年間でも、序盤は返済額に占める利息が大きく、終盤はほとんどが元金です。'+
@@ -3137,7 +3148,7 @@
       const div = document.createElement('div');
       div.className = 'strip-row';
       div.innerHTML =
-        '<span class="strip-year">' + r.year + '年目' + (cAge!=null ? '<small>（'+(cAge+r.year-1)+'歳）</small>' : '') + '</span>' +
+        '<span class="strip-year">' + r.year + '年目' + (cAge!=null ? '<span class="sy-age">（'+(cAge+r.year-1)+'歳）</span>' : '') + '</span>' +
         '<span class="strip-bar"><span class="credit" style="width:' + pct.toFixed(2) + '%"></span></span>' +
         '<span class="strip-balance">' + yen(r.deduction) + '円</span>';
       stripEl.appendChild(div);
@@ -3456,7 +3467,7 @@
   // 教育資金シミュレーター風：結果は全幅表示、入力は下部ドロワーに集約（右下FABで開閉）
   function setupPresentation(){
     var main = document.querySelector('main');
-    var KEYS = ['base','m21','m23','m25','relay']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
+    var KEYS = ['base','m21','m25','relay','m23']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
     var groups = [];
     Array.prototype.forEach.call(main.children, function(el){
       if(el.classList.contains('disclaimer') || el.classList.contains('print-disc')){ if(groups[0]) groups[0].nodes.push(el); return; }
