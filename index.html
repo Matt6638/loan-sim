@@ -485,6 +485,9 @@
   .need-input-msg{font-size:0.82rem;color:var(--gold-soft);background:#faf8f2;border:1px dashed var(--gold-soft);border-radius:7px;padding:8px 12px;margin-top:8px;line-height:1.6;}
   .need-input-msg b{color:var(--rose);}
   .cmp-add-btn:disabled{opacity:.35;cursor:not-allowed;}
+  /* 入力中に出る「完了」ボタン（キーボードを閉じる） */
+  .keypad-done{position:fixed;right:14px;bottom:14px;z-index:120;font-family:var(--gothic);font-size:0.86rem;font-weight:700;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:9px;padding:11px 20px;cursor:pointer;box-shadow:0 8px 22px -6px rgba(27,42,74,.5);}
+  .keypad-done:hover{background:var(--gold-soft);}
   /* 説明を隠す「？」ボタン */
   .help-btn{width:19px;height:19px;margin-left:7px;padding:0;border-radius:50%;border:1px solid var(--gold-soft);background:#fff;color:var(--gold-soft);font-size:0.68rem;font-weight:700;line-height:1;cursor:pointer;vertical-align:middle;transition:all .15s;}
   .help-btn:hover, .help-btn.on{background:var(--gold);color:#fff;border-color:var(--gold);}
@@ -627,7 +630,8 @@
   .yield-out .yo-amt small{font-size:0.9rem;color:var(--text-dim);font-weight:400;margin-left:3px;}
   .yield-out .yo-note{display:block;font-size:0.68rem;color:var(--text-dim);margin-top:5px;}
   .yield-out .yo-block + .yo-block{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
-  .yo-goal{color:var(--gold-soft);font-weight:700;}
+  .yo-goal{color:var(--gold-soft);font-weight:700;white-space:nowrap;}
+  .yo-lead{white-space:normal;}
   .yo-arrow{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:auto auto;align-items:center;gap:2px 12px;margin:8px 0 4px;}
   .yo-arrow .ya-cap{font-size:0.66rem;color:var(--text-dim);text-align:center;grid-row:1;}
   .yo-arrow .ya-cap.c1{grid-column:1;} .yo-arrow .ya-cap.c2{grid-column:3;}
@@ -681,12 +685,15 @@
   .tw-head .tw-title{font-family:var(--mincho);font-size:0.9rem;color:var(--gold-soft);font-weight:600;}
   .table-wrap{padding:16px 20px 20px; overflow-x:auto; display:none;}
   .table-wrap.open{display:block;}
-  table{width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed;}
+  table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   thead th small{display:block;font-size:0.82em;font-weight:400;opacity:.85;}
-  #tableWrap table td, #tableWrap table th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  #tableWrap table th:nth-child(1), #tableWrap table td:nth-child(1){width:7%;}
-  #tableWrap table th:nth-child(2), #tableWrap table td:nth-child(2){width:8%;}
-  #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){width:11%;}
+  #tableWrap table th{white-space:normal;line-height:1.3;}
+  #tableWrap table td{white-space:nowrap;}
+  /* 利息割合はスペースを取るため、狭い画面では隠す（iPad・PCでは表示） */
+  #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){display:none;}
+  @media (min-width:768px){
+    #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){display:table-cell;}
+  }
   thead th{
     text-align:right;
     font-weight:500;
@@ -728,6 +735,8 @@
   .diag-toggle input{accent-color:var(--gold);width:17px;height:17px;}
   .diag-rate{font-size:0.76rem;color:var(--text-dim);white-space:nowrap;}
   .diag-rate b{font-family:var(--mono);font-size:0.95rem;color:var(--gold-soft);}
+  .inline-num{width:52px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
+  .inline-num:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
 
   /* ===== iPad/PC：1単元を1画面に収める（左＝金額・円グラフ／右＝グラフと内訳） ===== */
   @media (min-width:900px){
@@ -939,7 +948,10 @@
   .scenario-card{
     padding:20px 22px 22px;
     border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
   }
+  .scenario-card .stress-lump{margin-top:auto;}
   .scenario-card:last-child{border-right:none;}
   .scenario-tag{
     display:inline-block;
@@ -1098,6 +1110,7 @@
 </style>
 </head>
 <body>
+<button type="button" class="keypad-done" id="qDone" style="display:none;">完了 ✓</button>
 
 <div id="splash" aria-hidden="true">
   <div class="sp-inner">
@@ -1111,10 +1124,10 @@
   <div class="tabnav-inner">
     <div class="tab-scroll">
       <button type="button" class="tab" data-mod="base" aria-pressed="true">返済＋金利上昇積立</button>
-      <button type="button" class="tab" data-mod="relay" aria-pressed="false"><span class="tnum">2-6</span>親子リレー</button>
       <button type="button" class="tab" data-mod="m21" aria-pressed="false"><span class="tnum">2-1</span>借入可能額</button>
       <button type="button" class="tab" data-mod="m23" aria-pressed="false"><span class="tnum">2-3</span>賃貸転用</button>
       <button type="button" class="tab" data-mod="m25" aria-pressed="false"><span class="tnum">2-5</span>住宅ローン控除</button>
+      <button type="button" class="tab" data-mod="relay" aria-pressed="false"><span class="tnum">2-6</span>親子リレー</button>
     </div>
   </div>
 </nav>
@@ -1348,6 +1361,13 @@
     </div>
     <!-- RESULT -->
     <div class="panel">
+      <div class="diag-bar">
+        <span class="diag-toggle" style="cursor:default;">完済したい年齢
+          <input type="text" inputmode="numeric" id="payoffAgeR" class="inline-num" placeholder="70">
+          <span class="diag-rate">歳</span>
+        </span>
+        <span class="diag-rate">未入力なら「完済の5年前」</span>
+      </div>
       <div class="headline-figure">
         <div class="headline-label" id="payoffHeadLabel">完済に必要な一括返済額（その時点の残債）</div>
         <div class="headline-value" id="payoffLump">—</div>
@@ -1516,56 +1536,6 @@
   </div>
 
 
-  <!-- ============ 親子リレー返済 ============ -->
-  <div class="section-heading">
-    <span class="num">診断 2-6</span>
-    <h2>親子リレー返済</h2>
-  </div>
-
-  <div class="section-body">
-  <!-- ===== 親子リレー返済 ===== -->
-
-    <div class="grid" id="relayGrid">
-    <!-- INPUT（設定ドロワーへ移動される） -->
-    <div class="panel">
-      <div class="ledger-title">親子リレーの条件</div>
-      <div class="field-row">
-        <label for="childAge">お子さまの年齢（借入時）</label>
-        <div class="field-input"><input type="text" inputmode="numeric" id="childAge" placeholder="35"><span class="unit">歳</span></div>
-      </div>
-      <div class="field-row">
-        <label for="relayAge">引き継ぐ時期（親の年齢）</label>
-        <div class="field-input"><input type="text" inputmode="numeric" id="relayAge" placeholder="70"><span class="unit">歳</span></div>
-        <div class="field-hint">未入力なら<b>親が70歳</b>になる時点で引き継ぐものとして試算します。</div>
-      </div>
-    </div>
-
-    <!-- RESULT -->
-    <div class="panel" id="relayPanel">
-      <div class="headline-figure">
-        <div class="headline-label" id="relayHeadLabel">親が返済する期間の負担（元金＋利息）</div>
-        <div class="headline-value" id="relayParentPay">—</div>
-        <div class="headline-sub" id="relaySub"></div>
-      </div>
-      <div class="scenario-grid">
-        <div class="scenario-card">
-          <span class="scenario-tag">親の返済</span>
-          <div class="scenario-save-label" id="relayParentTerm">—</div>
-          <div class="scenario-save" id="relayParentTotal">—</div>
-          <div class="scenario-detail">うち 元金 <span class="mono" id="relayParentP">—</span><br>うち 利息 <span class="mono" id="relayParentI">—</span><br>引き継ぎ時の残債 <span class="mono" id="relayHandover">—</span></div>
-        </div>
-        <div class="scenario-card">
-          <span class="scenario-tag">子の返済</span>
-          <div class="scenario-save-label" id="relayChildTerm">—</div>
-          <div class="scenario-save" id="relayChildTotal">—</div>
-          <div class="scenario-detail">うち 元金 <span class="mono" id="relayChildP">—</span><br>うち 利息 <span class="mono" id="relayChildI">—</span><br>完済時のお子さまの年齢 <span class="mono" id="relayChildEndAge">—</span></div>
-        </div>
-      </div>
-      <div class="note-ref">※ 毎月の返済額は全期間同じ（上の「毎月の返済額」）で、<b>誰が払うか</b>だけが引き継ぎ時期で変わります。団体信用生命保険の加入者・住宅ローン控除の適用・持分割合の扱いは金融機関ごとに異なるため本試算には含めていません。詳しくはページ末尾の<b>「注記」</b>を参照。</div>
-    </div>
-  </div>
-  </div>
-
   <!-- ============ 2-1. 借入可能額診断 ============ -->
   <div class="section-heading">
     <span class="num">診断 2-1</span>
@@ -1610,11 +1580,9 @@
         </div>
 
         <div class="field-row">
-          <label for="diagRate">想定金利</label>
-          <div class="field-input">
-            <input type="number" id="diagRate" value="0.7" min="0" max="20" step="0.01">
-            <span class="unit">%</span>
-          </div>
+          <label>想定金利</label>
+          <div class="field-hint" style="margin-top:0;color:var(--text);">上部の「金利」をそのまま使います（全シート共通）。</div>
+          <input type="hidden" id="diagRate" value="">
           <label class="toggle-row" for="stressRate">
             <input type="checkbox" id="stressRate">
             審査金利で計算する（目安3.0%）
@@ -1665,12 +1633,13 @@
             <div class="stat-value teal mono" id="monthlyCap">—</div>
           </div>
           <div class="stat">
-            <div class="stat-label">返済負担率</div>
+            <div class="stat-label">返済負担率（返済比率）</div>
             <div class="stat-value mono" id="burdenActual">—</div>
           </div>
         </div>
 
         <div class="strip-section">
+          <div class="strip-sub" id="burdenActualSub" style="margin-bottom:6px;"></div>
           <div class="strip-sub" id="diagCondition" style="margin-bottom:0;"></div>
         </div>
 
@@ -1924,10 +1893,10 @@
             <span class="unit">万円 / 年</span>
           </div>
           <label class="toggle-row" for="useTaxCap">
-            <input type="checkbox" id="useTaxCap">
-            納税額の範囲で控除額を頭打ちにする
+            <input type="checkbox" id="useTaxCap" checked>
+            納税額の範囲で控除額を頭打ちにする（年収から自動概算）
           </label>
-          <div class="field-hint">住宅ローン控除は<b>納めた税金から差し引く制度</b>のため、年収が低く納税額が少ないと控除しきれません。上限＝<b>所得税額＋住民税からの控除（年9.75万円が上限）</b>。所得税額は源泉徴収票の「源泉徴収税額」をご入力ください。</div>
+          <div class="field-hint">住宅ローン控除は<b>納めた税金から差し引く制度</b>のため、年収が低く納税額が少ないと控除しきれません。上限＝<b>所得税額＋住民税からの控除（年9.75万円が上限）</b>。所得税額は<b>上部の「年収」から自動で概算</b>します（給与所得控除・基礎控除・社会保険料15%の簡易計算。扶養・生命保険料控除等は未考慮）。正確に出す場合は源泉徴収票の「源泉徴収税額」を上の欄にご入力ください（入力があればそちらを優先）。</div>
         </div>
 
         <div class="action-row">
@@ -1971,7 +1940,8 @@
           </div>
 
           <div class="strip-section">
-            <div class="strip-title">年間控除額の推移</div>
+            <div class="strip-sub" id="taxCapSub" style="margin-bottom:8px;"></div>
+          <div class="strip-title">年間控除額の推移</div>
             <div class="strip-sub">各年 ＝ min(年末ローン残高, 借入限度額) × 0.7%（上の「借入条件」の残高を使用）</div>
             <div id="creditStrip"></div>
           </div>
@@ -1983,6 +1953,56 @@
       </div>
 
     </div>
+  </div>
+
+  <!-- ============ 親子リレー返済 ============ -->
+  <div class="section-heading">
+    <span class="num">診断 2-6</span>
+    <h2>親子リレー返済</h2>
+  </div>
+
+  <div class="section-body">
+  <!-- ===== 親子リレー返済 ===== -->
+
+    <div class="grid" id="relayGrid">
+    <!-- INPUT（設定ドロワーへ移動される） -->
+    <div class="panel">
+      <div class="ledger-title">親子リレーの条件</div>
+      <div class="field-row">
+        <label for="childAge">お子さまの年齢（借入時）</label>
+        <div class="field-input"><input type="text" inputmode="numeric" id="childAge" placeholder="35"><span class="unit">歳</span></div>
+      </div>
+      <div class="field-row">
+        <label for="relayAge">引き継ぐ時期（親の年齢）</label>
+        <div class="field-input"><input type="text" inputmode="numeric" id="relayAge" placeholder="70"><span class="unit">歳</span></div>
+        <div class="field-hint">未入力なら<b>親が70歳</b>になる時点で引き継ぐものとして試算します。</div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="panel" id="relayPanel">
+      <div class="headline-figure">
+        <div class="headline-label" id="relayHeadLabel">親が返済する期間の負担（元金＋利息）</div>
+        <div class="headline-value" id="relayParentPay">—</div>
+        <div class="headline-sub" id="relaySub"></div>
+      </div>
+      <div class="scenario-grid">
+        <div class="scenario-card">
+          <span class="scenario-tag">親の返済</span>
+          <div class="scenario-save-label" id="relayParentTerm">—</div>
+          <div class="scenario-save" id="relayParentTotal">—</div>
+          <div class="scenario-detail">うち 元金 <span class="mono" id="relayParentP">—</span><br>うち 利息 <span class="mono" id="relayParentI">—</span><br>引き継ぎ時の残債 <span class="mono" id="relayHandover">—</span></div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-tag">子の返済</span>
+          <div class="scenario-save-label" id="relayChildTerm">—</div>
+          <div class="scenario-save" id="relayChildTotal">—</div>
+          <div class="scenario-detail">うち 元金 <span class="mono" id="relayChildP">—</span><br>うち 利息 <span class="mono" id="relayChildI">—</span><br>完済時のお子さまの年齢 <span class="mono" id="relayChildEndAge">—</span></div>
+        </div>
+      </div>
+      <div class="note-ref">※ 毎月の返済額は全期間同じ（上の「毎月の返済額」）で、<b>誰が払うか</b>だけが引き継ぎ時期で変わります。団体信用生命保険の加入者・住宅ローン控除の適用・持分割合の扱いは金融機関ごとに異なるため本試算には含めていません。詳しくはページ末尾の<b>「注記」</b>を参照。</div>
+    </div>
+  </div>
   </div>
 
   <!-- 印刷（A4 PDF）専用の免責。画面では非表示 -->
@@ -2010,6 +2030,10 @@
 
     <p><strong>「◯歳で完済」の計算方法：</strong>「借入時の年齢」と「完済したい年齢」の差を経過年数とし、その時点の残債（元利均等・ボーナス分を除く）を<b>一括返済に必要な元金</b>として表示します。さらにその金額を、今から完済年齢までの年数・選んだ想定利回りで積み立てて用意する場合の毎月額を逆算しています（期末つみたて・月複利、税・手数料は考慮せず）。<br>
     <strong>「繰上げは早いほど利息が減る」：</strong>同じ5年間でも、序盤（借入2年後からの5年）は返済に占める利息が大きく、終盤（完済直前の5年）は利息がわずかです。両区間の元金・利息を並べ、早い時期の繰上げ・完済ほど<b>減らせる利息（消える利息）</b>が大きいことを示しています。返済期間が短い場合は各区間を期間内にクランプします。</p>
+
+    <p><strong>住宅ローン控除の「納税額による上限」：</strong>住宅ローン控除は納めた税金から差し引く制度のため、控除額は<b>所得税額＋住民税からの控除（年9.75万円が上限）</b>を超えられません。所得税額は年収から次の簡易計算で<strong>概算</strong>しています：給与所得控除（〜162.5万円は55万円／〜180万円は収入×40%−10万円／〜360万円は収入×30%+8万円／〜660万円は収入×20%+44万円／〜850万円は収入×10%+110万円／850万円超は195万円）、社会保険料は収入の15%、基礎控除48万円を差し引いた課税所得に所得税の速算表を適用し、復興特別所得税2.1%を加算。<strong>扶養控除・生命保険料控除・iDeCo等は考慮していないため、実際の税額とは異なります。</strong>源泉徴収票の「源泉徴収税額」を入力するとその金額が優先されます。<strong>これらの税率・控除額は改正されるため、必ず最新の国税庁情報でご確認ください。</strong></p>
+
+    <p><strong>返済負担率（返済比率）：</strong>実際に入力している借入プラン（借入金額・金利・返済期間・返済方法）の<b>年間返済額 ÷ 年収</b>で計算しています（他の借入がある場合は加算）。借入可能額の逆算に使う「返済負担率の基準」とは別で、こちらは<b>いまの計画が基準の範囲に収まっているか</b>を見るための数値です。</p>
 
     <p><strong>親子リレー返済：</strong>毎月の返済額・総返済額は通常の返済と同じで、<b>引き継ぎ時期（親の年齢）を境に、誰が払うかを分けて表示</b>しています。親の負担＝引き継ぎまでの返済額、子の負担＝それ以降の返済額です。実際の親子リレーローンでは、<strong>返済期間をお子さまの年齢を基準に設定できる（＝親が高齢でも長期が組める）</strong>点が特徴ですが、<strong>団体信用生命保険の加入者・住宅ローン控除の適用や持分割合・相続時の扱いは金融機関や個別事情で異なる</strong>ため、本試算には含めていません。取扱いの可否・条件は必ず金融機関にご確認ください。</p>
 
@@ -2457,7 +2481,7 @@
     const useStress = $('stressRate').checked;
 
     // 審査金利トグル：オンなら「入力した金利」と「審査金利3.0%」の高いほうで審査する
-    const inputRate = iv('diagRate') || 0;
+    const inputRate = iv('rate') || 0;   // ⑦ 全シート共通：上部の「金利」を使用
     const rate = useStress ? Math.max(inputRate, STRESS_RATE) : inputRate;
     const years = iv('diagYears') || 0;
     syncStressRate('a');
@@ -2483,10 +2507,25 @@
     $('annualCap').textContent = yen(annualCap) + ' 円';
     $('monthlyCap').textContent = yen(monthlyCap) + ' 円';
     $('incomeMultiple').textContent = multiple > 0 ? multiple.toFixed(1) + ' 倍' : '—';
-    // 実際の返済負担率＝（この借入の年間返済額＋他の借入）÷ 年収
-    const annualPayOfBorrow = monthlyCap * 12;
-    const burdenActual = incomeMan > 0 ? (annualPayOfBorrow + otherDebtMan*10000) / (incomeMan*10000) * 100 : 0;
-    $('burdenActual').textContent = burdenActual > 0 ? burdenActual.toFixed(1) + ' %' : '—';
+    // 返済負担率（＝返済比率）：いま入力している「実際の借入プラン」の年間返済額 ÷ 年収
+    // ※上限から逆算した金額で計算すると必ず基準値と同じになってしまうため、実プランで算出する
+    let planAnnual = 0;
+    if(baseReady()){
+      const pYen=(iv('principal')||0)*10000, pRate=iv('rate')||0, pYears=Math.round(iv('years')||0);
+      const mOnly = pYen - bonusPrincipalOf(pYen);
+      const bOnly = bonusPrincipalOf(pYen);
+      const ms = simulateSubLoan(mOnly, pRate, pYears, 12, document.querySelector('input[name=method]:checked').value);
+      const bs = bOnly>0 ? simulateSubLoan(bOnly, pRate, pYears, 2, document.querySelector('input[name=method]:checked').value) : [];
+      for(let k=0;k<12;k++){ if(ms[k]) planAnnual += ms[k].payment; }
+      for(let k=0;k<2;k++){ if(bs[k]) planAnnual += bs[k].payment; }
+    }
+    const burdenActual = (incomeMan > 0 && planAnnual > 0) ? (planAnnual + otherDebtMan*10000) / (incomeMan*10000) * 100 : 0;
+    if($('burdenActual')) $('burdenActual').textContent = burdenActual > 0 ? burdenActual.toFixed(1) + ' %' : '—';
+    if($('burdenActualSub')) $('burdenActualSub').textContent = burdenActual > 0
+      ? '実際の借入プラン（' + (iv('principal')||0).toLocaleString('ja-JP') + '万円・' + (iv('rate')||0) + '%・' + Math.round(iv('years')||0) + '年）の年間返済額 ' +
+        Math.round(planAnnual/10000).toLocaleString('ja-JP') + '万円 ÷ 年収 ' + incomeMan.toLocaleString('ja-JP') + '万円' +
+        (burdenActual > ratioPct ? '　※基準' + ratioPct + '%を超えています' : '')
+      : '';
 
     $('diagCondition').textContent =
       '適用返済負担率 ' + ratioPct + '％' +
@@ -2652,8 +2691,7 @@
   function stressYieldUpdate(){
     const years = gStressSaveYears;
     const y = iv('yieldStress'); const yieldPct = isFinite(y) ? Math.max(0,y) : 0;
-    if($('stressYieldSub')) $('stressYieldSub').innerHTML =
-      '想定利回り <b>' + (Math.round(yieldPct*100)/100) + '%</b> で ' + years + '年間運用した場合の、毎月の積立額です（シナリオ①・②）。';
+    if($('stressYieldSub')) $('stressYieldSub').innerHTML = '';
     let html = '';
     gStressScenarios.forEach(function(s){
       const need = Math.round(neededMonthly(s.target, yieldPct, years));
@@ -2744,10 +2782,11 @@
     // 未入力／範囲外はデフォルト（完済5年前）に
     let py, usedDefault=false;
     if(ageMode){
-      const payAge = rawNum('payoffAge');
+      const payAge = isFinite(rawNum('payoffAge')) ? rawNum('payoffAge') : rawNum('payoffAgeR');
       if(isFinite(payAge) && payAge>startAge && (payAge-startAge)<years){ py=payAge-startAge; }
       else { py=defPy; usedDefault=true; }
       if($('payoffAge')) $('payoffAge').placeholder = String(startAge+defPy);
+      if($('payoffAgeR')) $('payoffAgeR').placeholder = String(startAge+defPy);
     } else {
       py=defPy; usedDefault=true;
     }
@@ -2771,11 +2810,10 @@
     if(!(gPayoffLump>0) || !(gPayoffYears>0)){ if($('payoffYieldOut'))$('payoffYieldOut').innerHTML=''; if($('fundRefPayoff'))$('fundRefPayoff').innerHTML=''; return; }
     const y=iv('yieldPayoff'); const yieldPct=isFinite(y)?Math.max(0,y):0;
     const need=Math.round(neededMonthly(gPayoffLump, yieldPct, gPayoffYears));
-    if($('payoffYieldSub')) $('payoffYieldSub').innerHTML='一括返済額 <b>'+yen(Math.round(gPayoffLump))+' 円</b> を、今から '+gPayoffYears+'年間で積み立てて用意する場合の毎月額です。';
+    if($('payoffYieldSub')) $('payoffYieldSub').innerHTML='';
     if($('payoffYieldOut')) $('payoffYieldOut').innerHTML=
-      '<div class="yo-lead">想定利回り <b>'+(Math.round(yieldPct*100)/100)+'%</b> で '+gPayoffYears+'年間運用して '+yen(Math.round(gPayoffLump))+'円 を用意する場合</div>'+
       '<div class="yo-amt">'+yen(need)+'<small> 円 / 月</small></div>'+
-      '<div class="yo-note">元本（毎月 '+yen(need)+'円 ×'+(gPayoffYears*12)+'回）の合計 '+yen(need*gPayoffYears*12)+'円。'+(yieldPct>0 ? '差額は運用益で補う概算です。' : '利回り0%のため運用益はなく、全額を自己資金で積む前提です。')+'</div>';
+      '<div class="yo-note">'+gPayoffYears+'年間の積立元本 合計 '+Math.round(need*gPayoffYears*12/10000).toLocaleString('ja-JP')+' 万円'+(yieldPct>0 ? '（差額は運用益で補う概算）' : '（利回り0%のため全額を自己資金で積む前提）')+'</div>';
     renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], gPayoffYears, 'yieldPayoff');
   }
 
@@ -2913,6 +2951,38 @@
   });
 
   // ============ 2-5. 住宅ローン控除の試算 ============
+  // 年収（万円）から年間の所得税額（円）を概算する。
+  // ※すべて「概算」。給与所得控除・基礎控除・所得税率は下記の一般的な区分にもとづく簡易計算で、
+  //   扶養・生命保険料控除・住宅以外の各種控除・iDeCo等は考慮していない。正確な額は源泉徴収票の
+  //   「源泉徴収税額」を入力すると、そちらが優先される。
+  function estimateIncomeTax(incomeMan){
+    const inc = (incomeMan||0) * 10000;
+    if(inc <= 0) return 0;
+    // 給与所得控除（令和2年分以降の区分）
+    let deduction;
+    if(inc <= 1625000) deduction = 550000;
+    else if(inc <= 1800000) deduction = inc*0.40 - 100000;
+    else if(inc <= 3600000) deduction = inc*0.30 + 80000;
+    else if(inc <= 6600000) deduction = inc*0.20 + 440000;
+    else if(inc <= 8500000) deduction = inc*0.10 + 1100000;
+    else deduction = 1950000;
+    const salaryIncome = Math.max(0, inc - deduction);         // 給与所得
+    const socialIns = inc * 0.15;                              // 社会保険料（概算15%）
+    const basic = 480000;                                      // 基礎控除
+    const taxable = Math.max(0, Math.floor((salaryIncome - socialIns - basic)/1000)*1000); // 課税所得（千円未満切捨）
+    // 所得税の速算表
+    let tax;
+    if(taxable <= 1950000) tax = taxable*0.05;
+    else if(taxable <= 3300000) tax = taxable*0.10 - 97500;
+    else if(taxable <= 6950000) tax = taxable*0.20 - 427500;
+    else if(taxable <= 9000000) tax = taxable*0.23 - 636000;
+    else if(taxable <= 18000000) tax = taxable*0.33 - 1536000;
+    else if(taxable <= 40000000) tax = taxable*0.40 - 2796000;
+    else tax = taxable*0.45 - 4796000;
+    tax = Math.max(0, tax);
+    return Math.round(tax * 1.021); // 復興特別所得税 2.1%
+  }
+
   const CREDIT_RATE = 0.007; // 控除率 0.7%（確認済み）
   // 2024・2025年入居の借入限度額（万円）— 一次資料 001887903.pdf の確認済み転記
   const NEW_LIMITS_2425 = { // [子育て・若者夫婦, その他]
@@ -3027,9 +3097,15 @@
     const limitYen = e.limit * 10000;
     // 納税額の上限（所得税＋住民税9.75万円）。チェックONかつ所得税額の入力があるときだけ適用
     const RESIDENT_TAX_CAP = 97500; // 住民税からの控除上限（年）※確認済みの数値
-    const taxOn = $('useTaxCap') && $('useTaxCap').checked;
-    const incomeTaxYen = (iv('incomeTax')||0) * 10000;
-    const payableCap = (taxOn && incomeTaxYen > 0) ? (incomeTaxYen + RESIDENT_TAX_CAP) : Infinity;
+    const taxOn = !$('useTaxCap') || $('useTaxCap').checked;   // 既定でオン
+    const manualTaxYen = (iv('incomeTax')||0) * 10000;         // 源泉徴収票の実額（入力があれば優先）
+    const autoTaxYen = estimateIncomeTax(iv('income')||0);     // 年収からの概算
+    const usedTaxYen = manualTaxYen > 0 ? manualTaxYen : autoTaxYen;
+    const payableCap = (taxOn && usedTaxYen > 0) ? (usedTaxYen + RESIDENT_TAX_CAP) : Infinity;
+    if($('taxCapSub')) $('taxCapSub').innerHTML = (taxOn && usedTaxYen > 0)
+      ? '控除の上限：所得税 <b>'+Math.round(usedTaxYen/10000).toLocaleString('ja-JP')+'万円</b>'+(manualTaxYen>0?'（入力値）':'（年収'+(iv('income')||0).toLocaleString('ja-JP')+'万円からの概算）')+
+        ' ＋ 住民税 <b>9.75万円</b> ＝ 年 <b>'+Math.round((usedTaxYen+RESIDENT_TAX_CAP)/10000*10)/10+'万円</b>まで'
+      : '';
     let total = 0, first = 0, cappedAny = false;
     const rows = [];
     for(let y=0; y<e.term; y++){
@@ -3069,7 +3145,7 @@
   }
 
   $('creditBtn').addEventListener('click', renderCredit);
-  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','floorArea','totalIncome','incomeTax','useTaxCap'].forEach(id=>{
+  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','floorArea','totalIncome','incomeTax','useTaxCap','income'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', renderCredit);
   });
   document.querySelectorAll('input[name=method], input[name=buildType], input[name=bonusMode]').forEach(el=>{
@@ -3103,10 +3179,13 @@
     if(gPayoffYears>0 && $('focusYear')){ $('focusYear').value=gPayoffYears; $('focusYear').classList.remove('pristine'); renderStatement(); }
   }
   // 完済年齢は設定（完済の条件）の入力欄のみ。未入力なら「完済の5年前」を自動採用
-  if($('payoffAge')){
-    attachClear($('payoffAge'));
-    $('payoffAge').addEventListener('change', payoffRecalc);
+  // 完済年齢：設定側と結果側を双方向同期
+  function syncPayoffAge(from){
+    var a=$('payoffAge'), b=$('payoffAgeR'); if(!a||!b) return;
+    if(from==='r') a.value=b.value; else b.value=a.value;
   }
+  if($('payoffAge')){ attachClear($('payoffAge')); $('payoffAge').addEventListener('change', function(){ syncPayoffAge('a'); payoffRecalc(); }); }
+  if($('payoffAgeR')){ attachClear($('payoffAgeR')); $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge('r'); payoffRecalc(); }); }
   // 親子リレー
   ['childAge','relayAge'].forEach(function(id){ if($(id)){ attachClear($(id)); $(id).addEventListener('change', relaySim); } });
   ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge'].forEach(function(id){ if($(id)) $(id).addEventListener('change', relaySim); });
@@ -3173,7 +3252,7 @@
   if($('stressRateR')) $('stressRateR').addEventListener('change', function(){ syncStressRate('r'); diagnose(); });
   if($('stressRate')) $('stressRate').addEventListener('change', function(){ syncStressRate('a'); });
   $('diagBtn').addEventListener('click', diagnose);
-  ['income','otherDebt','burdenRatio','autoRatio','diagRate','stressRate','diagYears'].forEach(id=>{
+  ['income','otherDebt','burdenRatio','autoRatio','rate','years','stressRate','diagYears'].forEach(id=>{
     $(id).addEventListener('change', diagnose);
   });
 
@@ -3212,14 +3291,38 @@
   }
 
   // 必須5項目が「すべて」埋まった瞬間にキーボードを閉じる（入力途中では閉じない）
-  var gWasReady = false;
-  function autoCloseKeypad(){
-    var ready = baseReady();
-    if(ready && !gWasReady){
-      var el = document.activeElement;
-      if(el && el.tagName === 'INPUT' && el.blur) setTimeout(function(){ try{ el.blur(); }catch(_){} }, 220);
-    }
-    gWasReady = ready;
+  var gAutoClosed = false;
+  function autoCloseKeypad(q){
+    // 全項目が埋まっていないあいだは閉じない（埋まっていない状態に戻ったら再び閉じられるようにする）
+    if(!baseReady()){ gAutoClosed = false; return; }
+    // 1桁だけの入力（35の「3」など）では閉じない。2桁以上打ち終えたときだけ閉じる
+    var digits = q ? String(q.value||'').replace(/[^0-9]/g,'').length : 0;
+    if(gAutoClosed || digits < 2) return;
+    gAutoClosed = true;
+    var el = document.activeElement;
+    if(el && el.tagName === 'INPUT' && el.blur) setTimeout(function(){ try{ el.blur(); }catch(_){} }, 250);
+  }
+  // 入力中は「完了」ボタンを出し、押すとキーボードを閉じる（1桁入力などの手動クローズ用）
+  function setupKeypadDone(){
+    var btn=$('qDone'); if(!btn) return;
+    function editable(el){ return el && el.tagName==='INPUT' && el.type!=='checkbox' && el.type!=='radio' && el.type!=='hidden'; }
+    function refresh(){ btn.style.display = editable(document.activeElement) ? '' : 'none'; }
+    // focus/focusin/input/タップ いずれでも状態を更新する（環境差に依存しない）
+    ['focusin','focusout','input','click','touchstart','keyup'].forEach(function(ev){
+      document.addEventListener(ev, function(){ setTimeout(refresh, 0); }, true);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('input'), function(el){
+      if(!editable(el)) return;
+      el.addEventListener('focus', refresh);
+      el.addEventListener('blur', function(){ setTimeout(refresh, 120); });
+    });
+    btn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+    btn.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
+    btn.addEventListener('click', function(){
+      var a=document.activeElement; if(a && a.blur) a.blur();
+      btn.style.display='none';
+    });
+    refresh();
   }
 
   // クイックバー側の変更をドロワーへ書き戻して全再計算
@@ -3262,7 +3365,7 @@
           q.classList.remove('pristine');
           // 年収は 2-1 借入可能額と 2-5 住宅ローン控除（所得要件）に反映する
           if(pair[0]==='qIncome' && $('totalIncome')){ $('totalIncome').value = q.value; $('totalIncome').classList.remove('pristine'); }
-          recalcAll(); diagnose(); autoCloseKeypad();
+          recalcAll(); diagnose(); autoCloseKeypad(q);
         });
       });
       q.addEventListener('blur', function(){
@@ -3353,7 +3456,7 @@
   // 教育資金シミュレーター風：結果は全幅表示、入力は下部ドロワーに集約（右下FABで開閉）
   function setupPresentation(){
     var main = document.querySelector('main');
-    var KEYS = ['base','relay','m21','m23','m25']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
+    var KEYS = ['base','m21','m23','m25','relay']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
     var groups = [];
     Array.prototype.forEach.call(main.children, function(el){
       if(el.classList.contains('disclaimer') || el.classList.contains('print-disc')){ if(groups[0]) groups[0].nodes.push(el); return; }
@@ -3554,7 +3657,7 @@
   // クリア（各シート） — それぞれの初期値に戻して再計算
   $('diagClear').addEventListener('click', ()=>{
     $('income').value = 500; $('otherDebt').value = 0; $('burdenRatio').value = 35;
-    $('autoRatio').checked = true; $('diagRate').value = 0.7; $('stressRate').checked = false;
+    $('autoRatio').checked = true; $('stressRate').checked = false;
     $('diagYears').value = 35; diagnose();
   });
   $('stressClear').addEventListener('click', ()=>{
@@ -3587,6 +3690,7 @@
   syncQuickBar();
   renderPatterns();
   relaySim();
+  setupKeypadDone();
 })();
 </script>
 
