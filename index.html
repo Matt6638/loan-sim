@@ -256,9 +256,10 @@
   /* タブ選択時、モジュール先頭が固定タブバーに隠れないよう余白を確保 */
   .grid, .section-heading{scroll-margin-top:64px;}
   /* スクロールで単元の先頭にピタッと止まる（proximity＝近づいたときだけ吸着し、読みを妨げない） */
-  html{scroll-snap-type:y proximity;scroll-padding-top:62px;}
+  html{scroll-snap-type:y proximity;scroll-padding-top:58px;}
   @media (prefers-reduced-motion:reduce){ html{scroll-snap-type:none;} }
-  .snap{scroll-snap-align:start;scroll-margin-top:62px;}
+  /* scroll-padding-top だけで位置を合わせる（scroll-margin と二重に効くとズレるため 0 に上書き） */
+  .snap{scroll-snap-align:start;scroll-margin-top:0;}
 
   main{max-width:1080px;margin:0 auto;padding:24px 24px 0;}
 
@@ -481,6 +482,9 @@
   }
 
   /* パターン比較 */
+  .need-input-msg{font-size:0.82rem;color:var(--gold-soft);background:#faf8f2;border:1px dashed var(--gold-soft);border-radius:7px;padding:8px 12px;margin-top:8px;line-height:1.6;}
+  .need-input-msg b{color:var(--rose);}
+  .cmp-add-btn:disabled{opacity:.35;cursor:not-allowed;}
   .hf-with-btn{position:relative;}
   .hf-actions{position:absolute;right:24px;bottom:10px;display:flex;align-items:center;gap:8px;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
@@ -549,8 +553,7 @@
     #stressPanel .scenario-save small{font-size:0.66rem;}
     #stressPanel .scenario-detail{margin-top:8px;font-size:0.66rem;line-height:1.5;}
     #stressPanel .stress-lump{margin-top:8px;padding:8px 9px;}
-    #stressPanel .stress-lump .sl-label{font-size:0.62rem;line-height:1.35;margin-bottom:2px;}
-    #stressPanel .stress-lump .sl-label br{display:none;}
+    #stressPanel .stress-lump .sl-label{font-size:0.6rem;line-height:1.35;margin-bottom:2px;}
     #stressPanel .stress-lump .sl-amt{font-size:1.05rem;}
   }
 
@@ -591,7 +594,7 @@
   button, .chip, .gf-arrow, .fund-pick, .tab, .yield-picker, .gf-controls, .graph-focus, input, select, label{touch-action:manipulation;}
 
   /* グラフの縦ライン下の年齢ラベル（ドラッグで移動できる） */
-  .chart-wrap{position:relative;touch-action:none;cursor:move;}
+  .chart-wrap{position:relative;touch-action:pan-y;cursor:default;}
   .gf-line-label{position:absolute;transform:translate(-50%,-50%);background:var(--text);color:#fff;font-family:var(--mono);font-size:0.78rem;font-weight:700;line-height:1.15;padding:6px 11px;border-radius:8px;white-space:nowrap;text-align:center;pointer-events:auto;cursor:grab;touch-action:none;box-shadow:0 4px 14px rgba(27,42,74,.45);border:2px solid var(--gold);z-index:3;}
   .gf-line-label:active{cursor:grabbing;}
   .gf-line-label .ll-y{display:block;}
@@ -907,7 +910,7 @@
   .scenario-save{white-space:nowrap;}
   .scenario-detail .mono{white-space:nowrap;}
   .stress-lump{margin-top:14px;padding:12px 14px;background:#f3f6f5;border:1px solid var(--border-soft);border-left:3px solid var(--principal);border-radius:7px;}
-  .stress-lump .sl-label{display:block;font-size:0.72rem;color:var(--text-dim);line-height:1.5;margin-bottom:5px;}
+  .stress-lump .sl-label{display:block;font-size:0.72rem;color:var(--text-dim);line-height:1.5;margin-bottom:5px;white-space:nowrap;}
   .stress-lump .sl-amt{font-family:var(--mono);font-size:1.35rem;color:var(--principal);font-weight:500;white-space:nowrap;display:inline-block;}
   .stress-lump .sl-amt small{white-space:nowrap;}
   .stress-lump .sl-note{display:block;font-size:0.66rem;color:var(--text-dim);margin-top:4px;}
@@ -966,7 +969,7 @@
       <div class="field-row">
         <label for="principal">借入金額</label>
         <div class="field-input">
-          <input type="number" id="principal" value="4000" min="1" step="10">
+          <input type="number" id="principal" placeholder="4000" min="1" step="10">
           <span class="unit">万円</span>
         </div>
       </div>
@@ -974,7 +977,7 @@
       <div class="field-row">
         <label for="borrowerAge">借入時の年齢</label>
         <div class="field-input">
-          <input type="number" id="borrowerAge" value="40" min="18" max="80" step="1">
+          <input type="number" id="borrowerAge" placeholder="40" min="18" max="80" step="1">
           <span class="unit">歳</span>
         </div>
       </div>
@@ -982,7 +985,7 @@
       <div class="field-row">
         <label for="rate">年利（金利）</label>
         <div class="field-input">
-          <input type="number" id="rate" value="1.5" min="0" max="20" step="0.01">
+          <input type="number" id="rate" placeholder="1.5" min="0" max="20" step="0.01">
           <span class="unit">%</span>
         </div>
         <div class="chip-row" data-target="rate">
@@ -994,7 +997,7 @@
       <div class="field-row">
         <label for="years">返済期間</label>
         <div class="field-input">
-          <input type="number" id="years" value="35" min="1" max="50" step="1">
+          <input type="number" id="years" placeholder="35" min="1" max="50" step="1">
           <span class="unit">年</span>
         </div>
         <div class="chip-row" data-target="years">
@@ -1070,6 +1073,7 @@
       <div class="headline-figure hf-with-btn snap">
         <div class="headline-label">毎月の返済額（初回）</div>
         <div class="headline-value" id="monthlyPayment">—</div>
+        <div class="need-input-msg" id="needInput" style="display:none;"></div>
         <div class="headline-sub" id="monthlySub"></div>
         <div class="hf-actions">
           <button type="button" class="cmp-add-btn" id="cmpAdd" title="この条件を比較に追加">＋追加</button>
@@ -1193,7 +1197,7 @@
     <div class="panel">
       <div class="ledger-title">完済の条件</div>
       <div class="field-row">
-        <label for="payoffAge">完済したい年齢</label>
+        <label for="payoffAge">完済したい年齢（未入力なら「完済の5年前」）</label>
         <div class="field-input"><input type="text" inputmode="numeric" id="payoffAge" placeholder="例：70"><span class="unit">歳</span></div>
       </div>
     </div>
@@ -1203,22 +1207,6 @@
         <div class="headline-label" id="payoffHeadLabel">完済に必要な一括返済額（その時点の残債）</div>
         <div class="headline-value" id="payoffLump">—</div>
         <div class="headline-sub" id="payoffSub"></div>
-      </div>
-
-      <!-- 結果欄でも完済時期を編集できる（年齢／未入力時は年目） -->
-      <div class="payoff-ctrl" id="payoffCtrlAge">
-        <span class="gf-label">完済したい年齢</span>
-        <button type="button" class="gf-arrow" id="payoffPrev">◀</button>
-        <input type="text" inputmode="numeric" id="payoffAgeR" placeholder="例：70">
-        <span class="gf-unit">歳</span>
-        <button type="button" class="gf-arrow" id="payoffNext">▶</button>
-      </div>
-      <div class="payoff-ctrl" id="payoffCtrlYear" style="display:none;">
-        <span class="gf-label">完済時期</span>
-        <button type="button" class="gf-arrow" id="payoffPrevY">◀</button>
-        <input type="text" inputmode="numeric" id="payoffYearR" placeholder="—">
-        <span class="gf-unit">年目</span>
-        <button type="button" class="gf-arrow" id="payoffNextY">▶</button>
       </div>
 
       <div class="strip-section">
@@ -1329,7 +1317,7 @@
             <span id="cumLabel1">10年間の積立累計</span> <span class="mono" id="cum1">—</span>
           </div>
           <div class="stress-lump">
-            <span class="sl-label">一括返済で元の月額に戻すなら</span>
+            <span class="sl-label">一括返済で<br>元の月額に戻すなら</span>
             <span class="mono sl-amt" id="lump1">—</span>
           </div>
         </div>
@@ -1342,7 +1330,7 @@
             <span id="cumLabel2">10年間の積立累計</span> <span class="mono" id="cum2">—</span>
           </div>
           <div class="stress-lump">
-            <span class="sl-label">一括返済で元の月額に戻すなら</span>
+            <span class="sl-label">一括返済で<br>元の月額に戻すなら</span>
             <span class="mono sl-amt" id="lump2">—</span>
           </div>
         </div>
@@ -1381,7 +1369,7 @@
 
 
   <!-- ============ 2-1. 借入可能額診断 ============ -->
-  <div class="section-heading snap">
+  <div class="section-heading">
     <span class="num">診断 2-1</span>
     <h2>年収から借入可能額を診断</h2>
   </div>
@@ -1399,7 +1387,7 @@
         <div class="field-row">
           <label for="income">額面年収（税込）</label>
           <div class="field-input">
-            <input type="number" id="income" value="500" min="0" step="10">
+            <input type="number" id="income" placeholder="500" min="0" step="10">
             <span class="unit">万円</span>
           </div>
         </div>
@@ -1489,7 +1477,7 @@
   </div>
 
   <!-- ============ 2-3. 賃貸（投資マンション）転用シミュレーション ============ -->
-  <div class="section-heading snap">
+  <div class="section-heading">
     <span class="num">診断 2-3</span>
     <h2>賃貸（投資用）に転用した場合の試算</h2>
   </div>
@@ -1635,7 +1623,7 @@
   </div>
 
   <!-- ============ 2-5. 住宅ローン控除の試算 ============ -->
-  <div class="section-heading snap">
+  <div class="section-heading">
     <span class="num">診断 2-5</span>
     <h2>住宅ローン控除の試算</h2>
   </div>
@@ -1872,7 +1860,30 @@
   // ===== 数値入力ヘルパー（FP流：全角対応・カンマ整形・値/プレースホルダ読取） =====
   function zen2han(s){ return String(s).replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[，、]/g,',').replace(/[．]/g,'.').replace(/[－ー−―‐–—]/g,'-'); }
   // 値が空ならプレースホルダ（＝既定値）を使い、カンマ/全角を除いて数値化。全ての数値読取はこれを通す
-  function iv(id){ var el=document.getElementById(id); if(!el) return NaN; var raw=el.value; if(raw==null||String(raw).trim()==='') raw=el.placeholder||''; raw=zen2han(String(raw)).replace(/,/g,'').replace(/[^0-9.\-]/g,''); return raw===''?NaN:parseFloat(raw); }
+  // 空欄はプレースホルダ（例示）を拾わない。編集中に一瞬空になったときだけ直前値を使う
+  function iv(id){
+    var el=document.getElementById(id); if(!el) return NaN;
+    var raw=el.value;
+    if(raw==null||String(raw).trim()===''){
+      raw = (document.activeElement===el && el.dataset.prev!=null) ? el.dataset.prev : '';
+    }
+    raw=zen2han(String(raw)).replace(/,/g,'').replace(/[^0-9.\-]/g,'');
+    return raw===''?NaN:parseFloat(raw);
+  }
+  // 必須項目（借入・年齢・年収・金利・返済期間）がすべて入っているか
+  var REQUIRED = ['principal','borrowerAge','income','rate','years'];
+  var REQ_LABEL = {principal:'借入', borrowerAge:'年齢', income:'年収', rate:'金利', years:'返済期間'};
+  function missingInputs(){
+    return REQUIRED.filter(function(id){
+      var el=document.getElementById(id); if(!el) return false;
+      var v=String(el.value||'').trim();
+      if(v==='' && document.activeElement===el && el.dataset.prev) v=String(el.dataset.prev).trim();
+      if(v==='') return true;
+      var n=parseFloat(zen2han(v).replace(/,/g,''));
+      return !isFinite(n) || n<=0;
+    });
+  }
+  function baseReady(){ return missingInputs().length===0; }
   // 整数部にカンマを付与（小数は保持）。キャレット位置も可能な範囲で維持
   function fmtNum(el){
     var half=zen2han(el.value);
@@ -1975,6 +1986,33 @@
       '<div class="stmt-axis"><span>1年目'+ageTxt(0)+'</span><span>'+N+'年目'+ageTxt(N-1)+'</span></div>';
   }
 
+  // 未入力時の表示（結果はすべて空にし、何を入れるべきかだけ示す）
+  function showNeedInput(){
+    var miss = missingInputs().map(function(id){ return REQ_LABEL[id]; });
+    var el;
+    if((el=$('monthlyPayment'))) el.innerHTML = '<span class="need-input">—</span>';
+    if((el=$('monthlySub'))) el.textContent = '';
+    if((el=$('needInput'))) el.innerHTML = '<b>' + miss.join('・') + '</b> を入力すると試算できます';
+    if((el=$('needInput'))) el.style.display = '';
+    ['totalPayment','totalPrincipal','totalInterest','payoffLump','stressCurrent','creditTotal','maxLoan'].forEach(function(id){
+      var e=$(id); if(e) e.innerHTML='—';
+    });
+    ['totalPie','stripChart','gfReadout','pieCond','payoffSub','stressBase','creditBase','stressYieldOut','payoffYieldOut','fundRefStress','fundRefPayoff','earlyLateOut','tableBody'].forEach(function(id){
+      var e=$(id); if(e) e.innerHTML='';
+    });
+    if((el=$('lump1'))) el.textContent='—';
+    if((el=$('lump2'))) el.textContent='—';
+    ['save1','save2','stressed1','stressed2','cum1','cum2'].forEach(function(id){ var e=$(id); if(e) e.innerHTML='—'; });
+    gLastYearly=null; gLastSummary=null;
+    if((el=$('cmpAdd'))) el.style.display='none';
+    if((el=$('cmpToggle'))) el.style.display='none';
+    syncQuickBar();
+  }
+  function hideNeedInput(){
+    var el=$('needInput'); if(el) el.style.display='none';
+    var b=$('cmpAdd'); if(b) b.style.display='';
+  }
+
   // グラフ描画用の直近の状態（経過年・試算期間の操作で再描画）
   var gLastYearly=null, gLastPrincipal=0, gStartAge=null;
   var gLabelY = 0.62;    // 「◯年目◯歳」ラベルの上下位置（0＝上端／1＝下端）
@@ -2046,6 +2084,8 @@
   }
 
   function calculate(){
+    // 必須項目が揃うまでは結果を出さない
+    if(!baseReady()){ showNeedInput(); return; }
     const principalManYen = iv('principal') || 0;
     const rate = iv('rate') || 0;
     const years = iv('years') || 0;
@@ -2097,6 +2137,7 @@
     const firstBonus = bonusSchedule[0] ? bonusSchedule[0].payment : 0;
 
     // Render headline
+    hideNeedInput();
     $('monthlyPayment').innerHTML = yen(firstMonthly) + '<small>円 / 月</small>';
     $('monthlySub').textContent = method === 'equalPrincipal'
       ? '元金均等のため、返済額は回を追うごとに減少します（初回時点の金額）'
@@ -2194,6 +2235,7 @@
   }
 
   function diagnose(){
+    if(!isFinite(iv('income')) || (iv('income')||0)<=0) return;
     const incomeMan = iv('income') || 0;
     const otherDebtMan = iv('otherDebt') || 0;
     const useStress = $('stressRate').checked;
@@ -2251,6 +2293,7 @@
   }
 
   function stressTest(){
+    if(!baseReady()) return;
     const baseRate = iv('rate') || 0;
     const method = document.querySelector('input[name=method]:checked').value;
     const hasBonus = bonusPrincipalOf((iv('principal')||0)*10000) > 0;
@@ -2405,16 +2448,13 @@
   // ============ ◯歳で完済（繰上げ完済）＋早い繰上げほど利息が減る ============
   var gPayoffLump=0, gPayoffYears=0;
   function payoffSim(){
+    if(!baseReady()) return;
     const principalYen=(iv('principal')||0)*10000;
     const rate=iv('rate')||0; const years=Math.round(iv('years')||0);
     const r=(rate/100)/12; const n=years*12;
     const mp = principalYen - bonusPrincipalOf(principalYen);
     const av=iv('borrowerAge'); const startAge=(av&&av>0)?Math.round(av):null;
     const ageMode = (startAge!=null);
-
-    // モード切替（年齢が分かれば年齢入力、なければ年目入力）
-    if($('payoffCtrlAge')) $('payoffCtrlAge').style.display = ageMode ? '' : 'none';
-    if($('payoffCtrlYear')) $('payoffCtrlYear').style.display = ageMode ? 'none' : '';
 
     if(!(mp>0) || n<=0 || years<2){
       gPayoffLump=0; gPayoffYears=0;
@@ -2432,16 +2472,12 @@
     // 未入力／範囲外はデフォルト（完済5年前）に
     let py, usedDefault=false;
     if(ageMode){
-      const payAge = isFinite(rawNum('payoffAge')) ? rawNum('payoffAge') : rawNum('payoffAgeR');
+      const payAge = rawNum('payoffAge');
       if(isFinite(payAge) && payAge>startAge && (payAge-startAge)<years){ py=payAge-startAge; }
       else { py=defPy; usedDefault=true; }
       if($('payoffAge')) $('payoffAge').placeholder = String(startAge+defPy);
-      if($('payoffAgeR')) $('payoffAgeR').placeholder = String(startAge+defPy);
     } else {
-      const yr=rawNum('payoffYearR');
-      if(isFinite(yr) && yr>=1 && yr<years){ py=Math.round(yr); }
-      else { py=defPy; usedDefault=true; }
-      if($('payoffYearR')) $('payoffYearR').placeholder = String(defPy);
+      py=defPy; usedDefault=true;
     }
     py = Math.max(1, Math.min(years-1, py));
     gPayoffYears = py;
@@ -2535,6 +2571,7 @@
   }
 
   function convertSim(){
+    if(!baseReady()) return;
     const {yearly, years} = computeBaseYearly();
     const cvYear = Math.max(1, iv('cvYear') || 1);
     const rentAnnual = (iv('rent') || 0) * 10000 * 12;
@@ -2665,6 +2702,7 @@
   }
 
   function renderCredit(){
+    if(!baseReady()) return;
     const warnZone = $('creditWarnZone');
     const confirmEl = $('creditConfirm');
     const resultEl = $('creditResult');
@@ -2784,35 +2822,11 @@
     payoffSim();
     if(gPayoffYears>0 && $('focusYear')){ $('focusYear').value=gPayoffYears; $('focusYear').classList.remove('pristine'); renderStatement(); }
   }
-  // 完済年齢：入力欄（ドロワー）と結果欄を相互同期
-  function syncPayoffAge(fromEl, toEl){ if(toEl){ toEl.value=fromEl.value; toEl.classList.toggle('pristine', fromEl.classList.contains('pristine')); } }
-  if($('payoffAge') && $('payoffAgeR')){
-    attachClear($('payoffAge')); attachClear($('payoffAgeR'));
-    $('payoffAge').addEventListener('input', function(){ syncPayoffAge($('payoffAge'),$('payoffAgeR')); });
-    $('payoffAge').addEventListener('change', function(){ syncPayoffAge($('payoffAge'),$('payoffAgeR')); payoffRecalc(); });
-    $('payoffAgeR').addEventListener('input', function(){ syncPayoffAge($('payoffAgeR'),$('payoffAge')); });
-    $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge($('payoffAgeR'),$('payoffAge')); payoffRecalc(); });
+  // 完済年齢は設定（完済の条件）の入力欄のみ。未入力なら「完済の5年前」を自動採用
+  if($('payoffAge')){
+    attachClear($('payoffAge'));
+    $('payoffAge').addEventListener('change', payoffRecalc);
   }
-  // 完済時期（年目：借入年齢が未入力のとき）
-  if($('payoffYearR')){ attachClear($('payoffYearR')); $('payoffYearR').addEventListener('change', payoffRecalc); }
-  // ◀▶（年齢／年目）
-  function stepField(id, delta, mode){
-    var el=$(id); if(!el) return;
-    var years=Math.round(iv('years')||0);
-    var av=iv('borrowerAge'); var startAge=(av&&av>0)?Math.round(av):null;
-    var cur=iv(id);
-    if(!isFinite(cur)){ // 空欄なら現在の実効値（完済5年前）から
-      var defPy=Math.max(1,Math.min(years-1,years-5));
-      cur = (mode==='age' && startAge!=null) ? (startAge+defPy) : defPy;
-    }
-    el.value=Math.round(cur)+delta; el.classList.remove('pristine');
-    if(mode==='age' && $('payoffAge')) syncPayoffAge(el, $('payoffAge'));
-    payoffRecalc();
-  }
-  if($('payoffPrev')) $('payoffPrev').addEventListener('click', function(){ stepField('payoffAgeR',-1,'age'); });
-  if($('payoffNext')) $('payoffNext').addEventListener('click', function(){ stepField('payoffAgeR',1,'age'); });
-  if($('payoffPrevY')) $('payoffPrevY').addEventListener('click', function(){ stepField('payoffYearR',-1,'year'); });
-  if($('payoffNextY')) $('payoffNextY').addEventListener('click', function(){ stepField('payoffYearR',1,'year'); });
 
   ['principal','rate','years','bonusRatio','borrowerAge'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', payoffSim);
@@ -2852,8 +2866,10 @@
       if(changed) renderStatement();
     }
     el.addEventListener('pointerdown', function(e){
-      dragging=true;
-      dragMode = (e.target && e.target.closest && e.target.closest('.gf-line-label')) ? 'label' : 'year';
+      // 「◯年目◯歳」の箱をつかんだときだけ動かす。棒グラフを押しただけでは何も動かさない
+      var onLabel = e.target && e.target.closest && e.target.closest('.gf-line-label');
+      if(!onLabel){ dragging=false; return; }
+      dragging=true; dragMode='label';
       try{el.setPointerCapture(e.pointerId);}catch(x){}
       apply(e.clientX, e.clientY);
     });
@@ -2883,6 +2899,7 @@
       if(!q || !src) return;
       if(document.activeElement === q) return; // 打ち込み中はキャレットを壊さない
       q.value = src.value;
+      if(src.placeholder) q.placeholder = src.placeholder;
       q.classList.toggle('pristine', src.classList.contains('pristine'));
     });
     if($('qBonusUnit')) $('qBonusUnit').textContent = amt ? '万円' : '%';
