@@ -145,10 +145,13 @@
   /* ===== 教育資金シミュレーター風レイアウト：結果は全幅・入力は下部ドロワー ===== */
   /* 入力パネルはドロワーへ移動するので、本文の .grid は結果のみ全幅表示 */
   main .grid{grid-template-columns:1fr !important;gap:0;}
-  body{padding-bottom:104px;} /* 右下FABの余白 */
+  body{padding-bottom:32px;}
 
   /* 右下フローティング入力ボタン（FAB） */
   /* FABはグラフの元金（ティール）と色が被らないよう濃紺×ゴールド縁で独立させる */
+  .fab-input.fab-hidden{display:none;}
+  .qb-gear{margin-left:auto;flex:0 0 auto;width:34px;height:34px;border-radius:8px;background:var(--text);color:var(--gold);border:1.5px solid var(--gold);font-size:16px;line-height:1;cursor:pointer;transition:all .15s;}
+  .qb-gear:hover{background:var(--gold);color:#fff;}
   .fab-input{
     position:fixed;right:22px;bottom:24px;width:62px;height:62px;border-radius:50%;
     background:var(--text);color:var(--gold);border:2px solid var(--gold);
@@ -441,6 +444,12 @@
   .qb-field input#qRate{width:48px;}
   .qb-field input#qYears{width:38px;}
   .qb-field input.pristine{color:#a2a8b5;}
+  .qb-bonus{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;}
+  .qb-bonus-btn{font-family:var(--gothic);font-size:0.72rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--border);border-radius:7px;padding:7px 11px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+  .qb-bonus-btn:hover{border-color:var(--gold-soft);}
+  .qb-bonus.on .qb-bonus-btn{background:var(--gold);color:#fff;border-color:var(--gold-soft);}
+  .qb-bonus-body{display:none;align-items:center;gap:6px;}
+  .qb-bonus.on .qb-bonus-body{display:inline-flex;}
   .qb-seg{display:inline-flex;flex:0 0 auto;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:#fff;}
   .qb-seg-btn{font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--text-dim);background:#fff;border:none;border-right:1px solid var(--border);padding:7px 10px;cursor:pointer;white-space:nowrap;transition:all .12s;}
   .qb-seg-btn:last-child{border-right:none;}
@@ -468,8 +477,8 @@
   }
 
   /* パターン比較 */
-  .share-row{display:flex;align-items:center;gap:12px;padding:12px 24px 0;}
-  .share-row .share-spacer{flex:1 1 auto;min-width:0;}
+  .hf-with-btn{position:relative;}
+  .hf-actions{position:absolute;right:24px;bottom:10px;display:flex;align-items:center;gap:8px;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .cmp-add-btn:hover{background:var(--gold-soft);}
   .cmp-add-btn:active{transform:translateY(1px);}
@@ -495,6 +504,7 @@
   .tp-svg .tp-c2{font-family:var(--mono);font-size:24px;font-weight:600;fill:var(--text);}
   .tp-svg .tp-c3{font-family:var(--gothic);font-size:10px;fill:var(--text-dim);}
   .tp-legend{flex:1 1 auto;min-width:0;}
+  .tp-cond{font-size:0.72rem;color:var(--text-dim);background:#faf8f2;border:1px solid var(--border-soft);border-radius:6px;padding:6px 10px;margin-bottom:8px;line-height:1.5;}
   .tp-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--border-soft);}
   .tp-row:last-child{border-bottom:none;}
   .tp-k{font-size:0.78rem;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
@@ -512,10 +522,25 @@
   /* パターン比較の開閉ボタン */
   .cmp-toggle-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .cmp-toggle-btn:hover{background:var(--gold);color:#fff;border-color:var(--gold);}
-  /* iPhone：右下の設定ボタン（FAB）と重ならないよう、比較ボタンは左寄せにする */
   @media (max-width:480px){
-    .share-row .share-spacer{display:none;}
-    .share-row{justify-content:flex-start;}
+    .hf-actions{right:16px;bottom:8px;}
+    /* 金利上昇：見出し〜シナリオ②までを1画面に収める（縦を詰め、2枚を横並びに） */
+    .sub-heading{margin-top:26px;}
+    .sub-heading h3{font-size:0.98rem;}
+    #stressPanel .headline-figure{padding:12px 16px 4px;}
+    #stressPanel .headline-value{font-size:1.7rem;}
+    #stressPanel .headline-sub{display:none;}
+    #stressPanel .scenario-grid{grid-template-columns:1fr 1fr;gap:0;}
+    #stressPanel .scenario-card{padding:12px 10px;}
+    #stressPanel .scenario-tag{font-size:0.68rem;padding:1px 7px;}
+    #stressPanel .scenario-save-label{font-size:0.64rem;margin-bottom:3px;}
+    #stressPanel .scenario-save{font-size:1.28rem;}
+    #stressPanel .scenario-save small{font-size:0.66rem;}
+    #stressPanel .scenario-detail{margin-top:8px;font-size:0.66rem;line-height:1.5;}
+    #stressPanel .stress-lump{margin-top:8px;padding:8px 9px;}
+    #stressPanel .stress-lump .sl-label{font-size:0.62rem;line-height:1.35;margin-bottom:2px;}
+    #stressPanel .stress-lump .sl-label br{display:none;}
+    #stressPanel .stress-lump .sl-amt{font-size:1.05rem;}
   }
 
   /* 結果：利息割合の一行 */
@@ -553,8 +578,10 @@
 
   /* グラフの縦ライン下の年齢ラベル（ドラッグで移動できる） */
   .chart-wrap{position:relative;touch-action:none;cursor:move;}
-  .gf-line-label{position:absolute;bottom:26px;transform:translateX(-50%);background:var(--gold-soft);color:#fff;font-family:var(--mono);font-size:0.62rem;line-height:1.25;padding:3px 8px;border-radius:6px;white-space:nowrap;text-align:center;pointer-events:none;box-shadow:0 2px 6px rgba(27,42,74,.25);}
-  .gf-line-label::after{content:"◀▶";display:block;font-size:0.5rem;opacity:.75;margin-top:1px;letter-spacing:1px;}
+  .gf-line-label{position:absolute;transform:translate(-50%,-50%);background:var(--text);color:#fff;font-family:var(--mono);font-size:0.78rem;font-weight:700;line-height:1.15;padding:6px 11px;border-radius:8px;white-space:nowrap;text-align:center;pointer-events:none;box-shadow:0 4px 14px rgba(27,42,74,.45);border:2px solid var(--gold);z-index:2;}
+  .gf-line-label .ll-y{display:block;}
+  .gf-line-label .ll-age{display:block;color:var(--gold);font-size:0.72rem;margin-top:1px;}
+  .gf-line-label::after{content:"✥";display:block;font-size:0.6rem;opacity:.8;margin-top:2px;color:var(--gold);}
   .chart-hint{font-size:0.66rem;color:var(--text-dim);margin-top:4px;text-align:center;}
 
   /* 完済コントロール（結果欄で年齢を編集） */
@@ -626,6 +653,8 @@
   .stat-value.icol{color:var(--interest);}
   .swatch.pcol{background:var(--principal);}
   .swatch.icol{background:var(--interest);}
+  .tw-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .tw-head .tw-title{font-family:var(--mincho);font-size:0.9rem;color:var(--gold-soft);font-weight:600;}
   .table-wrap{padding:16px 20px 20px; overflow-x:auto; display:none;}
   .table-wrap.open{display:block;}
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
@@ -661,7 +690,7 @@
   .notes-appendix .na-title{font-family:var(--mincho);font-size:0.95rem;font-weight:600;color:var(--gold-soft);margin-bottom:6px;letter-spacing:.03em;}
   .notes-appendix p{margin:12px 0 0;}
   /* 各所からの「※末尾の注記を参照」リンク */
-  .note-ref{font-size:0.72rem;color:var(--text-dim);line-height:1.6;}
+  .note-ref{font-size:0.72rem;color:var(--text-dim);line-height:1.6;padding:12px 20px 16px;}
   .note-ref b{color:var(--gold-soft);}
 
   /* section divider between modules */
@@ -935,7 +964,7 @@
       <div class="field-row">
         <label for="rate">年利（金利）</label>
         <div class="field-input">
-          <input type="number" id="rate" value="0.7" min="0" max="20" step="0.01">
+          <input type="number" id="rate" value="1.5" min="0" max="20" step="0.01">
           <span class="unit">%</span>
         </div>
         <div class="chip-row" data-target="rate">
@@ -999,7 +1028,16 @@
           <button type="button" class="qb-seg-btn on" data-method="equalPayment">元利均等</button>
           <button type="button" class="qb-seg-btn" data-method="equalPrincipal">元金均等</button>
         </div>
-        <label class="qb-field"><span class="qb-k">ボーナス</span><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
+        <div class="qb-bonus" id="qBonusWrap">
+          <button type="button" class="qb-bonus-btn" id="qBonusBtn">ボーナス <span id="qBonusSummary">なし</span></button>
+          <div class="qb-bonus-body">
+            <div class="qb-seg" id="qBonusMode">
+              <button type="button" class="qb-seg-btn on" data-bmode="ratio">％</button>
+              <button type="button" class="qb-seg-btn" data-bmode="amount">金額</button>
+            </div>
+            <label class="qb-field"><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
+          </div>
+        </div>
         <button type="button" class="qb-reset" id="qReset">全クリア</button>
         </div>
         <div class="qb-presets">
@@ -1011,28 +1049,28 @@
           <div class="chip-row qb-chips" data-target="years">
             <button type="button" class="chip">20</button><button type="button" class="chip">25</button><button type="button" class="chip">30</button><button type="button" class="chip">35</button><button type="button" class="chip">40</button><button type="button" class="chip">50</button>
           </div></div>
+          <button type="button" class="qb-gear" id="qGear" aria-label="設定" title="設定（金利上昇・完済などの詳細条件）">⚙</button>
         </div>
       </div>
 
-      <div class="headline-figure">
+      <div class="headline-figure hf-with-btn">
         <div class="headline-label">毎月の返済額（初回）</div>
         <div class="headline-value" id="monthlyPayment">—</div>
         <div class="headline-sub" id="monthlySub"></div>
+        <div class="hf-actions">
+          <button type="button" class="cmp-add-btn" id="cmpAdd" title="この条件を比較に追加">＋追加</button>
+          <button type="button" class="cmp-toggle-btn" id="cmpToggle" style="display:none;">比較を見る</button>
+        </div>
       </div>
 
       <div class="total-pie">
         <div class="tp-chart" id="totalPie"></div>
         <div class="tp-legend">
+          <div class="tp-cond" id="pieCond"></div>
           <div class="tp-row tp-total"><span class="tp-k">総返済額</span><span class="tp-v mono" id="totalPayment">—</span></div>
           <div class="tp-row"><span class="tp-k"><i class="tp-sw pcol"></i>元金合計</span><span class="tp-v mono pcol" id="totalPrincipal">—</span></div>
           <div class="tp-row"><span class="tp-k"><i class="tp-sw icol"></i>利息合計</span><span class="tp-v mono icol" id="totalInterest">—</span></div>
         </div>
-      </div>
-
-      <div class="share-row">
-        <div class="share-spacer"></div>
-        <button type="button" class="cmp-add-btn" id="cmpAdd" title="この条件を比較に追加">＋追加</button>
-        <button type="button" class="cmp-toggle-btn" id="cmpToggle" style="display:none;">比較を見る</button>
       </div>
 
       <div class="strip-section">
@@ -1068,6 +1106,13 @@
 
       <button class="table-toggle" id="tableToggle">年間返済予定表を表示</button>
       <div class="table-wrap" id="tableWrap">
+        <div class="tw-head">
+          <span class="tw-title">年間返済予定表</span>
+          <div class="qb-seg" id="tblUnit">
+            <button type="button" class="qb-seg-btn on" data-unit="man">万円</button>
+            <button type="button" class="qb-seg-btn" data-unit="yen">円</button>
+          </div>
+        </div>
         <table>
           <thead>
             <tr>
@@ -1084,7 +1129,7 @@
         </table>
         <button class="table-toggle" id="tableToggleBottom" style="margin:14px 0 0;width:100%;">▲ 年間返済予定表を閉じる</button>
       </div>
-      <div class="note-ref" style="margin:16px 20px 4px;">※ 返済・グラフ・償還表の計算方法／利息割合・年齢の定義は、ページ末尾の<b>「注記」</b>を参照。</div>
+      <div class="note-ref">※ 返済・グラフ・償還表の計算方法／利息割合・年齢の定義は、ページ末尾の<b>「注記」</b>を参照。</div>
     </div>
 
   </div>
@@ -1243,7 +1288,7 @@
     </div>
 
     <!-- RESULT: 顧客向け結果パネル -->
-    <div class="panel">
+    <div class="panel" id="stressPanel">
       <div class="headline-figure">
         <div class="headline-label">現行金利での毎月返済額（初回）</div>
         <div class="headline-value" id="stressCurrent">—</div>
@@ -1878,10 +1923,7 @@
     if(sy>0 && sp>0){
       const lx = x0 + bw*(sy-1);
       const rx = Math.min(x0+plotW, x0 + bw*Math.min(N, sy-1+sp));
-      // 四角は左右（経過年）だけでなく上下にも動かせる。boxY は 0（上端）〜1（下端）
-      const bh = plotH*BOX_H;
-      const by = y0 + (plotH-bh)*clamp(opts.boxY!=null ? opts.boxY : 0.5);
-      overlay += '<rect x="'+lx.toFixed(2)+'" y="'+by.toFixed(2)+'" width="'+(rx-lx).toFixed(2)+'" height="'+bh.toFixed(2)+'" fill="var(--gold)" fill-opacity="0.13" stroke="var(--gold)" stroke-opacity="0.8" stroke-width="1.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
+      overlay += '<rect x="'+lx.toFixed(2)+'" y="'+y0+'" width="'+(rx-lx).toFixed(2)+'" height="'+plotH+'" fill="var(--gold)" fill-opacity="0.10" stroke="var(--gold)" stroke-opacity="0.6" stroke-width="1.2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
     }
     if(sy>0){
       const lx=xAt(sy-1).toFixed(2);
@@ -1899,8 +1941,9 @@
     let lineLabel='';
     if(sy>0){
       let fp = xAt(sy-1)/W*100; fp = Math.max(4, Math.min(96, fp));
-      const ageLine = (a!=null && !isNaN(a)) ? '<br>'+(a+sy-1)+'歳' : '';
-      lineLabel = '<div class="gf-line-label" style="left:'+fp.toFixed(2)+'%">'+sy+'年目'+ageLine+'</div>';
+      const ly = Math.max(0, Math.min(1, opts.labelY!=null ? opts.labelY : 0.62));
+      const ageLine = (a!=null && !isNaN(a)) ? '<span class="ll-age">'+(a+sy-1)+'歳</span>' : '';
+      lineLabel = '<div class="gf-line-label" style="left:'+fp.toFixed(2)+'%;top:'+(ly*100).toFixed(2)+'%"><span class="ll-y">'+sy+'年目</span>'+ageLine+'</div>';
     }
     return '<div class="chart-wrap">'+svg+lineLabel+'</div>' +
       '<div class="stmt-axis"><span>1年目'+ageTxt(0)+'</span><span>'+N+'年目'+ageTxt(N-1)+'</span></div>';
@@ -1908,8 +1951,8 @@
 
   // グラフ描画用の直近の状態（経過年・試算期間の操作で再描画）
   var gLastYearly=null, gLastPrincipal=0, gStartAge=null;
-  var BOX_H = 0.55;      // 試算期間の四角の高さ（グラフ高さに対する比率）
-  var gBoxY = 0.5;       // 四角の上下位置（0＝上端／1＝下端）
+  var gLabelY = 0.62;    // 「◯年目◯歳」ラベルの上下位置（0＝上端／1＝下端）
+  var gTableUnit = 'man'; // 年間返済予定表の単位（既定＝万円 / 'yen' で円）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
   // パターン比較：現在の条件・結果を一覧に追加していく
@@ -1961,7 +2004,7 @@
     let sy = Math.round(iv('focusYear')||1);
     sy = Math.max(1, Math.min(focusMaxYear(), sy));               // 経過年のほうを上限で止める
     const a = gStartAge;
-    $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a, boxY:gBoxY});
+    $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a, labelY:gLabelY});
 
     const row = gLastYearly[sy-1];
     const share = row.payment>0 ? row.interest/row.payment*100 : 0;
@@ -2039,6 +2082,16 @@
     $('totalPayment').innerHTML = manOf(totalPayment) + '<small> 万円</small>';
     $('totalPrincipal').innerHTML = manOf(totalPrincipal) + '<small> 万円（' + pPct.toFixed(1) + '%）</small>';
     $('totalInterest').innerHTML = manOf(totalInterest) + '<small> 万円（' + iPct.toFixed(1) + '%）</small>';
+    if($('pieCond')){
+      const ageRaw = iv('borrowerAge');
+      const ageNow = (ageRaw && ageRaw>0) ? Math.round(ageRaw) : null;
+      const bMan = Math.round(bonusPrincipal/10000);
+      $('pieCond').textContent =
+        principalManYen.toLocaleString('ja-JP') + '万円／' + rate + '％／' + years + '年／' +
+        (method==='equalPrincipal' ? '元金均等' : '元利均等') +
+        (bMan>0 ? '／ボーナス' + bMan.toLocaleString('ja-JP') + '万円' : '') +
+        ((ageNow!=null) ? '／' + ageNow + '歳〜' + (ageNow+years) + '歳' : '');
+    }
     if($('totalPie')){
       const R=52, CIRC=2*Math.PI*R, pf=totalPayment>0 ? totalPrincipal/totalPayment : 0;
       $('totalPie').innerHTML =
@@ -2072,8 +2125,9 @@
     if($('focusYear')){ let fy=Math.round(iv('focusYear')||1); if(fy>years) $('focusYear').value=years; if(fy<1) $('focusYear').value=1; }
     renderStatement();
 
-    // table（年齢・利息割合の列を追加）
+    // table（年齢・利息割合の列を追加）※既定は万円、右上のボタンで円に切替
     const tbody = $('tableBody');
+    const uf = (gTableUnit==='yen') ? (v=>yen(v)) : (v=>Math.round(v/10000).toLocaleString('ja-JP'));
     tbody.innerHTML = '';
     yearly.forEach(row=>{
       const ageCell = (gStartAge!=null) ? (gStartAge+row.year-1)+'歳' : '—';
@@ -2082,12 +2136,16 @@
       tr.innerHTML =
         '<td>'+row.year+'年目</td>' +
         '<td class="age-col">'+ageCell+'</td>' +
-        '<td>'+yen(row.payment)+'</td>' +
-        '<td>'+yen(row.principal)+'</td>' +
-        '<td>'+yen(row.interest)+'</td>' +
+        '<td>'+uf(row.payment)+'</td>' +
+        '<td>'+uf(row.principal)+'</td>' +
+        '<td>'+uf(row.interest)+'</td>' +
         '<td>'+rowShare.toFixed(1)+'%</td>' +
-        '<td>'+yen(row.balance)+'</td>';
+        '<td>'+uf(row.balance)+'</td>';
       tbody.appendChild(tr);
+    });
+    const uLabel = (gTableUnit==='yen') ? '（円）' : '（万円）';
+    Array.prototype.forEach.call(document.querySelectorAll('#tableWrap thead th'), function(th,i){
+      if(i>=2 && i!==5) th.innerHTML = th.textContent.replace(/（.*）/,'') + '<small>'+uLabel+'</small>';
     });
 
     syncQuickBar();
@@ -2217,7 +2275,7 @@
         const pv = rNew<1e-12 ? Aorig*Rem : Aorig*(1-Math.pow(1+rNew,-Rem))/rNew;
         lump = Math.max(0, Math.min(Bs, Bs - pv));
       }
-      if($('lump'+i)) $('lump'+i).textContent = lump>0 ? yen(Math.round(lump)) + ' 円' : '不要';
+      if($('lump'+i)) $('lump'+i).innerHTML = lump>0 ? Math.round(lump/10000).toLocaleString('ja-JP') + '<small> 万円</small>' : '不要';
     });
 
     // 想定利回りで積み立てる場合（シナリオ①②の両方）
@@ -2368,13 +2426,8 @@
 
     if($('payoffHeadLabel')) $('payoffHeadLabel').textContent =
       ageMode ? (payAgeShown+'歳で完済するための一括返済額（残債）') : ('借入から'+py+'年目で完済するための一括返済額（残債）');
-    if($('payoffLump')) $('payoffLump').innerHTML = yen(Math.round(gPayoffLump))+'<small>円</small>';
-    if($('payoffSub')) $('payoffSub').textContent =
-      (ageMode ? ('借入から '+py+'年目（'+payAgeShown+'歳）に一括返済すると完済。')
-               : ('借入から '+py+'年目に一括返済すると完済。'))
-      + '今から '+py+'年間で用意する想定です（元利均等・ボーナス分を除く概算）。'
-      + (usedDefault ? '　※未入力のため「完済の5年前」を初期表示しています。' : '')
-      + (!ageMode ? '　※「借入時の年齢」を入れると年齢で指定できます。' : '');
+    if($('payoffLump')) $('payoffLump').innerHTML = Math.round(gPayoffLump/10000).toLocaleString('ja-JP')+'<small>万円</small>';
+    if($('payoffSub')) $('payoffSub').textContent = '';
     payoffYieldUpdate();
     renderEarlyLate();
   }
@@ -2760,14 +2813,13 @@
       if(y!=null && fy && Math.round(iv('focusYear')||0) !== y){
         fy.value=y; fy.classList.remove('pristine'); changed=true;
       }
-      // 上下＝四角の位置（指の高さを四角の中心に合わせる）
+      // 上下＝「◯年目◯歳」ラベルの位置
       var wrap=el.querySelector('.chart-wrap');
       if(clientY!=null && wrap){
         var r=wrap.getBoundingClientRect();
         if(r.height>0){
-          var f=(clientY-r.top)/r.height;
-          var nb=Math.max(0, Math.min(1, (f-BOX_H/2)/(1-BOX_H)));
-          if(Math.abs(nb-gBoxY) > 0.004){ gBoxY=nb; changed=true; }
+          var nb=Math.max(0.06, Math.min(0.94, (clientY-r.top)/r.height));
+          if(Math.abs(nb-gLabelY) > 0.004){ gLabelY=nb; changed=true; }
         }
       }
       if(changed) renderStatement();
@@ -2802,6 +2854,12 @@
       q.classList.toggle('pristine', src.classList.contains('pristine'));
     });
     if($('qBonusUnit')) $('qBonusUnit').textContent = amt ? '万円' : '%';
+    // ボーナスの表示（未設定なら「なし」）とモードセグメントを同期
+    var bv = iv(qBonusTargetId());
+    if($('qBonusSummary')) $('qBonusSummary').textContent = (isFinite(bv) && bv>0) ? (bv + (amt?'万円':'％')) : 'なし';
+    Array.prototype.forEach.call(document.querySelectorAll('#qBonusMode .qb-seg-btn'), function(b){
+      b.classList.toggle('on', (b.getAttribute('data-bmode')==='amount')===amt);
+    });
     // 返済方法のセグメント表示を同期
     var mSel = document.querySelector('input[name=method]:checked');
     var mv = mSel ? mSel.value : 'equalPayment';
@@ -2812,6 +2870,25 @@
 
   // クイックバー側の変更をドロワーへ書き戻して全再計算
   function wireQuickBar(){
+    // ボーナス欄の開閉
+    var bw=$('qBonusWrap'), bb=$('qBonusBtn');
+    if(bb && !bb.dataset.qb){ bb.dataset.qb='1';
+      bb.addEventListener('click', function(){
+        bw.classList.toggle('on');
+        if(bw.classList.contains('on')){ var el=$('qBonus'); if(el){ el.focus(); try{el.select();}catch(_){} } }
+      });
+    }
+    // ボーナスの指定方法（％／金額）切替
+    Array.prototype.forEach.call(document.querySelectorAll('#qBonusMode .qb-seg-btn'), function(b){
+      if(b.dataset.qb) return; b.dataset.qb='1';
+      b.addEventListener('click', function(){
+        var want = b.getAttribute('data-bmode');
+        var r = document.querySelector('input[name=bonusMode][value="'+want+'"]');
+        if(!r) return; r.checked = true; r.dispatchEvent(new Event('change',{bubbles:true}));
+        syncQuickBar();
+        var el=$('qBonus'); if(el){ el.focus(); try{el.select();}catch(_){} }
+      });
+    });
     Array.prototype.forEach.call(document.querySelectorAll('#qMethod .qb-seg-btn'), function(b){
       if(b.dataset.qb) return; b.dataset.qb='1';
       b.addEventListener('click', function(){
@@ -2882,7 +2959,7 @@
   $('bonusAmount').addEventListener('change', recalcAll);
   // クリア（返済シミュレーション）
   $('calcClear').addEventListener('click', ()=>{
-    $('principal').value = 4000; $('rate').value = 0.7; $('years').value = 35;
+    $('principal').value = 4000; $('rate').value = 1.5; $('years').value = 35;
     if($('borrowerAge')) $('borrowerAge').value = 40;
     if($('focusYear')) $('focusYear').value = 10;
     if($('focusSpan')) $('focusSpan').value = 10;
@@ -2900,6 +2977,13 @@
     // 下の閉じるボタンで閉じたら、上のトグルまでスクロールして迷子を防ぐ
     if(!opening && fromBottom){ var nav=document.querySelector('.tabnav'); var navH=nav?nav.getBoundingClientRect().height:0; window.scrollTo(0, Math.max(0, $('tableToggle').getBoundingClientRect().top + window.scrollY - navH - 8)); }
   }
+  Array.prototype.forEach.call(document.querySelectorAll('#tblUnit .qb-seg-btn'), function(b){
+    b.addEventListener('click', function(){
+      gTableUnit = b.getAttribute('data-unit');
+      Array.prototype.forEach.call(document.querySelectorAll('#tblUnit .qb-seg-btn'), function(x){ x.classList.toggle('on', x===b); });
+      calculate();
+    });
+  });
   $('tableToggle').addEventListener('click', ()=> toggleTable(false));
   $('tableToggleBottom').addEventListener('click', ()=> toggleTable(true));
 
@@ -2942,7 +3026,7 @@
       '<div class="drawer-body" id="drawerBody"></div>';
     document.body.appendChild(drawer);
     var scrim = document.createElement('div'); scrim.className = 'drawer-scrim'; document.body.appendChild(scrim);
-    var fab = document.createElement('button'); fab.type='button'; fab.className='fab-input'; fab.id='fabInput';
+    var fab = document.createElement('button'); fab.type='button'; fab.className='fab-input fab-hidden'; fab.id='fabInput';
     fab.setAttribute('aria-label','設定'); fab.innerHTML = '<span class="fab-ico">⚙</span>';
     document.body.appendChild(fab);
     var dbody = document.getElementById('drawerBody');
@@ -3014,6 +3098,7 @@
     function closeDrawer(){ drawer.classList.remove('open'); fab.classList.remove('on'); scrim.classList.remove('on'); if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); }
     function toggleDrawer(){ if(drawer.classList.contains('open')) closeDrawer(); else openDrawer(); }
     fab.addEventListener('click', toggleDrawer);
+    if(document.getElementById('qGear')) document.getElementById('qGear').addEventListener('click', toggleDrawer);
     document.getElementById('drawerClose').addEventListener('click', closeDrawer);
     scrim.addEventListener('click', closeDrawer);
     document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
@@ -3094,7 +3179,7 @@
     });
     function doResetAll(msg){
       applyState(INITIAL_STATE); setPristineAll(true); $('custName').value = ''; $('custList').value = '';
-      gBoxY = 0.5; renderStatement();
+      gLabelY = 0.62; renderStatement();
       syncQuickBar();
       if(msg) note(msg);
     }
