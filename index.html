@@ -298,6 +298,9 @@
     border-radius:var(--radius);
     box-shadow:var(--shadow);
     overflow:hidden;
+    /* clip は hidden と違いスクロール領域を作らないので、中の表の見出しが画面基準で固定できる
+       （未対応ブラウザは上の hidden のまま＝角丸のはみ出し防止は維持される） */
+    overflow:clip;
     container-type:inline-size; /* 内部の集計ストリップはパネル幅に応じて段組を変える（画面幅ではなく） */
   }
 
@@ -747,15 +750,15 @@
   .swatch.icol{background:var(--interest);}
   .tw-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
   .tw-head .tw-title{font-family:var(--mincho);font-size:0.9rem;color:var(--gold-soft);font-weight:600;}
-  .table-wrap{padding:16px 20px 20px; overflow-x:auto; display:none;}
+  .table-wrap{padding:16px 20px 20px; display:none;}
   .table-wrap.open{display:block;}
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   thead th small{display:block;font-size:0.82em;font-weight:400;opacity:.85;}
   #tableWrap table th{white-space:nowrap;line-height:1.3;}
   #tableWrap table td{white-space:nowrap;}
   /* 見出し行はスクロールしても固定 */
-  #tableWrap{max-height:60vh;overflow-y:auto;}
-  #tableWrap thead th{position:sticky;top:0;z-index:2;}
+  /* 見出しは画面上部（タブの下）に貼り付く。表を上下にスワイプするとその通りに動く */
+  #tableWrap thead th{position:sticky;top:var(--navh,56px);z-index:6;}
   /* 利息割合はスペースを取るため縦画面では隠す（iPhone横向き・iPad・PCでは表示） */
   #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){display:none;}
   @media (min-width:640px){
@@ -763,11 +766,14 @@
   }
   thead th{
     text-align:right;
-    font-weight:500;
-    color:var(--text-dim);
+    font-weight:600;
+    color:var(--text);
     font-size:0.72rem;
     padding:8px 10px;
+    /* 下の行が透けないよう不透明にする */
+    background:#f0ece0;
     border-bottom:1px solid var(--border);
+    box-shadow:0 1px 0 var(--border);
   }
   thead th:first-child, tbody td:first-child{text-align:left;}
   tbody td{
@@ -4475,6 +4481,20 @@
   waitSim();
   variableSim();
   setupKeypadDone();
+  // タブ（画面上部に固定）の高さを測り、表の見出しがその真下に貼り付くようにする
+  (function(){
+    function setNavH(){
+      var nav=document.querySelector('.tabnav');
+      var h=nav ? Math.round(nav.getBoundingClientRect().height) : 56;
+      document.documentElement.style.setProperty('--navh', h+'px');
+    }
+    setNavH();
+    window.addEventListener('resize', setNavH);
+    window.addEventListener('orientationchange', function(){ setTimeout(setNavH, 250); });
+    // タブ自体の高さが変わったとき（折り返し等）にも追従させる
+    var navEl=document.querySelector('.tabnav');
+    if(navEl && window.ResizeObserver){ new ResizeObserver(setNavH).observe(navEl); }
+  })();
 })();
 </script>
 
