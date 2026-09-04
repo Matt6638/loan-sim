@@ -783,6 +783,8 @@
   .diag-toggle input[type=checkbox]{accent-color:var(--gold);width:17px;height:17px;}
   .diag-rate{font-size:0.76rem;color:var(--text-dim);white-space:nowrap;}
   .diag-rate b{font-family:var(--mono);font-size:0.95rem;color:var(--gold-soft);}
+  .wait-bar{flex-wrap:wrap;gap:10px 18px;justify-content:flex-start;}
+  .wait-bar .diag-toggle{font-weight:600;font-size:0.78rem;}
   .inline-num{width:52px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
   .inline-num:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
 
@@ -1640,6 +1642,24 @@
 
       <!-- RESULT -->
       <div class="panel" id="waitPanel">
+        <div class="diag-bar wait-bar">
+          <span class="diag-toggle" style="cursor:default;">家賃
+            <input type="text" inputmode="numeric" id="waitRentR" class="inline-num" placeholder="10">
+            <span class="diag-rate">万円/月</span>
+          </span>
+          <span class="diag-toggle" style="cursor:default;">頭金
+            <input type="text" inputmode="numeric" id="waitSaveR" class="inline-num" placeholder="5">
+            <span class="diag-rate">万円/月</span>
+          </span>
+          <span class="diag-toggle" style="cursor:default;">
+            <input type="text" inputmode="numeric" id="waitYearsR" class="inline-num" placeholder="5">
+            <span class="diag-rate">年後に買う</span>
+          </span>
+          <span class="diag-toggle" style="cursor:default;">金利
+            <input type="text" inputmode="decimal" id="waitRateUpR" class="inline-num" placeholder="1.0">
+            <span class="diag-rate">% 上昇</span>
+          </span>
+        </div>
         <div class="headline-figure">
           <div class="headline-label" id="waitHeadLabel">住まいにかかるお金の差</div>
           <div class="headline-value" id="waitDiff">—</div>
@@ -1660,17 +1680,21 @@
           </div>
         </div>
 
-        <div class="stat-strip">
+        <div class="stat-strip four">
           <div class="stat">
             <div class="stat-label">今買う：総額</div>
             <div class="stat-value pcol mono" id="waitNowTotal">—</div>
           </div>
           <div class="stat">
-            <div class="stat-label" id="waitLaterLabel">待って買う：総額</div>
+            <div class="stat-label" id="waitLaterLabel">待つ（金利上昇）：総額</div>
             <div class="stat-value icol mono" id="waitLaterTotal">—</div>
           </div>
           <div class="stat">
-            <div class="stat-label">完済年齢の差</div>
+            <div class="stat-label" id="waitFlatLabel">待つ（金利そのまま）：総額</div>
+            <div class="stat-value mono" id="waitFlatTotal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">完済年齢</div>
             <div class="stat-value mono" id="waitAgeDiff">—</div>
           </div>
         </div>
@@ -2855,6 +2879,7 @@
   // 住居費の総額（家賃＋頭金＋ローン返済）で比べる。
   function waitSim(){
     if(!baseReady()) return;
+    if(typeof syncWaitInputs === 'function') syncWaitInputs(false);
     const priceMan = iv('principal')||0;              // 借入額＝物件価格（頭金0の前提）
     const price = priceMan*10000;
     const rate = iv('rate')||0;
@@ -2889,22 +2914,29 @@
     const borrowLater = Math.max(0, futurePrice - down);
     const later = loanTotals(borrowLater, rate+upPct, years, method);
     const laterTotal = rentTotal + down + later.p + later.i;
+    // 金利が上がらなかった場合（待つ条件は同じで金利だけ据え置き）
+    const flat = loanTotals(borrowLater, rate, years, method);
+    const flatTotal = rentTotal + down + flat.p + flat.i;
 
     const diff = laterTotal - nowTotal;           // 正なら「今買う」が得
     const man = v => Math.round(v/10000).toLocaleString('ja-JP');
 
     $('waitHeadLabel').textContent = diff >= 0 ? '今すぐ買うほうが安く済む金額' : '待って買うほうが安く済む金額';
     $('waitDiff').innerHTML = man(Math.abs(diff)) + '<small>万円</small>';
+    const flatDiff = flatTotal - nowTotal;
     $('waitSub').textContent =
-      wy + '年待つ間の家賃 ' + man(rentTotal) + '万円 と、金利が ' + rate + '％→' + (Math.round((rate+upPct)*100)/100) + '％ に上がることを含めた比較です。';
+      wy + '年待つ間の家賃 ' + man(rentTotal) + '万円 を含めた比較です。金利が ' + rate + '％→' + (Math.round((rate+upPct)*100)/100) + '％ に上がった場合の差。' +
+      '　金利が上がらなくても ' + (flatDiff>=0 ? '今すぐ買うほうが ' + man(Math.abs(flatDiff)) + '万円 安い' : '待つほうが ' + man(Math.abs(flatDiff)) + '万円 安い') + '試算です。';
 
     $('waitNowTotal').innerHTML = man(nowTotal) + '<small> 万円</small>';
-    $('waitLaterLabel').textContent = wy + '年後に買う：総額';
+    $('waitLaterLabel').textContent = wy + '年後（金利＋' + (Math.round(upPct*100)/100) + '%）：総額';
     $('waitLaterTotal').innerHTML = man(laterTotal) + '<small> 万円</small>';
+    if($('waitFlatLabel')) $('waitFlatLabel').textContent = wy + '年後（金利そのまま）：総額';
+    if($('waitFlatTotal')) $('waitFlatTotal').innerHTML = man(flatTotal) + '<small> 万円</small>';
     $('waitAgeDiff').innerHTML = (age>0 ? (age+years) + '歳 → ' + (age+wy+years) + '<small>歳</small>' : '—');
 
     // 積み上げ棒（家賃／頭金／元金／利息）
-    const maxT = Math.max(nowTotal, laterTotal) || 1;
+    const maxT = Math.max(nowTotal, laterTotal, flatTotal) || 1;
     function row(head, segs){
       let inner='', outs='';
       segs.forEach(function(x){
@@ -2920,19 +2952,24 @@
     $('waitBars').innerHTML =
       row('今すぐ買う（合計 '+man(nowTotal)+'万円）', [
         {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}]) +
-      row(wy+'年後に買う（合計 '+man(laterTotal)+'万円）', [
+      row(wy+'年後に買う・金利＋'+(Math.round(upPct*100)/100)+'%（合計 '+man(laterTotal)+'万円）', [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}]);
+        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}]) +
+      row(wy+'年後に買う・金利そのまま（合計 '+man(flatTotal)+'万円）', [
+        {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
+        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}]);
 
     $('waitDetail').innerHTML =
       '<b>今すぐ買う</b>：借入 ' + man(price) + '万円／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(now.pay) + '円、利息 ' + man(now.i) + '万円<br>' +
       '<b>' + wy + '年後に買う</b>：家賃 ' + man(rentTotal) + '万円＋頭金 ' + man(down) + '万円／借入 ' + man(borrowLater) + '万円' +
       (pricePct!==0 ? '（物件価格 ' + man(futurePrice) + '万円）' : '') +
-      '／金利 ' + (Math.round((rate+upPct)*100)/100) + '％／' + years + '年　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円';
+      '／金利 ' + (Math.round((rate+upPct)*100)/100) + '％／' + years + '年　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円<br>' +
+      '<b>' + wy + '年後・金利そのまま</b>：同じ条件で金利 ' + rate + '％のまま　→　毎月 ' + yen(flat.pay) + '円、利息 ' + man(flat.i) + '万円（金利上昇との差 ' + man(laterTotal-flatTotal) + '万円）';
 
     if($('waitHelp')) $('waitHelp').innerHTML =
       '<b>比べているもの</b>：どちらも同じ物件を手に入れるまでに払うお金の合計です。今すぐ買う＝ローンの元金＋利息。' + wy + '年後に買う＝その間の家賃＋ためた頭金＋ローンの元金＋利息。<br>' +
       '待つと頭金が用意できて借入は減りますが、<b>その間の家賃は残らないお金</b>で、さらに<b>金利が上がると利息が増え</b>、<b>完済年齢も' + wy + '年遅く</b>なります。' +
+      '<b>金利が上がらなかった場合</b>も3本目の棒で比べられます。' +
       '（頭金・購入諸費用・税金・修繕費・家賃の値上がり・住宅ローン控除は含めていません）';
   }
 
@@ -3416,8 +3453,22 @@
   }
   if($('payoffAge')){ attachClear($('payoffAge')); $('payoffAge').addEventListener('change', function(){ syncPayoffAge('a'); payoffRecalc(); }); }
   if($('payoffAgeR')){ attachClear($('payoffAgeR')); $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge('r'); payoffRecalc(); }); }
-  // 今買う vs 待つ
-  ['waitYears','waitRent','waitSave','waitRateUp','waitPriceUp'].forEach(function(id){ if($(id)){ attachClear($(id)); $(id).addEventListener('change', waitSim); } });
+  // 今買う vs 待つ（設定側と結果側の入力を双方向同期）
+  var WAIT_PAIRS = [['waitRent','waitRentR'],['waitSave','waitSaveR'],['waitYears','waitYearsR'],['waitRateUp','waitRateUpR']];
+  function syncWaitInputs(fromR){
+    WAIT_PAIRS.forEach(function(pr){
+      var a=$(pr[0]), b=$(pr[1]); if(!a||!b) return;
+      if(fromR) a.value=b.value; else b.value=a.value;
+    });
+  }
+  ['waitYears','waitRent','waitSave','waitRateUp','waitPriceUp'].forEach(function(id){
+    if($(id)){ attachClear($(id)); $(id).addEventListener('change', function(){ syncWaitInputs(false); waitSim(); }); }
+  });
+  WAIT_PAIRS.forEach(function(pr){
+    var b=$(pr[1]); if(!b) return;
+    attachClear(b);
+    b.addEventListener('change', function(){ syncWaitInputs(true); waitSim(); });
+  });
   if($('waitHelpBtn')) $('waitHelpBtn').addEventListener('click', function(){
     var b=$('waitHelp'); if(!b) return; var open=b.style.display!=='none';
     b.style.display = open ? 'none' : ''; this.classList.toggle('on', !open);
