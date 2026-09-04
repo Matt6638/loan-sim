@@ -150,8 +150,8 @@
   /* 右下フローティング入力ボタン（FAB） */
   /* FABはグラフの元金（ティール）と色が被らないよう濃紺×ゴールド縁で独立させる */
   .fab-input.fab-hidden{display:none;}
-  .qb-gear{margin-left:auto;flex:0 0 auto;width:34px;height:34px;border-radius:8px;background:var(--text);color:var(--gold);border:1.5px solid var(--gold);font-size:16px;line-height:1;cursor:pointer;transition:all .15s;}
-  .qb-gear:hover{background:var(--gold);color:#fff;}
+  .qb-gear{margin-left:auto;flex:0 0 auto;width:34px;height:34px;border-radius:8px;background:#fff;color:var(--gold-soft);border:1px solid var(--border);font-size:16px;line-height:1;cursor:pointer;transition:all .15s;}
+  .qb-gear:hover{border-color:var(--gold);color:var(--gold);background:#fffdf8;}
   .fab-input{
     position:fixed;right:22px;bottom:24px;width:62px;height:62px;border-radius:50%;
     background:var(--text);color:var(--gold);border:2px solid var(--gold);
@@ -253,6 +253,9 @@
   .tab .tnum{font-family:var(--mono);font-size:0.72rem;opacity:0.7;margin-right:5px;}
   /* タブ選択時、モジュール先頭が固定タブバーに隠れないよう余白を確保 */
   .grid, .section-heading{scroll-margin-top:64px;}
+  /* スクロールで単元の先頭にピタッと止まる（proximity＝近づいたときだけ吸着し、読みを妨げない） */
+  html{scroll-snap-type:y proximity;scroll-behavior:smooth;scroll-padding-top:62px;}
+  .snap{scroll-snap-align:start;scroll-margin-top:62px;}
 
   main{max-width:1080px;margin:0 auto;padding:24px 24px 0;}
 
@@ -435,7 +438,7 @@
   .qb-pk{font-size:0.66rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
   .qb-chips{margin-top:0;gap:5px;}
   .qb-chips .chip{font-size:0.74rem;padding:4px 9px;}
-  .qb-field{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:text;}
+  .qb-field{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--border);border-radius:7px;padding:0 9px;height:34px;box-sizing:border-box;cursor:text;}
   .qb-field:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .qb-k{font-size:0.7rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
   .qb-u{font-size:0.68rem;color:var(--text-dim);white-space:nowrap;}
@@ -445,16 +448,17 @@
   .qb-field input#qYears{width:38px;}
   .qb-field input.pristine{color:#a2a8b5;}
   .qb-bonus{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;}
-  .qb-bonus-btn{font-family:var(--gothic);font-size:0.72rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--border);border-radius:7px;padding:7px 11px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+  .qb-bonus-btn{font-family:var(--gothic);font-size:0.72rem;font-weight:600;color:var(--gold-soft);background:#fff;border:1px solid var(--border);border-radius:7px;padding:0 11px;cursor:pointer;white-space:nowrap;transition:all .15s;height:34px;display:inline-flex;align-items:center;}
   .qb-bonus-btn:hover{border-color:var(--gold-soft);}
   .qb-bonus.on .qb-bonus-btn{background:var(--gold);color:#fff;border-color:var(--gold-soft);}
   .qb-bonus-body{display:none;align-items:center;gap:6px;}
   .qb-bonus.on .qb-bonus-body{display:inline-flex;}
   .qb-seg{display:inline-flex;flex:0 0 auto;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:#fff;}
-  .qb-seg-btn{font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--text-dim);background:#fff;border:none;border-right:1px solid var(--border);padding:7px 10px;cursor:pointer;white-space:nowrap;transition:all .12s;}
+  .qb-seg{height:34px;box-sizing:border-box;}
+  .qb-seg-btn{font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--text-dim);background:#fff;border:none;border-right:1px solid var(--border);padding:0 10px;cursor:pointer;white-space:nowrap;transition:all .12s;}
   .qb-seg-btn:last-child{border-right:none;}
   .qb-seg-btn.on{background:var(--gold);color:#fff;}
-  .qb-reset{margin-left:auto;flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:7px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .qb-reset{margin-left:auto;flex:0 0 auto;font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--rose);background:#fff;border:1px solid #e0c3c3;border-radius:7px;padding:0 12px;height:34px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .qb-reset:hover{background:var(--rose);color:#fff;border-color:var(--rose);}
   /* iPhone縦：4項目＋全クリアが余計な行を作らないよう詰める */
   @media (max-width:480px){
@@ -510,13 +514,20 @@
   .tp-k{font-size:0.78rem;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
   .tp-sw{width:11px;height:11px;border-radius:3px;display:inline-block;flex:0 0 auto;}
   .tp-sw.pcol{background:var(--principal);} .tp-sw.icol{background:var(--interest);}
-  .tp-v{font-family:var(--mono);font-size:1.3rem;color:var(--text);font-weight:500;white-space:nowrap;}
-  .tp-v small{font-size:0.72rem;color:var(--text-dim);font-weight:400;margin-left:3px;}
+  .tp-v{font-family:var(--mono);font-size:1.3rem;color:var(--text);font-weight:500;white-space:nowrap;text-align:right;}
+  .tp-v small{font-size:0.72rem;color:var(--text-dim);font-weight:400;margin-left:3px;white-space:nowrap;}
   .tp-v.pcol{color:var(--principal);} .tp-v.icol{color:var(--interest);}
   .tp-row.tp-total .tp-v{font-size:1.5rem;color:var(--gold);}
   @container (max-width:430px){
-    .total-pie{flex-direction:column;align-items:stretch;gap:12px;padding:16px 18px;}
-    .tp-chart{align-self:center;}
+    .total-pie{gap:10px;padding:16px 14px;}
+    .tp-chart{width:96px;}
+    .tp-svg{width:96px;height:96px;}
+    .tp-cond{font-size:0.66rem;padding:5px 8px;margin-bottom:6px;}
+    .tp-row{flex-wrap:wrap;padding:6px 0;gap:0 6px;}
+    .tp-k{font-size:0.68rem;flex:1 1 auto;}
+    .tp-v{font-size:1.02rem;flex:0 0 auto;}
+    .tp-v small{font-size:0.62rem;margin-left:2px;}
+    .tp-row.tp-total .tp-v{font-size:1.18rem;}
   }
 
   /* パターン比較の開閉ボタン */
@@ -553,6 +564,9 @@
   .gf-ctrl{display:flex;align-items:center;gap:7px;}
   .gf-label{font-size:0.76rem;color:var(--gold-soft);font-weight:600;white-space:nowrap;}
   .gf-unit{font-size:0.74rem;color:var(--text-dim);}
+  .gf-span-note{font-size:0.72rem;color:var(--text-dim);white-space:nowrap;}
+  .gf-span-note b{font-family:var(--mono);color:var(--gold-soft);font-size:0.86rem;}
+  .grid-settings{margin:0;padding:0;gap:0;}
   .gf-ctrl input{width:58px;font-family:var(--mono);font-size:0.98rem;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 8px;}
   .gf-ctrl input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .gf-arrow{width:30px;height:30px;flex:0 0 auto;border:1px solid var(--border);background:#fff;color:var(--gold-soft);border-radius:6px;font-size:0.8rem;cursor:pointer;line-height:1;transition:all .12s;}
@@ -1053,7 +1067,7 @@
         </div>
       </div>
 
-      <div class="headline-figure hf-with-btn">
+      <div class="headline-figure hf-with-btn snap">
         <div class="headline-label">毎月の返済額（初回）</div>
         <div class="headline-value" id="monthlyPayment">—</div>
         <div class="headline-sub" id="monthlySub"></div>
@@ -1073,7 +1087,7 @@
         </div>
       </div>
 
-      <div class="strip-section">
+      <div class="strip-section snap">
         <div class="strip-title">元利内訳ステートメント</div>
 
         <!-- 経過年（縦ライン）＋試算期間（四角）→ その下にグラフ -->
@@ -1086,11 +1100,7 @@
               <span class="gf-unit">年目</span>
               <button type="button" class="gf-arrow" id="gfNext" aria-label="1年後">▶</button>
             </div>
-            <div class="gf-ctrl">
-              <span class="gf-label">試算期間</span>
-              <input type="text" inputmode="numeric" id="focusSpan" value="10">
-              <span class="gf-unit">年間</span>
-            </div>
+            <span class="gf-span-note">試算期間 <b id="gfSpanEcho">5</b> 年間（設定で変更）</span>
           </div>
 
           <div class="legend">
@@ -1134,6 +1144,20 @@
 
   </div>
 
+  <!-- グラフの表示設定（この .panel は設定ドロワーへ移動される） -->
+  <div class="grid grid-settings">
+    <div class="panel">
+      <div class="ledger-title">グラフの表示設定</div>
+      <div class="field-row">
+        <label for="focusSpan">試算期間（グラフの四角で囲む年数）</label>
+        <div class="field-input">
+          <input type="text" inputmode="numeric" id="focusSpan" value="5">
+          <span class="unit">年間</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== パターン比較（借入条件を並べて比較） ===== -->
   <div class="panel cmp-panel" id="cmpPanel" style="display:none;">
     <div class="cmp-head">
@@ -1159,7 +1183,7 @@
   </div>
 
   <!-- ===== ◯歳で完済（繰上げ完済） ===== -->
-  <div class="sub-heading">
+  <div class="sub-heading snap">
     <span class="num">完済</span>
     <h3>◯歳で完済する<span class="badge">概算・目安</span></h3>
   </div>
@@ -1239,7 +1263,7 @@
     </div>
   </div>
   <!-- ===== 金利上昇に備えた別枠積立（返済シミュレーションのページに統合） ===== -->
-  <div class="sub-heading">
+  <div class="sub-heading snap">
     <span class="num">金利上昇</span>
     <h3>金利上昇に備えた別枠積立<span class="badge">概算・目安</span></h3>
   </div>
@@ -1357,7 +1381,7 @@
 
 
   <!-- ============ 2-1. 借入可能額診断 ============ -->
-  <div class="section-heading">
+  <div class="section-heading snap">
     <span class="num">診断 2-1</span>
     <h2>年収から借入可能額を診断<span class="badge">概算・目安</span></h2>
   </div>
@@ -1465,7 +1489,7 @@
   </div>
 
   <!-- ============ 2-3. 賃貸（投資マンション）転用シミュレーション ============ -->
-  <div class="section-heading">
+  <div class="section-heading snap">
     <span class="num">診断 2-3</span>
     <h2>賃貸（投資用）に転用した場合の試算<span class="badge">概算・目安</span></h2>
   </div>
@@ -1611,7 +1635,7 @@
   </div>
 
   <!-- ============ 2-5. 住宅ローン控除の試算 ============ -->
-  <div class="section-heading">
+  <div class="section-heading snap">
     <span class="num">診断 2-5</span>
     <h2>住宅ローン控除の試算<span class="badge">概算・目安・要確認</span></h2>
   </div>
@@ -1757,7 +1781,7 @@
     </div>
   </div>
 
-  <div class="disclaimer notes-appendix" id="notesAppendix">
+  <div class="disclaimer notes-appendix snap" id="notesAppendix">
     <div class="na-title">注記（計算方法・前提・出典）</div>
 
     <p><strong>返済・グラフの計算方法：</strong>本シミュレーションは元利均等・元金均等の一般的な計算式に基づく概算です。ボーナス返済分は借入元本の一定割合を切り出し、月々分は月次複利、ボーナス分は半年複利として簡易計算しています。実際の金融機関の返済予定表は、初回返済日の端数計算・うるう年の扱い・手数料等により本ツールの数値と若干異なる場合があります。金利は入力時点の想定値であり、将来の金利変動（変動金利の場合）は反映していません。<strong>住宅ローン控除等の税制優遇は含まれていません。</strong><br>
@@ -2001,6 +2025,7 @@
     if(!gLastYearly || !gLastYearly.length) return;
     const N = gLastYearly.length;
     const sp = focusSpanNow();                                   // 試算期間はそのまま維持し
+    if($('gfSpanEcho')) $('gfSpanEcho').textContent = sp;
     let sy = Math.round(iv('focusYear')||1);
     sy = Math.max(1, Math.min(focusMaxYear(), sy));               // 経過年のほうを上限で止める
     const a = gStartAge;
@@ -2099,9 +2124,9 @@
         '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="var(--interest)" stroke-width="24"/>' +
         '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="var(--principal)" stroke-width="24" ' +
           'stroke-dasharray="'+(CIRC*pf).toFixed(2)+' '+(CIRC*(1-pf)).toFixed(2)+'" transform="rotate(-90 70 70)"/>' +
-        '<text class="tp-c1" x="70" y="64" text-anchor="middle">総返済額</text>' +
-        '<text class="tp-c2" x="70" y="86" text-anchor="middle">'+manOf(totalPayment)+'</text>' +
-        '<text class="tp-c3" x="70" y="100" text-anchor="middle">万円</text>' +
+        '<text class="tp-c1" x="70" y="56" text-anchor="middle">総返済額</text>' +
+        '<text class="tp-c2" x="70" y="78" text-anchor="middle">'+manOf(totalPayment)+'</text>' +
+        '<text class="tp-c3" x="70" y="93" text-anchor="middle">万円</text>' +
         '</svg>';
     }
 
@@ -2939,6 +2964,7 @@
     let sy=Math.round(iv('focusYear')||1); sy=Math.max(1,Math.min(focusMaxYear(),sy));
     if($('focusYear')){ $('focusYear').value=sy; $('focusYear').classList.remove('pristine'); }
     if($('focusSpan')){ $('focusSpan').value=sp; $('focusSpan').classList.remove('pristine'); }
+    if($('gfSpanEcho')) $('gfSpanEcho').textContent = sp;
   }
   ['focusYear','focusSpan'].forEach(id=>{
     const el=$(id); if(el){ attachClear(el); el.setAttribute('inputmode','numeric');
@@ -2962,7 +2988,7 @@
     $('principal').value = 4000; $('rate').value = 1.5; $('years').value = 35;
     if($('borrowerAge')) $('borrowerAge').value = 40;
     if($('focusYear')) $('focusYear').value = 10;
-    if($('focusSpan')) $('focusSpan').value = 10;
+    if($('focusSpan')) $('focusSpan').value = 5;
     document.querySelector('input[name=method][value=equalPayment]').checked = true;
     document.querySelector('input[name=bonusMode][value=ratio]').checked = true;
     $('bonusRatio').value = 0; $('bonusAmount').value = 0;
