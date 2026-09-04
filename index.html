@@ -489,20 +489,53 @@
   /* 入力中に出る「完了」ボタン（キーボードを閉じる） */
   .keypad-done{position:fixed;right:14px;bottom:14px;z-index:120;font-family:var(--gothic);font-size:0.86rem;font-weight:700;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:9px;padding:11px 20px;cursor:pointer;box-shadow:0 8px 22px -6px rgba(27,42,74,.5);}
   .keypad-done:hover{background:var(--gold-soft);}
+  /* PDF項目選択 */
+  .pm-scrim{position:fixed;inset:0;background:rgba(27,42,74,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;}
+  .pm-scrim.on{opacity:1;pointer-events:auto;}
+  .print-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-48%) scale(.98);width:min(430px,92vw);max-height:82vh;display:flex;flex-direction:column;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 24px 60px -16px rgba(27,42,74,.5);
+    opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:201;}
+  .print-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+  .pm-head{font-family:var(--mincho);font-size:0.98rem;font-weight:600;color:var(--gold-soft);padding:16px 18px 10px;border-bottom:1px solid var(--border-soft);}
+  .pm-body{padding:10px 18px;overflow-y:auto;}
+  .pm-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px dashed var(--border-soft);font-size:0.86rem;color:var(--text);cursor:pointer;}
+  .pm-item:last-child{border-bottom:none;}
+  .pm-item input{accent-color:var(--gold);width:18px;height:18px;flex:0 0 auto;}
+  .pm-foot{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px 16px;border-top:1px solid var(--border-soft);}
+  .pm-go{font-family:var(--gothic);font-size:0.86rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:8px;padding:10px 16px;cursor:pointer;}
+  .pm-go:hover{background:var(--gold-soft);}
   /* 説明を隠す「？」ボタン */
   .help-btn{width:19px;height:19px;margin-left:7px;padding:0;border-radius:50%;border:1px solid var(--gold-soft);background:#fff;color:var(--gold-soft);font-size:0.68rem;font-weight:700;line-height:1;cursor:pointer;vertical-align:middle;transition:all .15s;}
   .help-btn:hover, .help-btn.on{background:var(--gold);color:#fff;border-color:var(--gold);}
   .help-body{font-size:0.74rem;color:var(--text-dim);line-height:1.65;background:#faf8f2;border:1px solid var(--border-soft);border-radius:7px;padding:9px 12px;margin-top:8px;}
   .help-body b{color:var(--text);}
   /* 早いほど有利：積み上げ棒（棒の中に金額を書く） */
-  .el-bars{margin-top:12px;}
-  .el-row{margin-bottom:12px;}
-  .el-head{font-size:0.74rem;color:var(--text-dim);font-weight:600;margin-bottom:4px;}
-  .el-bar{display:flex;height:38px;border-radius:6px;overflow:hidden;background:#f0ece0;}
-  .el-bar span{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.78rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
-  .el-bar .el-p{background:var(--principal);}
-  .el-bar .el-i{background:var(--interest);}
-  .el-bar .el-lab{font-size:0.68rem;opacity:.92;margin-right:4px;}
+  .el-bars{margin-top:10px;}
+  .el-row{margin-bottom:9px;}
+  .el-head{font-size:0.72rem;color:var(--text-dim);font-weight:600;margin-bottom:3px;}
+  .el-bar{display:flex;align-items:stretch;height:24px;}
+  .el-bar .el-seg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
+  .el-bar .el-p{background:var(--principal);border-radius:5px 0 0 5px;}
+  .el-bar .el-i{background:var(--interest);border-radius:0 5px 5px 0;}
+  .el-bar .el-rent{background:var(--gold);border-radius:5px 0 0 5px;}
+  .el-bar .el-down{background:var(--gold-soft);}
+  .el-bar .el-seg:first-child{border-radius:5px 0 0 5px;}
+  .el-bar .el-seg:last-of-type{border-radius:0 5px 5px 0;}
+  .el-bar .el-out.el-rent, .el-bar .el-out.el-down{background:none;color:var(--gold-soft);}
+  .el-bar .el-out.el-p{background:none;color:var(--principal);}
+  .el-bar .el-out.el-i{background:none;color:var(--interest);}
+  .el-outs{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:3px;}
+  .el-outlab{font-family:var(--mono);font-size:0.7rem;font-weight:600;display:inline-flex;align-items:center;}
+  .el-outlab::before{content:'';width:9px;height:9px;border-radius:2px;margin-right:4px;display:inline-block;}
+  .el-outlab.el-p{color:var(--principal);} .el-outlab.el-p::before{background:var(--principal);}
+  .el-outlab.el-i{color:var(--interest);} .el-outlab.el-i::before{background:var(--interest);}
+  .el-outlab.el-rent{color:var(--gold);} .el-outlab.el-rent::before{background:var(--gold);}
+  .el-outlab.el-down{color:var(--gold-soft);} .el-outlab.el-down::before{background:var(--gold-soft);}
+  .el-bar .el-lab{font-size:0.66rem;opacity:.92;margin-right:3px;}
+  /* 幅が足りないセグメントのラベルは棒の外に出す */
+  .el-bar .el-out{display:flex;align-items:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;white-space:nowrap;margin-left:6px;flex:0 0 auto;}
+  .el-bar .el-out.ic{color:var(--interest);}
+  .el-bar .el-out.pc{color:var(--principal);}
   .el-legend{display:flex;gap:16px;font-size:0.72rem;color:var(--text-dim);}
   .el-legend span{display:inline-flex;align-items:center;gap:5px;}
   .hf-with-btn{position:relative;}
@@ -1024,11 +1057,15 @@
   @page{size:A4 portrait;margin:9mm 9mm;}
   html,body{background:#fff !important;padding:0 !important;margin:0 !important;font-size:9.5px;}
   .print-only{display:block !important;}
+  /* 選択された単元だけ出す */
+  .print-skip{display:none !important;}
+  .print-force{display:block !important;}
   /* 操作系はすべて隠す */
   .tabnav, .quick-bar, .input-drawer, .drawer-scrim, .fab-input,
   .table-toggle, .cmp-add-btn, .cmp-toggle-btn, .qb-print, .qb-gear,
   .gf-controls, .gf-line-label, .need-input-msg, .chip-row, .action-row,
   .btn-clear, .fund-pick, .yield-picker, .fund-ref, .diag-bar, .legend,
+  .print-modal, .pm-scrim, .keypad-done,
   .note-ref, .source-note, .warn-banner, #cmpPanel{display:none !important;}
   main{padding:0 !important;}
   .grid{display:block !important;max-width:none !important;margin:0 !important;padding:0 !important;}
@@ -1131,6 +1168,17 @@
 <body>
 <button type="button" class="keypad-done" id="qDone" style="display:none;">完了 ✓</button>
 
+<!-- PDF出力：載せる項目を選ぶ -->
+<div class="pm-scrim" id="printScrim"></div>
+<div class="print-modal" id="printModal" role="dialog" aria-label="PDFに載せる項目">
+  <div class="pm-head">PDFに載せる項目を選んでください</div>
+  <div class="pm-body" id="printPicks"></div>
+  <div class="pm-foot">
+    <button type="button" class="btn-clear" id="printCancel">キャンセル</button>
+    <button type="button" class="pm-go" id="printGo">この内容でPDFを作る</button>
+  </div>
+</div>
+
 <div id="splash" aria-hidden="true">
   <div class="sp-inner">
     <div class="sp-logo"><span class="sp-hl">HL</span><span class="sp-ul"></span></div>
@@ -1143,6 +1191,7 @@
   <div class="tabnav-inner">
     <div class="tab-scroll">
       <button type="button" class="tab" data-mod="base" aria-pressed="true">返済＋積立</button>
+      <button type="button" class="tab" data-mod="wait" aria-pressed="false">今買う vs 待つ</button>
       <button type="button" class="tab" data-mod="m21" aria-pressed="false">借入可能額</button>
       <button type="button" class="tab" data-mod="m25" aria-pressed="false">住宅ローン控除</button>
       <button type="button" class="tab" data-mod="relay" aria-pressed="false">親子リレー</button>
@@ -1424,10 +1473,12 @@
           <div class="el-row">
             <div class="el-head" id="earlyHead">序盤</div>
             <div class="el-bar" id="earlyBar"></div>
+            <div class="el-outs" id="earlyOuts"></div>
           </div>
           <div class="el-row">
             <div class="el-head" id="lateHead">終盤</div>
             <div class="el-bar" id="lateBar"></div>
+            <div class="el-outs" id="lateOuts"></div>
           </div>
           <div class="el-legend"><span><i class="tp-sw pcol"></i>元金</span><span><i class="tp-sw icol"></i>利息</span></div>
         </div>
@@ -1553,6 +1604,85 @@
 
   </div>
 
+
+  <!-- ============ 今買う vs 待つ ============ -->
+  <div class="section-heading">
+    <h2>今買う vs 待って買う</h2>
+  </div>
+
+  <div class="section-body">
+    <div class="grid" id="waitGrid">
+      <!-- INPUT（設定ドロワーへ移動される） -->
+      <div class="panel">
+        <div class="ledger-title">待つ場合の条件</div>
+        <div class="field-row">
+          <label for="waitYears">何年後に買うか</label>
+          <div class="field-input"><input type="text" inputmode="numeric" id="waitYears" value="5"><span class="unit">年後</span></div>
+        </div>
+        <div class="field-row">
+          <label for="waitRent">その間の家賃（管理費・共益費込み／月額）</label>
+          <div class="field-input"><input type="text" inputmode="numeric" id="waitRent" value="10"><span class="unit">万円 / 月</span></div>
+        </div>
+        <div class="field-row">
+          <label for="waitSave">頭金として毎月ためる額</label>
+          <div class="field-input"><input type="text" inputmode="numeric" id="waitSave" value="5"><span class="unit">万円 / 月</span></div>
+        </div>
+        <div class="field-row">
+          <label for="waitRateUp">その時の金利上昇幅</label>
+          <div class="field-input"><span class="unit">＋</span><input type="text" inputmode="decimal" id="waitRateUp" value="1.0"><span class="unit">%</span></div>
+        </div>
+        <div class="field-row">
+          <label for="waitPriceUp">物件価格の変動（待つ間）</label>
+          <div class="field-input"><input type="text" inputmode="decimal" id="waitPriceUp" value="0"><span class="unit">%</span></div>
+          <div class="field-hint">プラスなら値上がり、マイナスなら値下がり。0なら価格は変わらない前提です。</div>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="panel" id="waitPanel">
+        <div class="headline-figure">
+          <div class="headline-label" id="waitHeadLabel">住まいにかかるお金の差</div>
+          <div class="headline-value" id="waitDiff">—</div>
+          <div class="headline-sub" id="waitSub"></div>
+        </div>
+
+        <div class="strip-section">
+          <div class="strip-title">住居費の総額くらべ
+            <button type="button" class="help-btn" id="waitHelpBtn" aria-label="説明">？</button>
+          </div>
+          <div class="help-body" id="waitHelp" style="display:none;"></div>
+          <div class="el-bars" id="waitBars"></div>
+          <div class="el-legend">
+            <span><i class="tp-sw" style="background:var(--gold)"></i>家賃</span>
+            <span><i class="tp-sw" style="background:var(--gold-soft)"></i>頭金</span>
+            <span><i class="tp-sw pcol"></i>元金</span>
+            <span><i class="tp-sw icol"></i>利息</span>
+          </div>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat">
+            <div class="stat-label">今買う：総額</div>
+            <div class="stat-value pcol mono" id="waitNowTotal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label" id="waitLaterLabel">待って買う：総額</div>
+            <div class="stat-value icol mono" id="waitLaterTotal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">完済年齢の差</div>
+            <div class="stat-value mono" id="waitAgeDiff">—</div>
+          </div>
+        </div>
+
+        <div class="strip-section">
+          <div class="strip-sub" id="waitDetail"></div>
+        </div>
+
+        <div class="note-ref">※ 前提と計算方法は、ページ末尾の<b>「注記」</b>を参照。</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ 2-1. 借入可能額診断 ============ -->
   <div class="section-heading">
@@ -2720,6 +2850,92 @@
 
   // ============ ◯歳で完済（繰上げ完済）＋早い繰上げほど利息が減る ============
   var gPayoffLump=0, gPayoffYears=0;
+  // ============ 今買う vs 待って買う ============
+  // 「今すぐ買う」と「家賃を払いながら頭金をためて◯年後に買う（そのとき金利が上がる）」を
+  // 住居費の総額（家賃＋頭金＋ローン返済）で比べる。
+  function waitSim(){
+    if(!baseReady()) return;
+    const priceMan = iv('principal')||0;              // 借入額＝物件価格（頭金0の前提）
+    const price = priceMan*10000;
+    const rate = iv('rate')||0;
+    const years = Math.round(iv('years')||0);
+    const age = Math.round(iv('borrowerAge')||0);
+    const method = document.querySelector('input[name=method]:checked').value;
+
+    const wy = Math.max(0, Math.round(iv('waitYears')||0));
+    const rentM = (iv('waitRent')||0)*10000;
+    const saveM = (iv('waitSave')||0)*10000;
+    const upPct = iv('waitRateUp')||0;
+    const pricePct = iv('waitPriceUp')||0;
+
+    // 今すぐ買う：借入 price / 金利 rate / 期間 years
+    function loanTotals(P, r, n, mth){
+      if(P<=0 || n<=0) return {p:0,i:0,pay:0};
+      const bp = bonusPrincipalOf(P), mp = P - bp;
+      const ms = simulateSubLoan(mp, r, n, 12, mth);
+      const bs = bp>0 ? simulateSubLoan(bp, r, n, 2, mth) : [];
+      let pp=0, ii=0;
+      ms.forEach(function(x){ pp+=x.principal; ii+=x.interest; });
+      bs.forEach(function(x){ pp+=x.principal; ii+=x.interest; });
+      return {p:pp, i:ii, pay:(ms[0]?ms[0].payment:0)};
+    }
+    const now = loanTotals(price, rate, years, method);
+    const nowTotal = now.p + now.i;
+
+    // 待って買う：家賃 wy年分 ＋ 頭金（積立総額）＋ 残りを借入（金利＋上昇幅）
+    const rentTotal = rentM*12*wy;
+    const down = saveM*12*wy;
+    const futurePrice = price * (1 + pricePct/100);
+    const borrowLater = Math.max(0, futurePrice - down);
+    const later = loanTotals(borrowLater, rate+upPct, years, method);
+    const laterTotal = rentTotal + down + later.p + later.i;
+
+    const diff = laterTotal - nowTotal;           // 正なら「今買う」が得
+    const man = v => Math.round(v/10000).toLocaleString('ja-JP');
+
+    $('waitHeadLabel').textContent = diff >= 0 ? '今すぐ買うほうが安く済む金額' : '待って買うほうが安く済む金額';
+    $('waitDiff').innerHTML = man(Math.abs(diff)) + '<small>万円</small>';
+    $('waitSub').textContent =
+      wy + '年待つ間の家賃 ' + man(rentTotal) + '万円 と、金利が ' + rate + '％→' + (Math.round((rate+upPct)*100)/100) + '％ に上がることを含めた比較です。';
+
+    $('waitNowTotal').innerHTML = man(nowTotal) + '<small> 万円</small>';
+    $('waitLaterLabel').textContent = wy + '年後に買う：総額';
+    $('waitLaterTotal').innerHTML = man(laterTotal) + '<small> 万円</small>';
+    $('waitAgeDiff').innerHTML = (age>0 ? (age+years) + '歳 → ' + (age+wy+years) + '<small>歳</small>' : '—');
+
+    // 積み上げ棒（家賃／頭金／元金／利息）
+    const maxT = Math.max(nowTotal, laterTotal) || 1;
+    function row(head, segs){
+      let inner='', outs='';
+      segs.forEach(function(x){
+        if(x.v<=0) return;
+        const w = x.v/maxT*100;
+        const inside = w >= 12;   // 棒に文字が入る幅かどうか
+        inner += '<span class="el-seg '+x.c+'" style="flex:0 0 '+w.toFixed(2)+'%">'+(inside?'<span class="el-lab">'+x.l+'</span>'+man(x.v):'')+'</span>';
+        if(!inside) outs += '<span class="el-outlab '+x.c+'">'+x.l+' '+man(x.v)+'</span>';
+      });
+      return '<div class="el-row"><div class="el-head">'+head+'</div><div class="el-bar">'+inner+'</div>'+
+             (outs ? '<div class="el-outs">'+outs+'</div>' : '')+'</div>';
+    }
+    $('waitBars').innerHTML =
+      row('今すぐ買う（合計 '+man(nowTotal)+'万円）', [
+        {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}]) +
+      row(wy+'年後に買う（合計 '+man(laterTotal)+'万円）', [
+        {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
+        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}]);
+
+    $('waitDetail').innerHTML =
+      '<b>今すぐ買う</b>：借入 ' + man(price) + '万円／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(now.pay) + '円、利息 ' + man(now.i) + '万円<br>' +
+      '<b>' + wy + '年後に買う</b>：家賃 ' + man(rentTotal) + '万円＋頭金 ' + man(down) + '万円／借入 ' + man(borrowLater) + '万円' +
+      (pricePct!==0 ? '（物件価格 ' + man(futurePrice) + '万円）' : '') +
+      '／金利 ' + (Math.round((rate+upPct)*100)/100) + '％／' + years + '年　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円';
+
+    if($('waitHelp')) $('waitHelp').innerHTML =
+      '<b>比べているもの</b>：どちらも同じ物件を手に入れるまでに払うお金の合計です。今すぐ買う＝ローンの元金＋利息。' + wy + '年後に買う＝その間の家賃＋ためた頭金＋ローンの元金＋利息。<br>' +
+      '待つと頭金が用意できて借入は減りますが、<b>その間の家賃は残らないお金</b>で、さらに<b>金利が上がると利息が増え</b>、<b>完済年齢も' + wy + '年遅く</b>なります。' +
+      '（頭金・購入諸費用・税金・修繕費・家賃の値上がり・住宅ローン控除は含めていません）';
+  }
+
   // ============ 親子リレー返済（誰がどれだけ払うかを分解して見せる） ============
   function relaySim(){
     if(!baseReady()) return;
@@ -2844,14 +3060,17 @@
     // 積み上げ棒（棒の中に金額を表示）。2本を同じ基準で比べられるよう最大の合計で正規化
     const maxT = Math.max(E.p+E.i, L.p+L.i) || 1;
     function bar(o){
-      const tot=o.p+o.i;
-      const wTot = tot/maxT*100;
-      const pPct = tot>0 ? o.p/tot*100 : 0, iPct = tot>0 ? o.i/tot*100 : 0;
-      return '<span class="el-p" style="flex:0 0 '+(wTot*pPct/100).toFixed(2)+'%"><span class="el-lab">元金</span>'+toMan(o.p)+'</span>'+
-             '<span class="el-i" style="flex:0 0 '+(wTot*iPct/100).toFixed(2)+'%"><span class="el-lab">利息</span>'+toMan(o.i)+'</span>';
+      const wP = o.p/maxT*100, wI = o.i/maxT*100;
+      const inP = wP >= 12, inI = wI >= 12;
+      let html = '<span class="el-seg el-p" style="flex:0 0 '+wP.toFixed(2)+'%">'+(inP ? '<span class="el-lab">元金</span>'+toMan(o.p) : '')+'</span>'+
+                 '<span class="el-seg el-i" style="flex:0 0 '+wI.toFixed(2)+'%">'+(inI ? '<span class="el-lab">利息</span>'+toMan(o.i) : '')+'</span>';
+      let outs = (!inP ? '<span class="el-outlab el-p">元金 '+toMan(o.p)+'</span>' : '') +
+                 (!inI ? '<span class="el-outlab el-i">利息 '+toMan(o.i)+'</span>' : '');
+      return {bar:html, outs:outs};
     }
-    if($('earlyBar')) $('earlyBar').innerHTML = bar(E);
-    if($('lateBar')) $('lateBar').innerHTML = bar(L);
+    const bE=bar(E), bL=bar(L);
+    if($('earlyBar')){ $('earlyBar').innerHTML=bE.bar; var eo=$('earlyOuts'); if(eo) eo.innerHTML=bE.outs; }
+    if($('lateBar')){ $('lateBar').innerHTML=bL.bar; var lo=$('lateOuts'); if(lo) lo.innerHTML=bL.outs; }
     const diff=Math.abs(E.i-L.i);
     if($('earlyLateHelp')) $('earlyLateHelp').innerHTML=
       '同じ'+W+'年間でも、序盤は返済額に占める利息が大きく、終盤はほとんどが元金です。'+
@@ -3197,6 +3416,12 @@
   }
   if($('payoffAge')){ attachClear($('payoffAge')); $('payoffAge').addEventListener('change', function(){ syncPayoffAge('a'); payoffRecalc(); }); }
   if($('payoffAgeR')){ attachClear($('payoffAgeR')); $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge('r'); payoffRecalc(); }); }
+  // 今買う vs 待つ
+  ['waitYears','waitRent','waitSave','waitRateUp','waitPriceUp'].forEach(function(id){ if($(id)){ attachClear($(id)); $(id).addEventListener('change', waitSim); } });
+  if($('waitHelpBtn')) $('waitHelpBtn').addEventListener('click', function(){
+    var b=$('waitHelp'); if(!b) return; var open=b.style.display!=='none';
+    b.style.display = open ? 'none' : ''; this.classList.toggle('on', !open);
+  });
   // 親子リレー
   ['childAge','relayAge'].forEach(function(id){ if($(id)){ attachClear($(id)); $(id).addEventListener('change', relaySim); } });
   ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge'].forEach(function(id){ if($(id)) $(id).addEventListener('change', relaySim); });
@@ -3268,7 +3493,7 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); relaySim(); stressTest(); convertSim(); renderCredit(); }
+  function recalcAll(){ calculate(); payoffSim(); relaySim(); waitSim(); stressTest(); convertSim(); renderCredit(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
@@ -3389,19 +3614,96 @@
 
   $('calcBtn').addEventListener('click', calculate);
   // A4 PDF 出力（OSの印刷ダイアログから「PDFとして保存」「共有」ができる）
-  function doPrint(){
+  // PDFに載せる項目（画面上の単元と対応づける）
+  function printBlocks(){
+    var main=document.querySelector('main');
+    var kids=Array.prototype.slice.call(main.children);
+    var list=[], i;
+    function push(key,label,nodes){ if(nodes.length) list.push({key:key,label:label,nodes:nodes}); }
+    // 返済＋積立（最初の .grid ＝ 返済結果、その後 sub-heading ごとにまとめる）
+    var baseNodes=[], cur=null, curLabel='', groups=[];
+    for(i=0;i<kids.length;i++){
+      var el=kids[i];
+      if(el.classList.contains('section-heading')) break;
+      if(el.classList.contains('sub-heading')){
+        if(cur) groups.push({label:curLabel, nodes:cur});
+        curLabel=(el.querySelector('h3')||{}).textContent||'（項目）'; cur=[el];
+      } else if(cur){ cur.push(el); }
+      else { baseNodes.push(el); }
+    }
+    if(cur) groups.push({label:curLabel, nodes:cur});
+    push('base','返済の結果（金額・円グラフ・グラフ）', baseNodes.filter(function(n){ return !n.classList.contains('cmp-panel'); }));
+    groups.forEach(function(g,idx){ push('sub'+idx, g.label, g.nodes); });
+    // 償還表は単独で選べるようにする
+    list.push({key:'table', label:'年間返済予定表', nodes:[], table:true});
+    // 各診断セクション
+    var secLabel=null, secNodes=[];
+    for(; i<kids.length; i++){
+      var e2=kids[i];
+      if(e2.classList.contains('print-disc') || e2.classList.contains('disclaimer')) break;
+      if(e2.classList.contains('section-heading')){
+        if(secLabel) push('sec'+list.length, secLabel, secNodes);
+        secLabel=(e2.querySelector('h2')||{}).textContent||'（診断）'; secNodes=[e2];
+      } else if(secLabel){ secNodes.push(e2); }
+    }
+    if(secLabel) push('sec'+list.length, secLabel, secNodes);
+    list.push({key:'notes', label:'注記（計算方法・前提・出典）', nodes:[document.getElementById('notesAppendix')].filter(Boolean)});
+    return list;
+  }
+  var gPrintList=null;
+  function openPrintPicker(){
     if(!baseReady()){ window.alert('先に 借入・年齢・年収・金利・返済期間 を入力してください。'); return; }
+    gPrintList = printBlocks();
+    var box=$('printPicks'); box.innerHTML='';
+    gPrintList.forEach(function(b,i){
+      // 既定：いま表示しているタブの単元＋注記にチェック
+      var visible = b.table ? true : (b.nodes.length ? b.nodes[0].style.display !== 'none' : true);
+      var id='pmChk'+i;
+      box.innerHTML += '<label class="pm-item" for="'+id+'"><input type="checkbox" id="'+id+'" data-idx="'+i+'"'+((visible||b.key==='notes')?' checked':'')+'><span>'+b.label+'</span></label>';
+    });
+    $('printModal').classList.add('on'); $('printScrim').classList.add('on');
+  }
+  function closePrintPicker(){ $('printModal').classList.remove('on'); $('printScrim').classList.remove('on'); }
+  function doPrint(){
     var name = ($('custName') && $('custName').value.trim()) ? $('custName').value.trim()+' 様' : '';
     var d = new Date();
     var ymd = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
     if($('printCond')) $('printCond').textContent = (name ? name+'　' : '') + (($('pieCond')||{}).textContent||'');
     if($('printMeta')) $('printMeta').textContent = '作成日：'+ymd+'　／　本資料は概算・目安であり、融資条件を保証するものではありません（詳細は末尾の免責事項をご確認ください）';
+
+    // 選択に応じて print-skip / print-force を付ける
+    var picked={}, wantTable=false;
+    Array.prototype.forEach.call($('printPicks').querySelectorAll('input'), function(chk){
+      picked[chk.getAttribute('data-idx')] = chk.checked;
+    });
+    var touched=[];
+    gPrintList.forEach(function(b,i){
+      if(b.table){ wantTable = !!picked[i]; return; }
+      b.nodes.forEach(function(n){
+        n.classList.remove('print-skip','print-force');
+        if(picked[i]) n.classList.add('print-force'); else n.classList.add('print-skip');
+        touched.push(n);
+      });
+    });
     var wrap=$('tableWrap'), wasOpen=wrap && wrap.classList.contains('open');
-    if(wrap && !wasOpen) wrap.classList.add('open');
-    window.print();
-    if(wrap && !wasOpen) setTimeout(function(){ wrap.classList.remove('open'); }, 500);
+    if(wrap){
+      wrap.classList.remove('print-skip','print-force');
+      if(wantTable){ if(!wasOpen) wrap.classList.add('open'); wrap.classList.add('print-force'); }
+      else wrap.classList.add('print-skip');
+    }
+    closePrintPicker();
+    setTimeout(function(){
+      window.print();
+      setTimeout(function(){
+        touched.forEach(function(n){ n.classList.remove('print-skip','print-force'); });
+        if(wrap){ wrap.classList.remove('print-skip','print-force'); if(!wasOpen) wrap.classList.remove('open'); }
+      }, 600);
+    }, 220);
   }
-  if($('qPrint')) $('qPrint').addEventListener('click', doPrint);
+  if($('qPrint')) $('qPrint').addEventListener('click', openPrintPicker);
+  if($('printGo')) $('printGo').addEventListener('click', doPrint);
+  if($('printCancel')) $('printCancel').addEventListener('click', closePrintPicker);
+  if($('printScrim')) $('printScrim').addEventListener('click', closePrintPicker);
   if($('earlyLateHelpBtn')) $('earlyLateHelpBtn').addEventListener('click', function(){
     var b=$('earlyLateHelp'); if(!b) return;
     var open = b.style.display!=='none';
@@ -3467,7 +3769,7 @@
   // 教育資金シミュレーター風：結果は全幅表示、入力は下部ドロワーに集約（右下FABで開閉）
   function setupPresentation(){
     var main = document.querySelector('main');
-    var KEYS = ['base','m21','m25','relay','m23']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
+    var KEYS = ['base','wait','m21','m25','relay','m23']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
     var groups = [];
     Array.prototype.forEach.call(main.children, function(el){
       if(el.classList.contains('disclaimer') || el.classList.contains('print-disc')){ if(groups[0]) groups[0].nodes.push(el); return; }
@@ -3544,7 +3846,7 @@
       });
     });
 
-    var TITLES = {base:'設定（金利上昇・完済の条件）', relay:'親子リレーの条件', m21:'借入可能額 診断の条件', m23:'賃貸転用の条件', m25:'住宅ローン控除の条件'};
+    var TITLES = {base:'設定（金利上昇・完済の条件）', wait:'待つ場合の条件', relay:'親子リレーの条件', m21:'借入可能額 診断の条件', m23:'賃貸転用の条件', m25:'住宅ローン控除の条件'};
 
     function show(key, doScroll){
       groups.forEach(function(g){
@@ -3695,12 +3997,14 @@
   convertSim();
   renderCredit();
   relaySim();
+  waitSim();
   setupPresentation();
   // ドロワーへの入力移動・pristine適用が済んだあとにクイックバーを配線・同期する
   wireQuickBar();
   syncQuickBar();
   renderPatterns();
   relaySim();
+  waitSim();
   setupKeypadDone();
 })();
 </script>
