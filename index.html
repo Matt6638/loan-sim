@@ -24,8 +24,10 @@
     --gold-soft:#7d6240;
     --teal:#2f6b4f;
     --rose:#9b3b3b;
-    --principal:#2f9e8f; /* 元金＝ティール（爽やか・返済グラフ・元利内訳） */
-    --interest:#4a97cf;  /* 利息＝スカイブルー */
+    --principal:#1f8a7a; /* 元金＝深いティール */
+    --interest:#e0912f;  /* 利息＝アンバー（元金と色相を大きく離して見分けやすく） */
+    --rentc:#6b7a99;     /* 家賃＝スレート */
+    --downc:#a8b2c4;     /* 頭金＝ライトスレート */
     --radius:10px;
     --shadow:0 1px 2px rgba(27,42,74,.06),0 12px 30px -6px rgba(27,42,74,.14);
     --gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","YuGothic","Noto Sans JP",system-ui,sans-serif;
@@ -445,7 +447,7 @@
   /* iOSは16px未満の入力欄にフォーカスすると自動ズームするため、入力欄は16px以上にする */
   .qb-field input{width:66px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:transparent;border:none;outline:none;padding:1px 0;}
   .qb-field input#qAge{width:38px;}
-  .qb-field input#qRate{width:48px;}
+  .qb-field input#qRate{width:56px;}
   .qb-field input#qYears{width:38px;}
   .qb-field input#qIncome{width:52px;}
   .qb-field input.pristine{color:#a2a8b5;}
@@ -481,12 +483,12 @@
     .qb-u{font-size:0.54rem;letter-spacing:-0.04em;}
     /* 入力はiOSの自動ズームを避けるため16pxを維持しつつ、幅は桁数ぴったりに */
     .qb-field input{font-size:16px;padding:0;}
-    .qb-field input#qPrincipal{width:44px;}
+    .qb-field input#qPrincipal{width:46px;}
     .qb-field input#qAge{width:22px;}
     .qb-field input#qIncome{width:36px;}
-    .qb-field input#qRate{width:31px;}
+    .qb-field input#qRate{width:44px;}
     .qb-field input#qYears{width:22px;}
-    .qb-field input#qBonus{width:31px;}
+    .qb-field input#qBonus{width:38px;}
     .qb-seg{height:32px;}
     .qb-seg-btn{font-size:0.64rem;padding:0 6px;}
     .qb-bonus{gap:4px;}
@@ -532,8 +534,8 @@
   .el-bar .el-seg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
   .el-bar .el-p{background:var(--principal);border-radius:5px 0 0 5px;}
   .el-bar .el-i{background:var(--interest);border-radius:0 5px 5px 0;}
-  .el-bar .el-rent{background:var(--gold);border-radius:5px 0 0 5px;}
-  .el-bar .el-down{background:var(--gold-soft);}
+  .el-bar .el-rent{background:var(--rentc);border-radius:5px 0 0 5px;}
+  .el-bar .el-down{background:var(--downc);}
   .el-bar .el-seg:first-child{border-radius:5px 0 0 5px;}
   .el-bar .el-seg:last-of-type{border-radius:0 5px 5px 0;}
   .el-bar .el-out.el-rent, .el-bar .el-out.el-down{background:none;color:var(--gold-soft);}
@@ -544,8 +546,8 @@
   .el-outlab::before{content:'';width:9px;height:9px;border-radius:2px;margin-right:4px;display:inline-block;}
   .el-outlab.el-p{color:var(--principal);} .el-outlab.el-p::before{background:var(--principal);}
   .el-outlab.el-i{color:var(--interest);} .el-outlab.el-i::before{background:var(--interest);}
-  .el-outlab.el-rent{color:var(--gold);} .el-outlab.el-rent::before{background:var(--gold);}
-  .el-outlab.el-down{color:var(--gold-soft);} .el-outlab.el-down::before{background:var(--gold-soft);}
+  .el-outlab.el-rent{color:var(--rentc);} .el-outlab.el-rent::before{background:var(--rentc);}
+  .el-outlab.el-down{color:#7c879c;} .el-outlab.el-down::before{background:var(--downc);}
   .el-bar .el-lab{font-size:0.66rem;opacity:.92;margin-right:3px;}
   /* 幅が足りないセグメントのラベルは棒の外に出す */
   .el-bar .el-out{display:flex;align-items:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;white-space:nowrap;margin-left:6px;flex:0 0 auto;}
@@ -553,6 +555,8 @@
   .el-bar .el-out.pc{color:var(--principal);}
   .el-legend{display:flex;gap:16px;font-size:0.72rem;color:var(--text-dim);}
   .el-legend span{display:inline-flex;align-items:center;gap:5px;}
+  .mini-svg{width:100%;height:74px;display:block;background:#fcfbf8;border:1px solid var(--border-soft);border-radius:5px;}
+  .mini-cap{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px;}
   .hf-with-btn{position:relative;}
   .hf-actions{position:absolute;right:24px;top:12px;display:flex;align-items:center;gap:8px;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
@@ -800,7 +804,7 @@
   .diag-rate b{font-family:var(--mono);font-size:0.95rem;color:var(--gold-soft);}
   .wait-bar{flex-wrap:wrap;gap:10px 18px;justify-content:flex-start;}
   .wait-bar .diag-toggle{font-weight:600;font-size:0.78rem;}
-  .inline-num{width:52px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
+  .inline-num{width:58px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
   .inline-num:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
 
   /* ===== iPad/PC：1単元を1画面に収める（左＝金額・円グラフ／右＝グラフと内訳） ===== */
@@ -1073,7 +1077,7 @@
     .diag-bar{padding:8px 6px !important;gap:6px 8px !important;justify-content:flex-start !important;}
     .diag-toggle{font-size:0.68rem !important;gap:3px !important;}
     .diag-rate{font-size:0.62rem !important;letter-spacing:-0.03em !important;}
-    .inline-num{width:42px !important;font-size:16px !important;padding:3px 4px !important;margin:0 3px !important;}
+    .inline-num{width:48px !important;font-size:16px !important;padding:3px 4px !important;margin:0 3px !important;}
     .wait-bar{gap:6px 8px !important;}
   }
 </style>
@@ -1501,11 +1505,13 @@
             <div class="el-head" id="earlyHead">序盤</div>
             <div class="el-bar" id="earlyBar"></div>
             <div class="el-outs" id="earlyOuts"></div>
+            <div id="earlyMini"></div>
           </div>
           <div class="el-row">
             <div class="el-head" id="lateHead">終盤</div>
             <div class="el-bar" id="lateBar"></div>
             <div class="el-outs" id="lateOuts"></div>
+            <div id="lateMini"></div>
           </div>
           <div class="el-legend"><span><i class="tp-sw pcol"></i>元金</span><span><i class="tp-sw icol"></i>利息</span></div>
         </div>
@@ -1698,8 +1704,8 @@
           <div class="help-body" id="waitHelp" style="display:none;"></div>
           <div class="el-bars" id="waitBars"></div>
           <div class="el-legend">
-            <span><i class="tp-sw" style="background:var(--gold)"></i>家賃</span>
-            <span><i class="tp-sw" style="background:var(--gold-soft)"></i>頭金</span>
+            <span><i class="tp-sw" style="background:var(--rentc)"></i>家賃</span>
+            <span><i class="tp-sw" style="background:var(--downc)"></i>頭金</span>
             <span><i class="tp-sw pcol"></i>元金</span>
             <span><i class="tp-sw icol"></i>利息</span>
           </div>
@@ -1717,6 +1723,10 @@
           <div class="stat">
             <div class="stat-label" id="waitLaterLabel">待つ（金利上昇）：総額</div>
             <div class="stat-value icol mono" id="waitLaterTotal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">今すぐ買って繰上返済：総額</div>
+            <div class="stat-value pcol mono" id="waitPrepayTotal">—</div>
           </div>
           <div class="stat">
             <div class="stat-label">完済年齢</div>
@@ -2563,6 +2573,54 @@
     var b=$('cmpAdd'); if(b) b.style.display='';
   }
 
+  // 共通：ミニ元利均等グラフ。rows=[{p,i,rent}] を1年1本の積み上げ棒で描く。
+  // hi={from,to} を渡すと、その年だけ色付けし、それ以外は淡色にする。
+  function miniAmortSVG(rows, maxV, maxYears, hi){
+    const N = Math.max(1, maxYears || rows.length);
+    const W = 720, H = 96, padT = 4, padB = 4;
+    const plotH = H - padT - padB;
+    const bw = W / N;
+    const gap = Math.min(bw * 0.2, 2.6);
+    const bwid = Math.max(0.5, bw - gap);
+    let bars = '';
+    rows.forEach(function(r, idx){
+      const x = (bw * idx + gap / 2).toFixed(2);
+      const on = !hi || (idx + 1 >= hi.from && idx + 1 <= hi.to);
+      const op = on ? '1' : '0.22';
+      let yBase = padT + plotH;
+      function put(v, color){
+        if(!(v > 0)) return;
+        const h = plotH * Math.min(1, v / maxV);
+        yBase -= h;
+        bars += '<rect x="' + x + '" y="' + yBase.toFixed(2) + '" width="' + bwid.toFixed(2) + '" height="' + h.toFixed(2) + '" fill="' + color + '" fill-opacity="' + op + '"/>';
+      }
+      put(r.rent, 'var(--rentc)');
+      put(r.p, 'var(--principal)');
+      put(r.i, 'var(--interest)');
+    });
+    let box = '';
+    if(hi){
+      const lx = bw * (hi.from - 1), rx = bw * hi.to;
+      box = '<rect x="' + lx.toFixed(2) + '" y="' + padT + '" width="' + (rx - lx).toFixed(2) + '" height="' + plotH + '" fill="none" stroke="#c2410c" stroke-width="1.6" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"/>';
+    }
+    return '<svg class="mini-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' + bars + box + '</svg>';
+  }
+  // 借入条件から年ごとの元金・利息をつくる（元利均等／元金均等どちらも）
+  function yearlyOf(P, ratePct, years, mth){
+    const out = [];
+    if(!(P > 0) || years <= 0) return out;
+    const bp = bonusPrincipalOf(P), mp = P - bp;
+    const ms = simulateSubLoan(mp, ratePct, years, 12, mth || 'equalPayment');
+    const bs = bp > 0 ? simulateSubLoan(bp, ratePct, years, 2, mth || 'equalPayment') : [];
+    for(let y = 0; y < years; y++){
+      let pp = 0, ii = 0;
+      for(let m = 0; m < 12; m++){ const k = y*12+m; if(ms[k]){ pp += ms[k].principal; ii += ms[k].interest; } }
+      for(let b = 0; b < 2; b++){ const k = y*2+b; if(bs[k]){ pp += bs[k].principal; ii += bs[k].interest; } }
+      out.push({p: pp, i: ii});
+    }
+    return out;
+  }
+
   // グラフ描画用の直近の状態（経過年・試算期間の操作で再描画）
   var gLastYearly=null, gLastPrincipal=0, gStartAge=null;
   var gLabelY = 0.62;    // 「◯年目◯歳」ラベルの上下位置（0＝上端／1＝下端）
@@ -3188,6 +3246,28 @@
     const flat = loanTotals(borrowLater, rate, years, method);
     const flatTotal = rentTotal + down + flat.p + flat.i;
 
+    // 今すぐ買って、待つ場合と同じ額を積み立て、wy年後に頭金相当を繰上返済（期間短縮）
+    const rM = (rate/100)/12;
+    const nAll = years*12;
+    const bpNow = bonusPrincipalOf(price), mpNow = price - bpNow;
+    const Anow = annuityPayment(mpNow, rM, nAll);
+    const M = Math.min(nAll-1, wy*12);
+    let balP = mpNow, paidP = 0, paidI = 0;
+    for(let k=0;k<M;k++){ const it=balP*rM; let pr=Anow-it; if(pr>balP)pr=balP; paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); }
+    const prepay = Math.min(down, balP);
+    balP = Math.max(0, balP - prepay); paidP += prepay;
+    let restMonths = 0;
+    while(balP > 1 && restMonths < nAll){
+      const it=balP*rM; let pr=Anow-it; if(pr>balP)pr=balP;
+      paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); restMonths++;
+    }
+    const bonusPart = bpNow>0 ? loanTotals(bpNow, rate, years, method) : {p:0,i:0};
+    const prepayP = paidP + bonusPart.p, prepayI = paidI + bonusPart.i;
+    const prepayTotal = prepayP + prepayI;
+    const prepayMonths = M + restMonths;
+    const savedMonths = Math.max(0, nAll - prepayMonths);
+    const cutY = Math.floor(prepayMonths/12), cutM = prepayMonths%12;
+
     const diff = laterTotal - nowTotal;           // 正なら「今買う」が得
     const man = v => Math.round(v/10000).toLocaleString('ja-JP');
 
@@ -3203,11 +3283,32 @@
     $('waitLaterTotal').innerHTML = man(laterTotal) + '<small> 万円</small>';
     if($('waitFlatLabel')) $('waitFlatLabel').textContent = wy + '年後（金利そのまま）：総額';
     if($('waitFlatTotal')) $('waitFlatTotal').innerHTML = man(flatTotal) + '<small> 万円</small>';
-    $('waitAgeDiff').innerHTML = (age>0 ? (age+years) + '歳 → ' + (age+wy+years) + '<small>歳</small>' : '—');
+    if($('waitPrepayTotal')) $('waitPrepayTotal').innerHTML = man(prepayTotal) + '<small> 万円</small>';
+    $('waitAgeDiff').innerHTML = (age>0
+      ? '今' + (age+years) + '／待つ ' + (age+wy+years) + '／繰上 ' + (age+Math.ceil(prepayMonths/12)) + '<small>歳</small>'
+      : '—');
 
     // 積み上げ棒（家賃／頭金／元金／利息）
-    const maxT = Math.max(nowTotal, laterTotal, flatTotal) || 1;
-    function row(head, segs){
+    const maxT = Math.max(nowTotal, laterTotal, flatTotal, prepayTotal) || 1;
+    // 時間軸をそろえるための最大年数・最大年額
+    const maxYears = years + wy;
+    function rowsFor(kind){
+      const out=[];
+      if(kind==='wait'){ for(let k=0;k<wy;k++) out.push({rent:rentM*12}); }
+      let ys=[];
+      if(kind==='now') ys = yearlyOf(price, rate, years, method);
+      else if(kind==='waitUp') ys = yearlyOf(borrowLater, rate+upPct, years, method);
+      else if(kind==='waitFlat') ys = yearlyOf(borrowLater, rate, years, method);
+      else if(kind==='prepay') ys = yearlyOf(price, rate, years, method).slice(0, Math.ceil(prepayMonths/12));
+      ys.forEach(function(y){ out.push({p:y.p, i:y.i}); });
+      return out;
+    }
+    const allRows = {now:rowsFor('now'), waitUp:rowsFor('wait').concat(rowsFor('waitUp')),
+                     waitFlat:rowsFor('wait').concat(rowsFor('waitFlat')), prepay:rowsFor('prepay')};
+    let maxAnnual = 1;
+    Object.keys(allRows).forEach(function(k){ allRows[k].forEach(function(r){ maxAnnual = Math.max(maxAnnual, (r.p||0)+(r.i||0)+(r.rent||0)); }); });
+
+    function row(head, segs, kind){
       let inner='', outs='';
       segs.forEach(function(x){
         if(x.v<=0) return;
@@ -3216,30 +3317,38 @@
         inner += '<span class="el-seg '+x.c+'" style="flex:0 0 '+w.toFixed(2)+'%">'+(inside?'<span class="el-lab">'+x.l+'</span>'+man(x.v):'')+'</span>';
         if(!inside) outs += '<span class="el-outlab '+x.c+'">'+x.l+' '+man(x.v)+'</span>';
       });
+      const rws = kind ? allRows[kind] : null;
+      const mini = rws ? miniAmortSVG(rws, maxAnnual, maxYears, null) +
+        '<div class="mini-cap"><span>1年目</span><span>完済まで '+rws.length+'年</span><span>'+maxYears+'年目</span></div>' : '';
       return '<div class="el-row"><div class="el-head">'+head+'</div><div class="el-bar">'+inner+'</div>'+
-             (outs ? '<div class="el-outs">'+outs+'</div>' : '')+'</div>';
+             (outs ? '<div class="el-outs">'+outs+'</div>' : '')+mini+'</div>';
     }
     $('waitBars').innerHTML =
       row('今すぐ買う（合計 '+man(nowTotal)+'万円）', [
-        {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}]) +
+        {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}], 'now') +
       row(wy+'年後に買う・金利そのまま（合計 '+man(flatTotal)+'万円）', [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}]) +
+        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}], 'waitFlat') +
       row(wy+'年後に買う・金利＋'+(Math.round(upPct*100)/100)+'%（合計 '+man(laterTotal)+'万円）', [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}]);
+        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}], 'waitUp') +
+      row('今すぐ買って '+wy+'年後に '+man(prepay)+'万円 を繰上返済（合計 '+man(prepayTotal)+'万円・'+cutY+'年'+(cutM?cutM+'ヶ月':'')+'で完済）', [
+        {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay');
 
     $('waitDetail').innerHTML =
       '<b>今すぐ買う</b>：借入 ' + man(price) + '万円／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(now.pay) + '円、利息 ' + man(now.i) + '万円<br>' +
       '<b>' + wy + '年後に買う（金利そのまま）</b>：家賃 ' + man(rentTotal) + '万円＋頭金 ' + man(down) + '万円／借入 ' + man(borrowLater) + '万円' +
       (pricePct!==0 ? '（物件価格 ' + man(futurePrice) + '万円）' : '') +
       '／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(flat.pay) + '円、利息 ' + man(flat.i) + '万円<br>' +
-      '<b>' + wy + '年後に買う（金利＋' + (Math.round(upPct*100)/100) + '%）</b>：同じ条件で金利 ' + (Math.round((rate+upPct)*100)/100) + '％　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円（金利そのままとの差 ' + man(laterTotal-flatTotal) + '万円）';
+      '<b>' + wy + '年後に買う（金利＋' + (Math.round(upPct*100)/100) + '%）</b>：同じ条件で金利 ' + (Math.round((rate+upPct)*100)/100) + '％　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円（金利そのままとの差 ' + man(laterTotal-flatTotal) + '万円）<br>' +
+      '<b>今すぐ買って繰上返済</b>：毎月 ' + yen(Anow) + '円で返しながら毎月 ' + (iv('waitSave')||0) + '万円を積立　→　' + wy + '年後に ' + man(prepay) + '万円 を繰上返済（期間短縮）　→　' +
+      cutY + '年' + (cutM?cutM+'ヶ月':'') + 'で完済、総額 ' + man(prepayTotal) + '万円（今すぐ買うだけより ' + man(nowTotal-prepayTotal) + '万円 少なく、' + Math.floor(savedMonths/12) + '年' + (savedMonths%12?savedMonths%12+'ヶ月':'') + ' 早く完済）';
 
     if($('waitHelp')) $('waitHelp').innerHTML =
       '<b>比べているもの</b>：どちらも同じ物件を手に入れるまでに払うお金の合計です。今すぐ買う＝ローンの元金＋利息。' + wy + '年後に買う＝その間の家賃＋ためた頭金＋ローンの元金＋利息。<br>' +
       '待つと頭金が用意できて借入は減りますが、<b>その間の家賃は残らないお金</b>で、さらに<b>金利が上がると利息が増え</b>、<b>完済年齢も' + wy + '年遅く</b>なります。' +
       '<b>金利が上がらなかった場合</b>も3本目の棒で比べられます。' +
+      '4本目は<b>今すぐ買ったうえで、待つ場合に頭金へ回すはずだった額を積み立て、'+wy+'年後にまとめて繰上返済（期間短縮）</b>したケースです。' +
       '（頭金・購入諸費用・税金・修繕費・家賃の値上がり・住宅ローン控除は含めていません）';
   }
 
@@ -3378,6 +3487,12 @@
     const bE=bar(E), bL=bar(L);
     if($('earlyBar')){ $('earlyBar').innerHTML=bE.bar; var eo=$('earlyOuts'); if(eo) eo.innerHTML=bE.outs; }
     if($('lateBar')){ $('lateBar').innerHTML=bL.bar; var lo=$('lateOuts'); if(lo) lo.innerHTML=bL.outs; }
+    // 全期間の元利均等グラフのミニ版に、対象の5年だけ色を付ける
+    const miniRows = gLastYearly.map(function(r){ return {p:r.principal, i:r.interest}; });
+    const miniMax = miniRows.reduce(function(mx,r){ return Math.max(mx, r.p+r.i); }, 1);
+    const cap = function(f,t){ return '<div class="mini-cap"><span>1年目</span><span>'+f+'〜'+t+'年目を色付け</span><span>'+N+'年目</span></div>'; };
+    if($('earlyMini')) $('earlyMini').innerHTML = miniAmortSVG(miniRows, miniMax, N, {from:eStart, to:eEnd}) + cap(eStart,eEnd);
+    if($('lateMini')) $('lateMini').innerHTML = miniAmortSVG(miniRows, miniMax, N, {from:lStart, to:lEnd}) + cap(lStart,lEnd);
     const diff=Math.abs(E.i-L.i);
     if($('earlyLateHelp')) $('earlyLateHelp').innerHTML=
       '同じ'+W+'年間でも、序盤は返済額に占める利息が大きく、終盤はほとんどが元金です。'+
@@ -3722,7 +3837,16 @@
     if(from==='r') a.value=b.value; else b.value=a.value;
   }
   if($('payoffAge')){ attachClear($('payoffAge')); $('payoffAge').addEventListener('change', function(){ syncPayoffAge('a'); payoffRecalc(); }); }
-  if($('payoffAgeR')){ attachClear($('payoffAgeR')); $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge('r'); payoffRecalc(); }); }
+  if($('payoffAgeR')){
+    attachClear($('payoffAgeR'));
+    $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge('r'); payoffRecalc(); });
+    // 2桁そろったらテンキーを閉じる（1桁では閉じない）
+    $('payoffAgeR').addEventListener('input', function(){
+      syncPayoffAge('r'); payoffRecalc();
+      var digits=String(this.value||'').replace(/[^0-9]/g,'').length;
+      if(digits>=2){ var el=this; setTimeout(function(){ try{ el.blur(); }catch(_){} }, 250); }
+    });
+  }
   // 変動金利（設定側と結果側の入力を双方向同期）
   var VAR_PAIRS = [['varRiseYear','varRiseYearR'],['varRiseUp','varRiseUpR']];
   function syncVarInputs(fromR){
