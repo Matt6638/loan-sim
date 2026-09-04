@@ -1067,6 +1067,15 @@
     border-top:1px solid var(--border);
   }
   .source-note a{word-break:break-all;}
+
+  /* ===== iPhone：結果画面のインライン入力バーを幅いっぱいに詰める（末尾に置いて確実に適用） ===== */
+  @media (max-width:560px){
+    .diag-bar{padding:8px 6px !important;gap:6px 8px !important;justify-content:flex-start !important;}
+    .diag-toggle{font-size:0.68rem !important;gap:3px !important;}
+    .diag-rate{font-size:0.62rem !important;letter-spacing:-0.03em !important;}
+    .inline-num{width:42px !important;font-size:16px !important;padding:3px 4px !important;margin:0 3px !important;}
+    .wait-bar{gap:6px 8px !important;}
+  }
 </style>
 
 <!-- A4 PDF 出力用スタイル（計測のため独立させている） -->
@@ -1209,6 +1218,7 @@
     <div class="tab-scroll">
       <button type="button" class="tab" data-mod="base" aria-pressed="true">返済＋積立</button>
       <button type="button" class="tab" data-mod="wait" aria-pressed="false">今買う vs 待つ</button>
+      <button type="button" class="tab" data-mod="var" aria-pressed="false">変動金利</button>
       <button type="button" class="tab" data-mod="m21" aria-pressed="false">借入可能額</button>
       <button type="button" class="tab" data-mod="m25" aria-pressed="false">住宅ローン控除</button>
       <button type="button" class="tab" data-mod="relay" aria-pressed="false">親子リレー</button>
@@ -1716,6 +1726,117 @@
 
         <div class="strip-section">
           <div class="strip-sub" id="waitDetail"></div>
+        </div>
+
+        <div class="note-ref">※ 前提と計算方法は、ページ末尾の<b>「注記」</b>を参照。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 変動金利の5年ルール ============ -->
+  <div class="section-heading">
+    <h2>変動金利で金利が上がったら</h2>
+  </div>
+
+  <div class="section-body">
+    <div class="grid" id="varGrid">
+      <!-- INPUT（設定ドロワーへ移動される） -->
+      <div class="panel">
+        <div class="ledger-title">金利上昇の条件</div>
+        <div class="field-row">
+          <label for="varRiseYear">金利が上がる時期</label>
+          <div class="field-input"><input type="text" inputmode="numeric" id="varRiseYear" value="3"><span class="unit">年後</span></div>
+        </div>
+        <div class="field-row">
+          <label for="varRiseUp">上昇幅</label>
+          <div class="field-input"><span class="unit">＋</span><input type="text" inputmode="decimal" id="varRiseUp" value="1.0"><span class="unit">%</span></div>
+        </div>
+        <div class="field-row">
+          <label>返済額のルール</label>
+          <label class="toggle-row" for="varRule5">
+            <input type="checkbox" id="varRule5" checked>
+            5年ルール（返済額は5年ごとの見直しまで変えない）
+          </label>
+          <label class="toggle-row" for="varCap125">
+            <input type="checkbox" id="varCap125" checked>
+            125%ルール（見直し後の返済額は従前の1.25倍まで）
+          </label>
+          <div class="field-hint">多くの変動金利ローンで採用されている取り扱いです。<b>金融機関により有無・内容が異なります</b>ので、必ずご契約先にご確認ください。</div>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="panel" id="varPanel">
+        <div class="diag-bar wait-bar">
+          <span class="diag-toggle" style="cursor:default;">
+            <input type="text" inputmode="numeric" id="varRiseYearR" class="inline-num" placeholder="3">
+            <span class="diag-rate">年後に金利</span>
+          </span>
+          <span class="diag-toggle" style="cursor:default;">＋
+            <input type="text" inputmode="decimal" id="varRiseUpR" class="inline-num" placeholder="1.0">
+            <span class="diag-rate">% 上昇</span>
+          </span>
+          <span class="diag-rate" id="varRuleEcho"></span>
+        </div>
+
+        <div class="headline-figure">
+          <div class="headline-label">金利上昇で増える返済額（総額）</div>
+          <div class="headline-value" id="varIncrease">—</div>
+          <div class="headline-sub" id="varSub"></div>
+        </div>
+
+        <div class="strip-section">
+          <div class="strip-title">5年ルールで何が起きるか
+            <button type="button" class="help-btn" id="varHelpBtn" aria-label="説明">？</button>
+          </div>
+          <div class="help-body" id="varHelp" style="display:none;"></div>
+          <div class="el-bars" id="varBars"></div>
+          <div class="el-legend">
+            <span><i class="tp-sw pcol"></i>元金</span>
+            <span><i class="tp-sw icol"></i>利息</span>
+          </div>
+        </div>
+
+        <div class="stat-strip four">
+          <div class="stat">
+            <div class="stat-label">毎月返済額（当初）</div>
+            <div class="stat-value mono" id="varPay0">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label" id="varPayNextLabel">見直し後の毎月返済額</div>
+            <div class="stat-value icol mono" id="varPayNext">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">最終回の精算額</div>
+            <div class="stat-value mono" id="varFinal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">未払利息</div>
+            <div class="stat-value mono" id="varUnpaid">—</div>
+          </div>
+        </div>
+
+        <div class="strip-section">
+          <div class="strip-sub" id="varDetail"></div>
+        </div>
+
+        <div class="strip-section">
+          <div class="strip-title">増える分を積み立てて備える</div>
+          <div class="yield-picker">
+            <span class="yp-label">想定利回り（年率）</span>
+            <div class="chip-row yp-chips" data-target="yieldVar">
+              <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
+            </div>
+            <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldVar" value="6"><span class="unit">%</span></div>
+          </div>
+          <div class="yield-out" id="varYieldOut"></div>
+          <details class="fund-ref">
+            <summary>投資信託の過去実績（年率）を利回りの目安にする</summary>
+            <div class="fr-body">
+              <div class="strip-sub" style="margin-top:0;" id="fundRefNoteVar"></div>
+              <div id="fundRefVar"></div>
+            </div>
+          </details>
         </div>
 
         <div class="note-ref">※ 前提と計算方法は、ページ末尾の<b>「注記」</b>を参照。</div>
@@ -2889,6 +3010,140 @@
 
   // ============ ◯歳で完済（繰上げ完済）＋早い繰上げほど利息が減る ============
   var gPayoffLump=0, gPayoffYears=0;
+  // ============ 変動金利：5年ルール・125%ルール・未払利息 ============
+  // 月ごとに返済をシミュレートする。
+  //  rule5  : 返済額は5年（60回）ごとの見直しまで変えない
+  //  cap125 : 見直し後の返済額は従前の1.25倍が上限
+  //  未払利息: 返済額で利息を払いきれない分。元金には充当されず繰り越し（複利にはしない）
+  function simVariable(P, r0Pct, upPct, riseMonth, n, rule5, cap125){
+    if(!(P>0) || n<=0) return null;
+    const m0 = (r0Pct/100)/12, m1 = ((r0Pct+upPct)/100)/12;
+    let A = annuityPayment(P, m0, n);
+    const A0 = A;
+    let bal = P, unpaid = 0, paidP = 0, paidI = 0, maxUnpaid = 0;
+    let payAfterReview = null, reviewMonth = null;
+    for(let m=1; m<=n; m++){
+      const r = (m > riseMonth) ? m1 : m0;
+      // 返済額の見直し
+      if(m > 1){
+        if(rule5){
+          if((m-1) % 60 === 0 && m > riseMonth){
+            let na = annuityPayment(bal + unpaid, r, n - m + 1);
+            if(cap125) na = Math.min(na, A * 1.25);
+            A = na;
+            if(payAfterReview === null){ payAfterReview = A; reviewMonth = m; }
+          }
+        } else if(m === riseMonth + 1){
+          A = annuityPayment(bal + unpaid, r, n - m + 1);
+          if(payAfterReview === null){ payAfterReview = A; reviewMonth = m; }
+        }
+      }
+      const interest = bal * r;
+      const due = interest + unpaid;
+      if(A >= due){
+        let pr = A - due;
+        if(pr > bal) pr = bal;
+        paidI += due; paidP += pr; bal -= pr; unpaid = 0;
+      } else {
+        // 返済額では利息を払いきれない → 未払利息として繰り越し
+        paidI += A;
+        unpaid = due - A;
+        if(unpaid > maxUnpaid) maxUnpaid = unpaid;
+      }
+    }
+    const finalLump = bal + unpaid;      // 最終回の精算（残債＋未払利息）
+    paidP += bal; paidI += unpaid;
+    return {A0:A0, payAfterReview:payAfterReview, reviewMonth:reviewMonth,
+            total:paidP+paidI, p:paidP, i:paidI, finalLump:finalLump, maxUnpaid:maxUnpaid};
+  }
+
+  var gVarIncrease = 0, gVarYears = 1;
+  function variableSim(){
+    if(!baseReady()) return;
+    if(typeof syncVarInputs === 'function') syncVarInputs(false);
+    const P = ((iv('principal')||0)*10000) - bonusPrincipalOf((iv('principal')||0)*10000);
+    const r0 = iv('rate')||0;
+    const years = Math.round(iv('years')||0);
+    const n = years*12;
+    const ry = Math.max(0, Math.round(iv('varRiseYear')||0));
+    const up = iv('varRiseUp')||0;
+    const rule5 = !$('varRule5') || $('varRule5').checked;
+    const cap125 = !$('varCap125') || $('varCap125').checked;
+    const riseMonth = Math.min(n, ry*12);
+    const man = v => Math.round(v/10000).toLocaleString('ja-JP');
+
+    const base = simVariable(P, r0, 0, n+1, n, rule5, cap125);            // 金利が上がらない場合
+    const withRule = simVariable(P, r0, up, riseMonth, n, rule5, cap125); // ルールあり
+    const noRule = simVariable(P, r0, up, riseMonth, n, false, false);    // すぐ返済額を見直す場合
+    if(!base || !withRule) return;
+
+    const inc = withRule.total - base.total;
+    gVarIncrease = Math.max(0, inc);
+    gVarYears = Math.max(1, ry);
+
+    $('varIncrease').innerHTML = man(inc) + '<small>万円</small>';
+    $('varSub').textContent =
+      ry + '年後に金利が ' + r0 + '％→' + (Math.round((r0+up)*100)/100) + '％ に上がった場合。' +
+      (rule5 ? '5年ルールで毎月返済額はしばらく変わりませんが、利息が増えるぶん元金の減りが遅くなり、あとで返済額が上がります。' : '返済額はすぐに見直されます。');
+
+    if($('varRuleEcho')) $('varRuleEcho').textContent =
+      (rule5 ? '5年ルール適用' : '5年ルールなし') + '／' + (cap125 ? '125%ルール適用' : '125%上限なし');
+
+    $('varPay0').innerHTML = yen(withRule.A0) + '<small> 円</small>';
+    if(withRule.payAfterReview){
+      $('varPayNextLabel').textContent = Math.round(withRule.reviewMonth/12) + '年目の見直し後：毎月返済額';
+      $('varPayNext').innerHTML = yen(withRule.payAfterReview) + '<small> 円</small>';
+    } else {
+      $('varPayNextLabel').textContent = '見直し後の毎月返済額';
+      $('varPayNext').innerHTML = '変わらず';
+    }
+    $('varFinal').innerHTML = withRule.finalLump > 1 ? man(withRule.finalLump) + '<small> 万円</small>' : 'なし';
+    $('varUnpaid').innerHTML = withRule.maxUnpaid > 1 ? man(withRule.maxUnpaid) + '<small> 万円</small>' : '発生なし';
+
+    // 積み上げ棒（元金・利息）
+    const maxT = Math.max(base.total, withRule.total, noRule ? noRule.total : 0) || 1;
+    function row(head, o){
+      const wP = o.p/maxT*100, wI = o.i/maxT*100;
+      const inP = wP >= 12, inI = wI >= 12;
+      let bar = '<span class="el-seg el-p" style="flex:0 0 '+wP.toFixed(2)+'%">'+(inP?'<span class="el-lab">元金</span>'+man(o.p):'')+'</span>'+
+                '<span class="el-seg el-i" style="flex:0 0 '+wI.toFixed(2)+'%">'+(inI?'<span class="el-lab">利息</span>'+man(o.i):'')+'</span>';
+      let outs = (!inP?'<span class="el-outlab el-p">元金 '+man(o.p)+'</span>':'')+(!inI?'<span class="el-outlab el-i">利息 '+man(o.i)+'</span>':'');
+      return '<div class="el-row"><div class="el-head">'+head+'（合計 '+man(o.total)+'万円）</div><div class="el-bar">'+bar+'</div>'+
+             (outs?'<div class="el-outs">'+outs+'</div>':'')+'</div>';
+    }
+    $('varBars').innerHTML =
+      row('金利が上がらない場合', base) +
+      row(ry+'年後に＋'+(Math.round(up*100)/100)+'%（'+(rule5?'5年ルールあり':'ルールなし')+'）', withRule) +
+      (noRule && rule5 ? row('（参考）すぐ返済額を見直す場合', noRule) : '');
+
+    $('varDetail').innerHTML =
+      '<b>金利が上がらない場合</b>：毎月 ' + yen(base.A0) + '円、総返済 ' + man(base.total) + '万円（利息 ' + man(base.i) + '万円）<br>' +
+      '<b>' + ry + '年後に＋' + (Math.round(up*100)/100) + '%</b>：総返済 ' + man(withRule.total) + '万円（利息 ' + man(withRule.i) + '万円）' +
+      (withRule.payAfterReview ? '／見直し後の毎月 ' + yen(withRule.payAfterReview) + '円' : '') +
+      (withRule.finalLump > 1 ? '／最終回に ' + man(withRule.finalLump) + '万円 の精算' : '') +
+      (rule5 && noRule ? '<br><b>（参考）すぐ見直す場合</b>：総返済 ' + man(noRule.total) + '万円　※5年ルールがあると総額は ' + man(withRule.total - noRule.total) + '万円 変わります' : '');
+
+    if($('varHelp')) $('varHelp').innerHTML =
+      '<b>5年ルール</b>：変動金利が上がっても、毎月の返済額は<b>5年ごとの見直しまで変わりません</b>。ただし返済額の中身が変わり、<b>利息の割合が増えて元金の減りが遅く</b>なります。つまり負担が消えるのではなく<b>後ろにずれる</b>だけです。<br>' +
+      '<b>125%ルール</b>：見直し後の返済額は<b>従前の1.25倍まで</b>。上がり方は抑えられますが、払いきれない分はさらに後ろへ繰り越されます。<br>' +
+      '<b>未払利息</b>：金利が大きく上がって返済額で利息を払いきれないと、その差額が<b>未払利息</b>として繰り越され、<b>最終回にまとめて精算</b>が必要になることがあります。<br>' +
+      '（これらの取り扱いは金融機関により異なります。ご契約先の条件をご確認ください）';
+
+    variableYieldUpdate();
+  }
+
+  function variableYieldUpdate(){
+    if(!(gVarIncrease > 0)){ if($('varYieldOut')) $('varYieldOut').innerHTML=''; if($('fundRefVar')) $('fundRefVar').innerHTML=''; return; }
+    const y = iv('yieldVar'); const yieldPct = isFinite(y) ? Math.max(0,y) : 0;
+    const need = Math.round(neededMonthly(gVarIncrease, yieldPct, gVarYears));
+    const man = v => Math.round(v/10000).toLocaleString('ja-JP');
+    if($('varYieldOut')) $('varYieldOut').innerHTML =
+      '<div class="yo-lead">増える <b class="yo-goal">' + man(gVarIncrease) + '万円</b> を、金利が上がるまでの ' + gVarYears + '年間で用意する場合</div>' +
+      '<div class="yo-amt">' + yen(need) + '<small> 円 / 月</small></div>' +
+      '<div class="yo-note">' + gVarYears + '年間の積立元本 合計 ' + man(need*gVarYears*12) + ' 万円' + (yieldPct>0 ? '（差額は運用益で補う概算）' : '（利回り0%のため全額を自己資金で積む前提）') + '</div>';
+    renderFundRef('fundRefVar', [{label:'毎月の必要積立額', target:gVarIncrease}], gVarYears, 'yieldVar');
+  }
+
   // ============ 今買う vs 待って買う ============
   // 「今すぐ買う」と「家賃を払いながら頭金をためて◯年後に買う（そのとき金利が上がる）」を
   // 住居費の総額（家賃＋頭金＋ローン返済）で比べる。
@@ -3468,6 +3723,28 @@
   }
   if($('payoffAge')){ attachClear($('payoffAge')); $('payoffAge').addEventListener('change', function(){ syncPayoffAge('a'); payoffRecalc(); }); }
   if($('payoffAgeR')){ attachClear($('payoffAgeR')); $('payoffAgeR').addEventListener('change', function(){ syncPayoffAge('r'); payoffRecalc(); }); }
+  // 変動金利（設定側と結果側の入力を双方向同期）
+  var VAR_PAIRS = [['varRiseYear','varRiseYearR'],['varRiseUp','varRiseUpR']];
+  function syncVarInputs(fromR){
+    VAR_PAIRS.forEach(function(pr){
+      var a=$(pr[0]), b=$(pr[1]); if(!a||!b) return;
+      if(fromR) a.value=b.value; else b.value=a.value;
+    });
+  }
+  ['varRiseYear','varRiseUp'].forEach(function(id){
+    if($(id)){ attachClear($(id)); $(id).addEventListener('change', function(){ syncVarInputs(false); variableSim(); }); }
+  });
+  VAR_PAIRS.forEach(function(pr){
+    var b=$(pr[1]); if(!b) return; attachClear(b);
+    b.addEventListener('change', function(){ syncVarInputs(true); variableSim(); });
+  });
+  ['varRule5','varCap125'].forEach(function(id){ if($(id)) $(id).addEventListener('change', variableSim); });
+  if($('yieldVar')){ attachClear($('yieldVar')); ['input','change'].forEach(function(ev){ $('yieldVar').addEventListener(ev, variableYieldUpdate); }); }
+  if($('varHelpBtn')) $('varHelpBtn').addEventListener('click', function(){
+    var b=$('varHelp'); if(!b) return; var open=b.style.display!=='none';
+    b.style.display = open ? 'none' : ''; this.classList.toggle('on', !open);
+  });
+
   // 今買う vs 待つ（設定側と結果側の入力を双方向同期）
   var WAIT_PAIRS = [['waitRent','waitRentR'],['waitSave','waitSaveR'],['waitYears','waitYearsR'],['waitRateUp','waitRateUpR']];
   function syncWaitInputs(fromR){
@@ -3559,7 +3836,7 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); relaySim(); waitSim(); stressTest(); convertSim(); renderCredit(); }
+  function recalcAll(){ calculate(); payoffSim(); relaySim(); waitSim(); variableSim(); stressTest(); convertSim(); renderCredit(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
@@ -3835,7 +4112,7 @@
   // 教育資金シミュレーター風：結果は全幅表示、入力は下部ドロワーに集約（右下FABで開閉）
   function setupPresentation(){
     var main = document.querySelector('main');
-    var KEYS = ['base','wait','m21','m25','relay','m23']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
+    var KEYS = ['base','wait','var','m21','m25','relay','m23']; // 2-2は返済ページ(base)に統合済み／2-4は削除済み
     var groups = [];
     Array.prototype.forEach.call(main.children, function(el){
       if(el.classList.contains('disclaimer') || el.classList.contains('print-disc')){ if(groups[0]) groups[0].nodes.push(el); return; }
@@ -3912,7 +4189,7 @@
       });
     });
 
-    var TITLES = {base:'設定（金利上昇・完済の条件）', wait:'待つ場合の条件', relay:'親子リレーの条件', m21:'借入可能額 診断の条件', m23:'賃貸転用の条件', m25:'住宅ローン控除の条件'};
+    var TITLES = {base:'設定（金利上昇・完済の条件）', wait:'待つ場合の条件', 'var':'金利上昇の条件', relay:'親子リレーの条件', m21:'借入可能額 診断の条件', m23:'賃貸転用の条件', m25:'住宅ローン控除の条件'};
 
     function show(key, doScroll){
       groups.forEach(function(g){
@@ -4064,6 +4341,7 @@
   renderCredit();
   relaySim();
   waitSim();
+  variableSim();
   setupPresentation();
   // ドロワーへの入力移動・pristine適用が済んだあとにクイックバーを配線・同期する
   wireQuickBar();
@@ -4071,6 +4349,7 @@
   renderPatterns();
   relaySim();
   waitSim();
+  variableSim();
   setupKeypadDone();
 })();
 </script>
