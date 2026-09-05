@@ -41,16 +41,23 @@
   .mini svg{flex:0 0 auto;}
   .mini .mnum{font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.7;}
   .mini .mnum b{font-size:0.9rem;}
+  .sec{font-family:var(--mincho);font-size:1.0rem;margin:4px 0 12px;padding-bottom:6px;
+       border-bottom:2px solid var(--gold);color:var(--gold-soft);}
+  .sec2{margin-top:26px;}
   .foot{font-size:0.72rem;color:var(--text-dim);line-height:1.8;
         background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
 </style>
 </head>
 <body>
-<h1>元金・利息の配色サンプル（10案）</h1>
+<h1>元金・利息の配色サンプル</h1>
 <p class="lead">
   借入 4,000万円／金利 1.5%／35年／元利均等 の実データで描いています。<br>
-  気に入った番号（例：<b>「7番で」</b>）を教えてください。掛け合わせ（例：<b>「3の元金＋8の利息」</b>）でも構いません。
+  気に入った番号（例：<b>「13番で」</b>）を教えてください。掛け合わせ（例：<b>「13の元金＋16の利息」</b>）や
+  「もっと濃く／薄く」といった微調整でも構いません。
 </p>
+<h2 class="sec">明るく鮮やか（11〜20）</h2>
+<div id="listB"></div>
+<h2 class="sec sec2">落ち着いた系（1〜10・前回の案）</h2>
 <div id="list"></div>
 <div class="foot">
   ※ 家賃・頭金の色（今買う vs 待つ）は、選ばれた配色に合わせて後から調整します。<br>
@@ -58,6 +65,18 @@
 </div>
 
 <script>
+var VIVID = [
+  {n:'オーシャン × マンダリン',   p:'#0F7FA8', i:'#F2872B'},
+  {n:'エメラルド × サンセット',   p:'#12A594', i:'#F2622E'},
+  {n:'ロイヤルブルー × ゴールド', p:'#2563C9', i:'#F5B227'},
+  {n:'ティール × ラズベリー',     p:'#0E9CA5', i:'#E23E63'},
+  {n:'インディゴ × ライム',       p:'#4338CA', i:'#9FC131'},
+  {n:'サファイア × アプリコット', p:'#1D6FD6', i:'#FFA24C'},
+  {n:'ジェード × フレイム',       p:'#17A673', i:'#F04E32'},
+  {n:'コバルト × サンフラワー',   p:'#1E5FD1', i:'#FFC419'},
+  {n:'アクア × マゼンタ',         p:'#0FA3B1', i:'#D6336C'},
+  {n:'スカイ × タンジェリン',     p:'#2E9BE0', i:'#FF8A3D'}
+];
 var PALETTES = [
   {n:'インク × ブロンズ', p:'#22303f', i:'#b08442', cur:true,  note:'現行'},
   {n:'ネイビー × ワイン',       p:'#2c4257', i:'#9c3d54'},
@@ -115,7 +134,7 @@ function donutSVG(pc, ic){
     '</svg>';
 }
 
-document.getElementById('list').innerHTML = PALETTES.map(function(pl, k){
+function render(list, offset){ return list.map(function(pl, k0){ var k = k0 + offset;
   var wp = TP/(TP+TI)*100, wi = 100-wp;
   return '<div class="card'+(pl.cur?' cur':'')+'">'+
     '<div class="chead">'+
@@ -139,7 +158,9 @@ document.getElementById('list').innerHTML = PALETTES.map(function(pl, k){
       '<span><i style="background:'+pl.i+'"></i>利息</span>'+
     '</div>'+
   '</div>';
-}).join('');
+  }).join(''); }
+document.getElementById('listB').innerHTML = render(VIVID, 10);
+document.getElementById('list').innerHTML  = render(PALETTES, 0);
 </script>
 </body>
 </html>
