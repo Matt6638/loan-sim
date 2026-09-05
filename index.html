@@ -833,6 +833,10 @@
   .swatch.pcol{background:var(--principal);}
   .swatch.icol{background:var(--interest);}
   .tw-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  /* 閉じるボタンのすぐ下に貼り付ける（下までスクロールしても「期間を選ぶ」を押せる） */
+  .table-wrap.open .tw-head{position:sticky;top:calc(var(--navh,56px) + var(--tblclose,44px));z-index:7;
+    background:var(--panel);margin:0 -20px 0;padding:8px 20px;
+    box-shadow:0 1px 0 var(--border);}
   .tw-head .tw-title{font-family:var(--mincho);font-size:0.9rem;color:var(--gold-soft);font-weight:600;}
   .table-wrap{padding:16px 20px 20px; display:none;}
   /* 期間の選択（ドラッグ） */
@@ -885,7 +889,8 @@
   #tableWrap table td{white-space:nowrap;}
   /* 見出し行はスクロールしても固定 */
   /* 見出しは閉じるボタンのすぐ下に貼り付く。表を上下にスワイプするとその通りに動く */
-  #tableWrap thead th{position:sticky;top:calc(var(--navh,56px) + var(--tblclose,44px));z-index:6;}
+  #tableWrap thead th{position:sticky;
+    top:calc(var(--navh,56px) + var(--tblclose,44px) + var(--twhead,44px));z-index:6;}
   /* 利息割合はスペースを取るため縦画面では隠す（iPhone横向き・iPad・PCでは表示） */
   #tableWrap table th:nth-child(6), #tableWrap table td:nth-child(6){display:none;}
   @media (min-width:640px){
@@ -1285,6 +1290,8 @@
   table{font-size:7.4px !important;width:100% !important;table-layout:fixed !important;}
   #tableWrap{max-height:none !important;overflow:visible !important;}
   #tableWrap thead th{position:static !important;}
+  .table-wrap.open .tw-head{position:static !important;margin:0 !important;padding:0 !important;box-shadow:none !important;}
+  #tableToggle.stuck{position:static !important;}
   /* 印刷では利息割合も表示し、7列を幅いっぱいに配分（合計100%） */
   #tableWrap table th, #tableWrap table td{display:table-cell !important;white-space:nowrap !important;overflow:hidden !important;}
   #tableWrap table th:nth-child(1), #tableWrap table td:nth-child(1){width:6% !important;}
@@ -2124,8 +2131,8 @@
           <div class="field-input">
             <select id="moveInYear">
               <option value="2024">2024年（令和6年）</option>
-              <option value="2025" selected>2025年（令和7年）</option>
-              <option value="2026">2026年（令和8年）</option>
+              <option value="2025">2025年（令和7年）</option>
+              <option value="2026" selected>2026年（令和8年）</option>
               <option value="2027">2027年（令和9年）</option>
               <option value="2028">2028年（令和10年）</option>
               <option value="2029">2029年（令和11年）</option>
@@ -2159,9 +2166,9 @@
         <div class="field-row" id="keizokuRow">
           <label class="toggle-row" for="keizoku" style="margin-top:0;">
             <input type="checkbox" id="keizoku">
-            経過措置に該当する
+            経過措置に該当する（期限までに建築確認を受けている）
           </label>
-          <div class="field-hint">「その他の住宅（省エネ基準未達）」の場合のみ判定に使用。登記簿上の建築日付が令和10年6月30日以前、または建築確認が令和9年（2027年）末までのもの。中古住宅は通常これに該当します。</div>
+          <div class="field-hint">新築で「その他の住宅（省エネ基準未達）」＝2023年末までに建築確認を受けたもの（2,000万円×10年）。新築の「省エネ基準適合住宅」で2028年以降入居＝2027年末までに建築確認を受けたもの等（2,000万円×10年）。建築確認・登記の書類でご確認ください。</div>
         </div>
 
         <div class="field-row">
@@ -2169,7 +2176,15 @@
             <input type="checkbox" id="household">
             子育て世帯・若者夫婦世帯に該当
           </label>
-          <div class="field-hint">新築の借入限度額の上乗せ対象（19歳未満の子がいる、または夫婦いずれかが40歳未満 等）。</div>
+          <div class="field-hint">借入限度額の上乗せ対象。<b>19歳未満の子がいる世帯</b>、または<b>夫婦のいずれかが40歳未満の世帯</b>。2026年入居分からは既存（中古）住宅にも上乗せがあります。※上乗せを使う場合、床面積は50㎡以上が必要です。</div>
+        </div>
+
+        <div class="field-row" id="redZoneRow">
+          <label class="toggle-row" for="redZone" style="margin-top:0;">
+            <input type="checkbox" id="redZone">
+            災害レッドゾーンに新築する
+          </label>
+          <div class="field-hint">2028年（令和10年）入居分から、土砂災害特別警戒区域・地すべり防止区域・急傾斜地崩壊危険区域・浸水被害防止区域・災害危険区域に<b>新築</b>する住宅は控除の対象外です（建替え・既存住宅・リフォームは対象）。</div>
         </div>
 
         <div class="field-row">
@@ -2288,6 +2303,11 @@
     <p><strong>住宅ローン控除の「納税額による上限」：</strong>住宅ローン控除は納めた税金から差し引く制度のため、控除額は<b>所得税額＋住民税からの控除（年9.75万円が上限）</b>を超えられません。所得税額は年収から次の簡易計算で<strong>概算</strong>しています：給与所得控除（〜162.5万円は55万円／〜180万円は収入×40%−10万円／〜360万円は収入×30%+8万円／〜660万円は収入×20%+44万円／〜850万円は収入×10%+110万円／850万円超は195万円）、社会保険料は収入の15%、基礎控除48万円を差し引いた課税所得に所得税の速算表を適用し、復興特別所得税2.1%を加算。<strong>扶養控除・生命保険料控除・iDeCo等は考慮していないため、実際の税額とは異なります。</strong>源泉徴収票の「源泉徴収税額」を入力するとその金額が優先されます。<strong>これらの税率・控除額は改正されるため、必ず最新の国税庁情報でご確認ください。</strong></p>
 
     <p><strong>返済負担率（返済比率）：</strong>実際に入力している借入プラン（借入金額・金利・返済期間・返済方法）の<b>年間返済額 ÷ 年収</b>で計算しています（他の借入がある場合は加算）。借入可能額の逆算に使う「返済負担率の基準」とは別で、こちらは<b>いまの計画が基準の範囲に収まっているか</b>を見るための数値です。</p>
+
+    <p><strong>住宅ローン控除の借入限度額・控除期間（2026年〜2030年入居）：</strong>控除率0.7%。借入限度額（カッコ内は子育て世帯等＝19歳未満の子がいる、または夫婦のいずれかが40歳未満の世帯）と控除期間は次のとおりです。<br>
+    <b>新築・買取再販</b>：長期優良・低炭素 4,500（5,000）万円×13年／ZEH水準省エネ 3,500（4,500）万円×13年／省エネ基準適合 2,000（3,000）万円×13年（2026・2027年入居。2028年以降は支援対象外で、2027年末までに建築確認を受けたもの等のみ2,000万円×10年）／その他の住宅 対象外。<br>
+    <b>既存（中古）</b>：長期優良・低炭素 3,500（4,500）万円×13年／ZEH水準省エネ 3,500（4,500）万円×13年／省エネ基準適合 2,000（3,000）万円×13年／その他の住宅 2,000万円×10年。<br>
+    所得要件は合計所得金額2,000万円以下。床面積は40㎡以上（合計所得1,000万円超の方、および子育て世帯等の上乗せを使う場合は50㎡以上）。2028年（令和10年）入居分から、土砂災害等の災害レッドゾーンに新築する住宅は対象外（建替え・既存住宅・リフォームは対象）。<strong>出典：国土交通省「令和8年度住宅税制改正概要」別紙1（001975750.pdf、関連税制法は令和8年3月31日成立）。2024・2025年入居分は同省 001887903.pdf の表を使用しています。</strong>制度は改正されるため、適用にあたっては必ず最新の国税庁情報および税務署・税理士等にご確認ください。</p>
 
     <p><strong>住宅ローン控除の引き継ぎ：</strong>控除の試算は「返済＋金利上昇積立」で入力した<b>借入金額・金利・返済期間・返済方法・ボーナス返済</b>をそのまま引き継ぎ、その年末ローン残高をもとに計算します（入力パネル上部に引き継いだ条件を表示）。控除額は「min(年末残高, 借入限度額)×0.7%」の概算で、<strong>実際の控除は納税額（所得税＋翌年住民税、住民税分は年9.75万円が上限）の範囲に限られます。</strong>控除期間が返済期間より長い場合、完済後の年は残高0として計算します。年齢は「借入時の年齢」から各年を表示しています。</p>
   </div>
@@ -3806,63 +3826,81 @@
   }
 
   const CREDIT_RATE = 0.007; // 控除率 0.7%（確認済み）
-  // 2024・2025年入居の借入限度額（万円）— 一次資料 001887903.pdf の確認済み転記
-  const NEW_LIMITS_2425 = { // [子育て・若者夫婦, その他]
-    nintei: [5000, 4500],
-    zeh:    [4500, 3500],
-    energy: [4000, 3000],
+
+  // ── 借入限度額（万円）と控除期間 ────────────────────────────────
+  // 2024・2025年入居：国交省 001887903.pdf（確認済み転記）
+  // 2026〜2030年入居：国交省「令和8年度住宅税制改正概要」別紙1（001975750.pdf）
+  //   ＝令和8年3月31日成立の税制法にもとづく表を目視確認して転記
+  //   docs/refs/ にPDFと画像を保存してある
+  // 配列は [子育て世帯等, その他の世帯]（子育て世帯等＝19歳未満の子がいる、または夫婦の
+  // いずれかが40歳未満の世帯）
+  const LIMITS_2425 = {
+    new:      { nintei:[5000,4500], zeh:[4500,3500], energy:[4000,3000] },
+    existing: { nintei:[3000,3000], zeh:[3000,3000], energy:[3000,3000], other:[2000,2000] }
   };
-  const EXISTING_LIMIT_ENERGY = 3000; // 既存：長期優良・低炭素・ZEH・省エネ基準適合
-  const EXISTING_LIMIT_OTHER  = 2000; // 既存：その他の住宅
+  const TERM_2425 = { new:13, existing:10 };
+  const LIMITS_R8 = {   // 2026〜2030年入居
+    new:      { nintei:[5000,4500], zeh:[4500,3500], energy:[3000,2000] },
+    existing: { nintei:[4500,3500], zeh:[4500,3500], energy:[3000,2000], other:[2000,2000] }
+  };
 
   // 控除の適用可否と適用限度額・期間を判定
   function creditEligibility(){
-    const year = iv('moveInYear') || 2025;
+    const year = iv('moveInYear') || 2026;
     const isNew = document.querySelector('input[name=buildType]:checked').value === 'new';
     const cat = $('envCategory').value;
-    const keizoku = $('keizoku').checked;
-    const household = $('household').checked;
+    const keizoku = $('keizoku').checked;     // 経過措置（期限までに建築確認を受けている）
+    const household = $('household').checked; // 子育て世帯等
+    const redzone = $('redZone') && $('redZone').checked;
     const area = iv('floorArea') || 0;
-    const income = iv('totalIncome') || 0; // 万円
+    const income = iv('totalIncome') || 0;    // 合計所得金額（万円）
+    const r8 = (year >= 2026);
+    const kind = isNew ? 'new' : 'existing';
 
-    // 【確定事項】省エネ基準未達（その他）で経過措置に該当しない → 控除対象外・0円（赤警告）
-    if(cat === 'other' && !keizoku){
-      return {status:'zero-env', year, isNew};
-    }
     // 所得要件：合計所得2,000万円超は対象外
     if(income > 2000){
-      return {status:'ineligible', reason:'合計所得金額が2,000万円を超えるため、住宅ローン控除の対象外です。'};
+      return {status:'ineligible', reason:'合計所得金額が2,000万円を超えるため、住宅ローン控除の対象外です（所得要件2,000万円）。'};
+    }
+    // 立地要件：2028年（令和10年）入居分から、災害レッドゾーンの新築は対象外
+    if(r8 && year >= 2028 && isNew && redzone){
+      return {status:'ineligible', reason:'2028年（令和10年）入居分から、土砂災害特別警戒区域等の災害レッドゾーンに新築する住宅は控除の対象外です（建替え・既存住宅・リフォームは対象）。'};
     }
     // 床面積要件
-    if(area < 40){
-      return {status:'ineligible', reason:'床面積が40㎡未満のため対象外です（原則50㎡以上、新築かつ合計所得1,000万円以下で40㎡以上に緩和）。'};
+    const need50 = (income > 1000) || (household && r8);
+    const minArea = r8 ? (need50 ? 50 : 40) : (isNew && income <= 1000 ? 40 : 50);
+    if(area < minArea){
+      return {status:'ineligible', reason: r8
+        ? '床面積が' + minArea + '㎡未満のため対象外です（2026年入居分から40㎡以上に緩和。ただし合計所得1,000万円超の方と、子育て世帯等の上乗せを使う場合は50㎡以上）。'
+        : '床面積が' + minArea + '㎡未満のため対象外です（原則50㎡以上、新築かつ合計所得1,000万円以下で40㎡以上に緩和）。'};
     }
-    if(area < 50){
-      if(!isNew){
-        return {status:'ineligible', reason:'既存（中古）住宅で床面積が50㎡未満のため対象外です（40㎡以上50㎡未満の緩和は新築が対象）。'};
-      }
-      if(income > 1000){
-        return {status:'ineligible', reason:'床面積50㎡未満（40㎡以上）の緩和は合計所得1,000万円以下が対象です。所得超過のため対象外です。'};
-      }
-    }
-    // 2026年以降入居：借入限度額が一次資料で確認中のため金額非表示（要確認）
-    if(year >= 2026){
-      return {status:'confirm', reason:'2026年（令和8年）以降入居の借入限度額は、政府一次資料（画像PDF）での確認が完了していないため、本ツールでは金額を表示しません。国税庁の最新情報でご確認ください。'};
-    }
-    // 2024・2025年入居（確認済みルール）
+
+    const table = r8 ? LIMITS_R8 : LIMITS_2425;
+
+    // その他の住宅（省エネ基準未達）
     if(cat === 'other'){
-      // 経過措置に該当するその他の住宅
       if(isNew){
-        return {status:'confirm', reason:'新築・その他の住宅（省エネ基準未達／経過措置該当）の借入限度額は一次資料での確認が必要なため、本ツールでは金額を表示しません。'};
+        // 新築は支援対象外。2023年末までに建築確認を受けたものだけ経過措置（2,000万円×10年）
+        if(keizoku) return {status:'ok', limit:2000, term:10, note:'経過措置（2023年末までに建築確認）'};
+        return {status:'zero-env', year, isNew};
       }
-      return {status:'ok', limit:EXISTING_LIMIT_OTHER, term:10};
+      return {status:'ok', limit:2000, term:10};
     }
-    if(isNew){
-      const limit = NEW_LIMITS_2425[cat][household ? 0 : 1];
-      return {status:'ok', limit, term:13};
+
+    // 新築の「省エネ基準適合住宅」は2028年（令和10年）以降の建築確認分から支援対象外
+    if(r8 && isNew && cat === 'energy' && year >= 2028){
+      if(keizoku) return {status:'ok', limit:2000, term:10, note:'経過措置（2027年末までに建築確認を受けたもの等）'};
+      return {status:'zero-env', year, isNew, energyOnly:true};
     }
-    // 既存（省エネ性能住宅）
-    return {status:'ok', limit:EXISTING_LIMIT_ENERGY, term:10};
+
+    const limit = table[kind][cat][household ? 0 : 1];
+    let term;
+    if(r8){
+      // 令和8年改正：既存住宅も省エネ性能があれば13年、その他の住宅のみ10年
+      term = 13;
+    } else {
+      term = TERM_2425[kind];
+    }
+    return {status:'ok', limit, term};
   }
 
   function renderCredit(){
@@ -3942,8 +3980,12 @@
     }
 
     $('creditTotal').innerHTML = Math.round(total/10000).toLocaleString('ja-JP') + '<small>万円</small>';
+    const moveY = iv('moveInYear') || 2026;
     $('creditTotalSub').textContent =
       '控除率0.7%・' + e.term + '年間の合計（年末残高×0.7%を借入限度' + e.limit.toLocaleString('ja-JP') + '万円の範囲で計算）' +
+      '／' + moveY + '年入居・' + (document.querySelector('input[name=buildType]:checked').value==='new' ? '新築等' : '既存') +
+      '・' + ({nintei:'認定住宅',zeh:'ZEH水準',energy:'省エネ基準適合',other:'その他'}[$('envCategory').value]) +
+      ($('household').checked ? '・子育て世帯等' : '') + (e.note ? '（' + e.note + '）' : '') +
       (cappedAny ? '　※納税額（所得税' + (iv('incomeTax')||0) + '万円＋住民税9.75万円）の範囲で頭打ちにしています' : '');
     $('creditTerm').textContent = e.term + ' 年';
     $('creditLimit').textContent = e.limit.toLocaleString('ja-JP') + ' 万円';
@@ -3967,7 +4009,7 @@
   }
 
   $('creditBtn').addEventListener('click', renderCredit);
-  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','floorArea','totalIncome','incomeTax','useTaxCap','income'].forEach(id=>{
+  ['principal','rate','years','bonusRatio','bonusAmount','borrowerAge','moveInYear','envCategory','keizoku','household','redZone','floorArea','totalIncome','incomeTax','useTaxCap','income'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', renderCredit);
   });
   document.querySelectorAll('input[name=method], input[name=buildType], input[name=bonusMode]').forEach(el=>{
@@ -4624,9 +4666,10 @@
     stressTest();
   });
   $('creditClear').addEventListener('click', ()=>{
-    $('moveInYear').value = 2025;
+    $('moveInYear').value = 2026;
     document.querySelector('input[name=buildType][value=new]').checked = true;
     $('envCategory').value = 'energy'; $('keizoku').checked = false; $('household').checked = false;
+    if($('redZone')) $('redZone').checked = false;
     $('floorArea').value = 70; $('totalIncome').value = 500; renderCredit();
   });
 
@@ -4664,6 +4707,10 @@
       var on = b && open && open.classList.contains('open');
       var h = on ? Math.round(b.getBoundingClientRect().height) : 0;
       document.documentElement.style.setProperty('--tblclose', h+'px');
+      // 「年間返済予定表／期間を選ぶ」の行の高さも測る
+      var tw = open ? open.querySelector('.tw-head') : null;
+      var th = (on && tw) ? Math.round(tw.getBoundingClientRect().height) : 0;
+      document.documentElement.style.setProperty('--twhead', th+'px');
     }
     setTblClose();
     window.gSetTblClose = setTblClose;   // 表の開閉時に測り直す
