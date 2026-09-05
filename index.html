@@ -483,16 +483,17 @@
     .grid{gap:14px;}
     .panel{border-radius:8px;}
     .quick-bar{padding:8px 6px;}
-    .qb-main{gap:4px;}
-    .qb-field{padding:0 5px;gap:2px;height:32px;}
+    /* 借入・年収の欄を広げたぶん、余白を詰めて1行目に4項目を保つ */
+    .qb-main{gap:4px 3px;}
+    .qb-field{padding:0 4px;gap:1px;height:32px;}
     .qb-k{font-size:0.6rem;letter-spacing:-0.02em;}
     .qb-u{font-size:0.54rem;letter-spacing:-0.04em;}
     /* 入力はiOSの自動ズームを避けるため16pxを維持しつつ、幅は桁数ぴったりに */
     .qb-field input{font-size:16px;padding:0;}
-    .qb-field input#qPrincipal{width:46px;}
+    .qb-field input#qPrincipal{width:52px;}
     .qb-field input#qAge{width:22px;}
-    .qb-field input#qIncome{width:36px;}
-    .qb-field input#qRate{width:44px;}
+    .qb-field input#qIncome{width:46px;}
+    .qb-field input#qRate{width:40px;}
     .qb-field input#qYears{width:22px;}
     .qb-field input#qBonus{width:38px;}
     .qb-seg{height:32px;}
@@ -4046,8 +4047,10 @@
       var q=$(pair[0]), src=$(pair[1]());
       if(!q || !src) return;
       if(document.activeElement === q) return; // 打ち込み中はキャレットを壊さない
-      q.value = src.value;
-      if(src.placeholder) q.placeholder = src.placeholder;
+      // 借入・年収はカンマを付けない（4〜5桁で欄からはみ出し、先頭の数字が欠けるため）
+      var noComma = (pair[0]==='qPrincipal' || pair[0]==='qIncome');
+      q.value = noComma ? String(src.value).replace(/,/g,'') : src.value;
+      if(src.placeholder) q.placeholder = noComma ? String(src.placeholder).replace(/,/g,'') : src.placeholder;
       q.classList.toggle('pristine', src.classList.contains('pristine'));
     });
     if($('qBonusUnit')) $('qBonusUnit').textContent = amt ? '万円' : '%';
