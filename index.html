@@ -567,7 +567,17 @@
   /* 今買う vs 待つ：4つの試算の区切りが分かるよう、間隔と見出しを強くする */
   #waitBars .el-row{margin-bottom:0;padding:14px 0 16px;border-top:1px solid var(--border-soft);}
   #waitBars .el-row:first-child{border-top:none;padding-top:2px;}
-  #waitBars .el-head{font-size:0.84rem;color:var(--text);font-weight:700;margin-bottom:8px;line-height:1.5;}
+  #waitBars .el-head{font-size:0.84rem;color:var(--text);font-weight:700;margin-bottom:8px;line-height:1.5;
+    display:flex;align-items:baseline;gap:6px;white-space:nowrap;}
+  #waitBars .el-no{flex:0 0 auto;color:#fff;background:var(--gold);border-radius:5px;
+    font-family:var(--mono);font-size:0.72rem;font-weight:700;padding:1px 6px;line-height:1.5;}
+  #waitBars .el-nm{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;}
+  #waitBars .el-tot{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-weight:700;color:var(--gold-soft);}
+  @media (max-width:560px){
+    #waitBars .el-head{font-size:0.78rem;gap:5px;}
+    #waitBars .el-no{font-size:0.66rem;padding:1px 5px;}
+    #waitBars .el-tot{font-size:0.76rem;}
+  }
   .el-bar{display:flex;align-items:stretch;height:24px;position:relative;}
   /* 棒に収まらない金額を、棒の中に重ねて表示する（背景を敷いて可読性を確保） */
   /* 棒に収まらない金額は、棒の上に出して引き出し線で対象を指す（境目を隠さないため） */
@@ -836,16 +846,17 @@
     background:#fff;border:1px solid var(--gold-soft);border-radius:7px;padding:5px 11px;cursor:pointer;
     white-space:nowrap;transition:all .15s;}
   .sel-btn.on{background:var(--gold);color:#fff;border-color:var(--gold);}
-  /* 閉じるボタンは見出しと一緒に画面上部へ貼り付ける（年度の行だけがスワイプで動く）。
-     .table-toggle の margin/角丸に負けないよう詳細度を上げる */
-  .table-wrap .tbl-close-top{margin:0 0 0;width:100%;position:sticky;top:var(--navh,56px);z-index:8;
-    background:#f4f1e8;border-radius:0;border-left:none;border-right:none;
-    box-shadow:0 1px 0 var(--border);}
+  /* 表を開いているあいだ、上の「閉じる」ボタンを画面上部に固定する。
+     見出しはそのすぐ下に貼り付き、年度の行だけがスワイプで動く */
+  #tableToggle.stuck{position:sticky;top:var(--navh,56px);z-index:8;
+    margin:20px 0 0;width:calc(100% - 40px);align-self:center;
+    box-shadow:0 6px 10px -8px rgba(27,42,74,.35);}
   .table-wrap.selecting tbody tr{cursor:pointer;}
   .table-wrap.selecting tbody{touch-action:none;}   /* 指でなぞるあいだ画面が動かないようにする */
-  .table-wrap.selecting tbody tr:hover{background:#f4f7fc;}
-  tbody tr.sel{background:#c9dcf7;}
-  tbody tr.sel td{color:#12305c;}
+  .table-wrap.selecting tbody tr:hover{background:#eef3fb;}
+  /* 選択中の色はホバーより優先する（最後の行だけ薄くならないように） */
+  .table-wrap.selecting tbody tr.sel:hover, tbody tr.sel{background:#aecdf5;}
+  tbody tr.sel td{color:#0f2c55;}
   tbody tr.sel-edge{box-shadow:inset 0 0 0 2px var(--principal);}
   .sel-sum{margin:10px 0 12px;background:#f2f5fa;border:1px solid var(--border-soft);
     border-left:3px solid var(--principal);border-radius:8px;padding:9px 12px;}
@@ -1532,7 +1543,8 @@
         </div>
         <!-- 選んだ期間の合計。選択中だけ表示する -->
         <div class="sel-sum" id="selSum" style="display:none;"></div>
-        <button class="table-toggle tbl-close-top" id="tableToggleBottom">▲ 年間返済予定表を閉じる</button>
+
+        <button class="table-toggle" id="tableToggleBottom" style="margin:14px 0 0;width:100%;display:none;">▲ 年間返済予定表を閉じる</button>
         <table>
           <thead>
             <tr>
@@ -2008,9 +2020,9 @@
           </div>
           <label class="toggle-row" for="autoRatio">
             <input type="checkbox" id="autoRatio" checked>
-            年収に応じてフラット35基準を自動設定
+            いまの借入プランの返済比率を自動で入れる
           </label>
-          <div class="field-hint">フラット35基準：年収400万円未満は30%以下、400万円以上は35%以下。民間金融機関の基準は非公表・各行で異なるため、営業側で上書きできます。</div>
+          <div class="field-hint">自動のあいだは、上の「借入条件」の年間返済額 ÷ 年収（＝下に出る返済比率）と同じ値が入るため、借入可能額はいまの借入金額と同じになります。率を上げ下げすると、その負担率で借りられる金額の目安が出ます。参考：フラット35の基準は年収400万円未満で30%以下、400万円以上で35%以下（下のボタンで切り替えられます）。</div>
         </div>
 
         <div class="field-row">
@@ -3009,9 +3021,23 @@
     if($('diagRateEcho')) $('diagRateEcho').textContent =
       rate + (useStress ? (inputRate > STRESS_RATE ? '（入力金利が3%超のためそのまま適用）' : '（審査金利3.0%を適用）') : '');
 
-    // 返済負担率：自動設定チェック時は年収から決定して入力欄に反映
+    // いま入力している借入プランの年間返済額（返済比率の分子）
+    let planAnnual = 0;
+    if(baseReady()){
+      const pYen=(iv('principal')||0)*10000, pRate=iv('rate')||0, pYears=Math.round(iv('years')||0);
+      const mOnly = pYen - bonusPrincipalOf(pYen);
+      const bOnly = bonusPrincipalOf(pYen);
+      const ms = simulateSubLoan(mOnly, pRate, pYears, 12, document.querySelector('input[name=method]:checked').value);
+      const bs = bOnly>0 ? simulateSubLoan(bOnly, pRate, pYears, 2, document.querySelector('input[name=method]:checked').value) : [];
+      for(let k=0;k<12;k++){ if(ms[k]) planAnnual += ms[k].payment; }
+      for(let k=0;k<2;k++){ if(bs[k]) planAnnual += bs[k].payment; }
+    }
+    const burdenActual = (incomeMan > 0 && planAnnual > 0) ? (planAnnual + otherDebtMan*10000) / (incomeMan*10000) * 100 : 0;
+
+    // 返済負担率：自動のあいだは「いまの借入プランの返済比率」をそのまま入れる。
+    // こうすると借入可能額＝いまの借入金額から始まり、率を上げ下げして幅を見られる
     if($('autoRatio').checked){
-      $('burdenRatio').value = flat35Ratio(incomeMan);
+      $('burdenRatio').value = burdenActual > 0 ? burdenActual.toFixed(1) : flat35Ratio(incomeMan);
       // 結果画面のバーにも反映（入力中は上書きしない）
       if($('burdenRatioR') && document.activeElement !== $('burdenRatioR')) $('burdenRatioR').value = $('burdenRatio').value;
     }
@@ -3021,7 +3047,7 @@
         b.classList.toggle('on', b.getAttribute('data-br') === curBR);
       });
     }
-    const ratioPct = Math.min(60, Math.max(1, iv('burdenRatio') || 0));
+    const ratioPct = Math.min(60, Math.max(0.1, iv('burdenRatio') || 0));
 
     const annualCap = Math.max(0, incomeMan*10000*(ratioPct/100) - otherDebtMan*10000);
     const monthlyCap = annualCap / 12;
@@ -3035,19 +3061,6 @@
 
     $('annualCap').textContent = yen(annualCap) + ' 円';
     $('monthlyCap').textContent = yen(monthlyCap) + ' 円';
-    // 返済負担率（＝返済比率）：いま入力している「実際の借入プラン」の年間返済額 ÷ 年収
-    // ※上限から逆算した金額で計算すると必ず基準値と同じになってしまうため、実プランで算出する
-    let planAnnual = 0;
-    if(baseReady()){
-      const pYen=(iv('principal')||0)*10000, pRate=iv('rate')||0, pYears=Math.round(iv('years')||0);
-      const mOnly = pYen - bonusPrincipalOf(pYen);
-      const bOnly = bonusPrincipalOf(pYen);
-      const ms = simulateSubLoan(mOnly, pRate, pYears, 12, document.querySelector('input[name=method]:checked').value);
-      const bs = bOnly>0 ? simulateSubLoan(bOnly, pRate, pYears, 2, document.querySelector('input[name=method]:checked').value) : [];
-      for(let k=0;k<12;k++){ if(ms[k]) planAnnual += ms[k].payment; }
-      for(let k=0;k<2;k++){ if(bs[k]) planAnnual += bs[k].payment; }
-    }
-    const burdenActual = (incomeMan > 0 && planAnnual > 0) ? (planAnnual + otherDebtMan*10000) / (incomeMan*10000) * 100 : 0;
     if($('burdenActual')) $('burdenActual').textContent = burdenActual > 0 ? burdenActual.toFixed(1) + ' %' : '—';
     if($('burdenActualSub')) $('burdenActualSub').textContent = burdenActual > 0
       ? '実際の借入プラン（' + (iv('principal')||0).toLocaleString('ja-JP') + '万円・' + (iv('rate')||0) + '%・' + Math.round(iv('years')||0) + '年）の年間返済額 ' +
@@ -3057,13 +3070,14 @@
 
     $('diagCondition').textContent =
       '適用返済負担率 ' + ratioPct + '％' +
-      '（' + ($('autoRatio').checked ? 'フラット35基準・自動' : '手動設定') + '）' +
+      '（' + ($('autoRatio').checked ? 'いまの借入プランの返済比率・自動' : '手動設定') + '）' +
       '／想定金利 ' + rate + '％' + (useStress ? '（審査金利）' : '') +
       '／返済期間 ' + years + '年';
   }
 
   // 返済負担率を手動編集したら自動設定を解除
   $('burdenRatio').addEventListener('input', ()=>{ $('autoRatio').checked = false; });
+  if($('autoRatio')) $('autoRatio').addEventListener('change', diagnose);
   // 返済負担率のプリセット（押すとその値で再計算し、自動設定は外す）
   if($('brChips')){
     Array.prototype.forEach.call($('brChips').querySelectorAll('button'), function(b){
@@ -3527,6 +3541,11 @@
     let maxAnnual = 1;
     Object.keys(allRows).forEach(function(k){ allRows[k].forEach(function(r){ maxAnnual = Math.max(maxAnnual, (r.p||0)+(r.i||0)+(r.rent||0)); }); });
 
+    // 見出しは「番号＋名前　合計◯◯万円」で1行に収める
+    const hd = function(no, name, total){
+      return '<span class="el-no">'+no+'</span><span class="el-nm">'+name+'</span>' +
+             '<span class="el-tot">合計 '+man(total)+'万円</span>';
+    };
     function row(head, segs, kind){
       let inner='';
       segs.forEach(function(x){
@@ -3555,15 +3574,15 @@
              '<div class="el-outs"></div>'+mini+'</div>';
     }
     $('waitBars').innerHTML =
-      row('今すぐ買う（合計 '+man(nowTotal)+'万円）', [
+      row(hd('①', '今すぐ買う', nowTotal), [
         {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}], 'now') +
-      row(wy+'年後に買う・金利そのまま（合計 '+man(flatTotal)+'万円）', [
+      row(hd('②', wy+'年後・金利そのまま', flatTotal), [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
         {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}], 'waitFlat') +
-      row(wy+'年後に買う・金利＋'+(Math.round(upPct*100)/100)+'%（合計 '+man(laterTotal)+'万円）', [
+      row(hd('③', wy+'年後・金利＋'+(Math.round(upPct*100)/100)+'%', laterTotal), [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
         {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}], 'waitUp') +
-      row('今すぐ買って '+wy+'年後に '+man(prepay)+'万円 を繰上返済（合計 '+man(prepayTotal)+'万円・'+cutY+'年'+(cutM?cutM+'ヶ月':'')+'で完済＝'+cutLabel(savedMonths)+'短縮）', [
+      row(hd('④', '今すぐ買って繰上返済', prepayTotal), [
         {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay');
     elFitBars($('waitBars'));
 
@@ -4355,8 +4374,9 @@
     const w = $('tableWrap');
     const opening = !w.classList.contains('open');
     w.classList.toggle('open');
-    $('tableToggle').textContent = opening ? '年間返済予定表を閉じる' : '年間返済予定表を表示';
-    // 閉じるボタンの高さを測り直し、表の見出しがその真下に貼り付くようにする
+    $('tableToggle').textContent = opening ? '▲ 年間返済予定表を閉じる' : '年間返済予定表を表示';
+    $('tableToggle').classList.toggle('stuck', opening);
+    // ボタンの高さを測り直し、表の見出しがその真下に貼り付くようにする
     if(window.gSetTblClose) setTimeout(window.gSetTblClose, 0);
     // 下の閉じるボタンで閉じたら、上のトグルまでスクロールして迷子を防ぐ
     if(!opening && fromBottom){ var nav=document.querySelector('.tabnav'); var navH=nav?nav.getBoundingClientRect().height:0; window.scrollTo(0, Math.max(0, $('tableToggle').getBoundingClientRect().top + window.scrollY - navH - 8)); }
@@ -4580,7 +4600,7 @@
 
   // クリア（各シート） — それぞれの初期値に戻して再計算
   $('diagClear').addEventListener('click', ()=>{
-    $('income').value = 500; $('otherDebt').value = 0; $('burdenRatio').value = 35;
+    $('income').value = 500; $('otherDebt').value = 0;
     $('autoRatio').checked = true; $('stressRate').checked = false;
     $('diagYears').value = 35; diagnose();
   });
@@ -4625,8 +4645,10 @@
     window.addEventListener('resize', setNavH);
     // 閉じるボタンの高さも測って、表の見出しがその真下に貼り付くようにする
     function setTblClose(){
-      var b=document.getElementById('tableToggleBottom');
-      var h=(b && b.offsetParent!==null) ? Math.round(b.getBoundingClientRect().height) : 0;
+      var b=document.getElementById('tableToggle');
+      var open=document.getElementById('tableWrap');
+      var on = b && open && open.classList.contains('open');
+      var h = on ? Math.round(b.getBoundingClientRect().height + 20) : 0;   // 上マージン20pxを含む
       document.documentElement.style.setProperty('--tblclose', h+'px');
     }
     setTblClose();
