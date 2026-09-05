@@ -379,6 +379,22 @@
   }
   .headline-value small{font-size:1rem;color:var(--text-dim);font-weight:400;margin-left:4px;}
   .headline-sub{font-size:0.8rem;color:var(--text-dim); margin-top:6px;}
+  /* すでに返済中のときの「現在地」 */
+  .now-box{margin-top:12px;background:#f2f5fa;border:1px solid var(--border-soft);
+    border-left:3px solid var(--principal);border-radius:8px;padding:10px 12px;}
+  .nb-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:0.78rem;font-weight:700;color:var(--text);}
+  .nb-tag{font-size:0.64rem;color:#fff;background:var(--principal);border-radius:4px;padding:1px 7px;}
+  .nb-age{font-weight:600;color:var(--text-dim);}
+  .nb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 10px;margin-top:8px;}
+  .nb-cell{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .nb-cell .k{font-size:0.64rem;color:var(--text-dim);white-space:nowrap;}
+  .nb-cell .v{font-family:var(--mono);font-size:0.96rem;font-weight:600;white-space:nowrap;}
+  .nb-cell .v small{font-size:0.62rem;color:var(--text-dim);margin-left:1px;}
+  .nb-cell .v.pcol{color:var(--principal-ink);} .nb-cell .v.icol{color:var(--interest-ink);}
+  @media (max-width:560px){
+    .nb-grid{grid-template-columns:repeat(2,1fr);}
+    .nb-cell .v{font-size:0.88rem;}
+  }
 
   .stat-strip{
     display:grid;
@@ -566,6 +582,10 @@
   .el-head{font-size:0.72rem;color:var(--text-dim);font-weight:600;margin-bottom:3px;}
   /* 今買う vs 待つ：4つの試算の区切りが分かるよう、間隔と見出しを強くする */
   #waitBars .el-row{margin-bottom:0;padding:14px 0 16px;border-top:1px solid var(--border-soft);}
+  /* ①〜④の帯は数字が読めるよう少し高く・大きく */
+  #waitBars .el-bar{height:30px;}
+  #waitBars .el-bar .el-seg{font-size:0.82rem;}
+  #waitBars .el-bar .el-lab{font-size:0.72rem;margin-right:4px;}
   #waitBars .el-row:first-child{border-top:none;padding-top:2px;}
   #waitBars .el-head{font-size:0.84rem;color:var(--text);font-weight:700;margin-bottom:8px;line-height:1.5;
     display:flex;align-items:baseline;gap:6px;white-space:nowrap;}
@@ -861,16 +881,20 @@
   .table-wrap.selecting tbody{touch-action:none;}   /* 指でなぞるあいだ画面が動かないようにする */
   .table-wrap.selecting tbody tr:hover{background:#eef3fb;}
   /* 選択中の色はホバーより優先する（最後の行だけ薄くならないように） */
+  tbody tr.paid{background:#fafafa;}
+  tbody tr.paid td{color:#9aa3b2;}
   .table-wrap.selecting tbody tr.sel:hover, tbody tr.sel{background:#aecdf5;}
   tbody tr.sel td{color:#0f2c55;}
   tbody tr.sel-edge{box-shadow:inset 0 0 0 2px var(--principal);}
-  .sel-sum{margin:10px 0 12px;background:#f2f5fa;border:1px solid var(--border-soft);
-    border-left:3px solid var(--principal);border-radius:8px;padding:9px 12px;}
+  /* 選んだ期間の合計は画面下に固定する（表の下のほうを選んでも見える） */
+  .sel-sum{position:fixed;left:8px;right:8px;bottom:8px;z-index:30;
+    background:#eef3fb;border:1px solid var(--principal);border-radius:10px;padding:9px 12px;
+    box-shadow:0 10px 26px -8px rgba(27,42,74,.45);max-width:1064px;margin:0 auto;}
   .ss-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.74rem;font-weight:700;color:var(--text);}
   .ss-head .ss-n{font-family:var(--mono);font-weight:600;color:var(--text-dim);font-size:0.7rem;}
   .ss-clear{margin-left:auto;font-size:0.66rem;color:var(--gold-soft);background:#fff;
     border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;white-space:nowrap;}
-  .ss-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin-top:7px;}
+  .ss-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;margin-top:6px;}
   .ss-cell{display:flex;flex-direction:column;gap:1px;min-width:0;}
   .ss-cell .k{font-size:0.64rem;color:var(--text-dim);white-space:nowrap;}
   .ss-cell .v{font-family:var(--mono);font-size:0.92rem;font-weight:600;white-space:nowrap;}
@@ -942,6 +966,10 @@
   .diag-rate b{font-family:var(--mono);font-size:0.95rem;color:var(--gold-soft);}
   .wait-bar{flex-wrap:wrap;gap:10px 18px;justify-content:flex-start;}
   .wait-bar .diag-toggle{font-weight:600;font-size:0.78rem;}
+  .inline-sel{font-family:var(--gothic);font-size:0.74rem;font-weight:600;color:var(--text);
+    background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 6px;margin:0 3px;}
+  .inline-sel:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
+  .cr-bar{gap:8px 10px;}
   .inline-num{width:58px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
   .inline-num:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
 
@@ -1286,6 +1314,7 @@
   .table-wrap{display:block !important;padding:4px 9px 7px !important;overflow:visible !important;}
   .tw-head{margin-bottom:3px !important;}
   .tw-head .qb-seg, .tw-head .sel-btn, .ss-clear{display:none !important;}
+  .sel-sum{position:static !important;box-shadow:none !important;margin:6px 0 !important;}
   .tw-head .tw-title{font-size:8.6px !important;}
   table{font-size:7.4px !important;width:100% !important;table-layout:fixed !important;}
   #tableWrap{max-height:none !important;overflow:visible !important;}
@@ -1412,6 +1441,21 @@
       </div>
 
       <div class="field-row">
+        <label class="toggle-row" for="inRepay" style="margin-top:0;">
+          <input type="checkbox" id="inRepay">
+          すでに返済中（途中から試算する）
+        </label>
+        <div class="field-hint">上の「借入金額・金利・返済期間」は<b>当初の借入条件</b>を入れ、下に返済を始めてからの経過を入れてください。現在の残債・残りの期間・これから払う利息が出ます。</div>
+        <div class="field-input" id="elapsedWrap" style="margin-top:8px;">
+          <span class="unit" style="margin-right:6px;">返済して</span>
+          <input type="number" id="elapsedY" value="0" min="0" max="50" step="1" style="max-width:70px;">
+          <span class="unit">年</span>
+          <input type="number" id="elapsedM" value="0" min="0" max="11" step="1" style="max-width:60px;">
+          <span class="unit">ヶ月</span>
+        </div>
+      </div>
+
+      <div class="field-row">
         <label for="rate">年利（金利）</label>
         <div class="field-input">
           <input type="number" id="rate" placeholder="1.5" min="0" max="20" step="0.01">
@@ -1505,6 +1549,7 @@
         <div class="headline-value" id="monthlyPayment">—</div>
         <div class="need-input-msg" id="needInput" style="display:none;"></div>
         <div class="headline-sub" id="monthlySub"></div>
+        <div class="now-box" id="nowBox" style="display:none;"></div>
         <div class="hf-actions">
           <button type="button" class="cmp-add-btn" id="cmpAdd" title="この条件を比較に追加">＋追加</button>
           <button type="button" class="cmp-toggle-btn" id="cmpToggle" style="display:none;">比較を見る</button>
@@ -2226,6 +2271,28 @@
 
       <!-- RESULT: 顧客向け結果パネル -->
       <div class="panel">
+        <!-- 控除額を左右する条件は、設定を開かなくてもここで切り替えられるようにする -->
+        <div class="diag-bar cr-bar">
+          <span class="diag-toggle" style="cursor:default;">
+            <select id="moveInYearR" class="inline-sel"></select>
+            <span class="diag-rate">入居</span>
+          </span>
+          <div class="qb-seg" id="crKind">
+            <button type="button" class="qb-seg-btn on" data-kind="new">新築</button><button type="button" class="qb-seg-btn" data-kind="existing">既存</button>
+          </div>
+          <span class="diag-toggle" style="cursor:default;">
+            <select id="envCategoryR" class="inline-sel">
+              <option value="nintei">認定住宅</option>
+              <option value="zeh">ZEH水準</option>
+              <option value="energy">省エネ基準適合</option>
+              <option value="other">その他</option>
+            </select>
+          </span>
+          <label class="diag-toggle" for="householdR">
+            <input type="checkbox" id="householdR">
+            <span>子育て世帯等</span>
+          </label>
+        </div>
         <!-- 動的な警告バナー（省エネ未達=赤／対象外=アンバー）。dismiss不可・入力変更でのみ消える -->
         <div id="creditWarnZone"></div>
 
@@ -2486,8 +2553,9 @@
       const pH = plotH*clamp(r.principal/maxPay);
       const iH = plotH*clamp(r.interest/maxPay);
       const pY = y0 + plotH - pH;
-      bars += '<rect x="'+bx.toFixed(2)+'" y="'+pY.toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+pH.toFixed(2)+'" fill="var(--principal)" fill-opacity="0.95"/>';
-      if(iH>0.1) bars += '<rect x="'+bx.toFixed(2)+'" y="'+(pY-iH).toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+iH.toFixed(2)+'" fill="var(--interest)" fill-opacity="0.92"/>';
+      const pastOp = r.past ? 0.3 : 1;
+      bars += '<rect x="'+bx.toFixed(2)+'" y="'+pY.toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+pH.toFixed(2)+'" fill="var(--principal)" fill-opacity="'+(0.95*pastOp).toFixed(2)+'"/>';
+      if(iH>0.1) bars += '<rect x="'+bx.toFixed(2)+'" y="'+(pY-iH).toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+iH.toFixed(2)+'" fill="var(--interest)" fill-opacity="'+(0.92*pastOp).toFixed(2)+'"/>';
       if(i>0){ const sx=(x0+bw*i).toFixed(2);
         seps += '<line x1="'+sx+'" y1="'+y0+'" x2="'+sx+'" y2="'+(y0+plotH)+'" stroke="var(--border)" stroke-width="0.5" stroke-opacity="0.7" vector-effect="non-scaling-stroke"/>'; }
     }
@@ -2565,7 +2633,7 @@
     rows.forEach(function(r, idx){
       const x = (bw * idx + gap / 2).toFixed(2);
       const on = !hi || (idx + 1 >= hi.from && idx + 1 <= hi.to);
-      const op = on ? '1' : '0.22';
+      const op = r.past ? '0.28' : (on ? '1' : '0.22');   // 返済ずみの年は薄く
       let yBase = padT + plotH;
       function put(v, color){
         if(!(v > 0)) return;
@@ -2626,7 +2694,7 @@
       var barW = bar.clientWidth;
       segs.forEach(function(seg){
         if(!seg.textContent.trim()) return;
-        if(seg.scrollWidth <= seg.clientWidth + 1) return; // 収まっている
+        if(seg.scrollWidth <= seg.clientWidth - 5) return; // 余裕をもって収まっている
         var labEl = seg.querySelector('.el-lab');
         var name = labEl ? labEl.textContent : '';
         var val = seg.textContent.replace(name, '').trim();
@@ -2706,6 +2774,15 @@
   // グラフ描画用の直近の状態（経過年・試算期間の操作で再描画）
   var gLastYearly=null, gLastPrincipal=0, gStartAge=null;
   var gLabelY = 0.62;    // 「◯年目◯歳」ラベルの上下位置（0＝上端／1＝下端）
+  // すでに返済中の場合の経過月数（0なら「これから借りる」）
+  function elapsedMonths(){
+    if(!$('inRepay') || !$('inRepay').checked) return 0;
+    var y = Math.max(0, Math.round(iv('elapsedY') || 0));
+    var m = Math.max(0, Math.round(iv('elapsedM') || 0));
+    var n = Math.round((iv('years') || 0) * 12);
+    return Math.max(0, Math.min(n - 1, y * 12 + m));
+  }
+
   var gTableUnit = 'man'; // 年間返済予定表の単位（既定＝万円 / 'yen' で円）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
@@ -2806,7 +2883,8 @@
         principal:yPrinc,
         interest:yInt,
         payment:yPrinc+yInt,
-        balance: monthlyBalance + (bonusPrincipal>0 ? bonusBalance : 0)
+        balance: monthlyBalance + (bonusPrincipal>0 ? bonusBalance : 0),
+        past: (y+1) * 12 <= elapsedMonths()   // すでに返し終えた年
       });
     }
 
@@ -2874,6 +2952,35 @@
 
     // グラフの状態を保存し、経過年・試算期間の指定で描画
     gLastYearly = yearly; gLastPrincipal = principal;
+
+    // すでに返済中の場合：現在の残債・残り期間・これまで／これからの利息を出す
+    (function(){
+      var box = $('nowBox'); if(!box) return;
+      var em = elapsedMonths();
+      if(em <= 0){ box.style.display='none'; return; }
+      var paidP=0, paidI=0;
+      for(var k=0;k<em && k<monthlySchedule.length;k++){ paidP+=monthlySchedule[k].principal; paidI+=monthlySchedule[k].interest; }
+      var bm = Math.floor(em/6);
+      for(var k2=0;k2<bm && k2<bonusSchedule.length;k2++){ paidP+=bonusSchedule[k2].principal; paidI+=bonusSchedule[k2].interest; }
+      var balNow = (monthlySchedule[em-1] ? monthlySchedule[em-1].balance : 0) +
+                   (bonusPrincipal>0 && bonusSchedule[bm-1] ? bonusSchedule[bm-1].balance : (bonusPrincipal>0 ? bonusPrincipal : 0));
+      if(bonusPrincipal>0 && bm===0) balNow = (monthlySchedule[em-1]?monthlySchedule[em-1].balance:0) + bonusPrincipal;
+      var restM = years*12 - em;
+      var restI = totalInterest - paidI;
+      var man2 = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+      var ageNow = (gStartAge!=null) ? (gStartAge + Math.floor(em/12)) : null;
+      box.style.display='';
+      box.innerHTML =
+        '<div class="nb-head"><span class="nb-tag">返済中</span>' +
+          '<span class="nw">' + Math.floor(em/12) + '年' + (em%12 ? (em%12)+'ヶ月' : '') + '返済ずみ</span>' +
+          (ageNow!=null ? '<span class="nw nb-age">（現在 ' + ageNow + '歳）</span>' : '') + '</div>' +
+        '<div class="nb-grid">' +
+          '<div class="nb-cell"><span class="k">現在の残債</span><span class="v pcol">' + man2(balNow) + '<small> 万円</small></span></div>' +
+          '<div class="nb-cell"><span class="k">残りの期間</span><span class="v">' + Math.floor(restM/12) + '<small>年</small>' + (restM%12 ? (restM%12)+'<small>ヶ月</small>' : '') + '</span></div>' +
+          '<div class="nb-cell"><span class="k">払った利息</span><span class="v">' + man2(paidI) + '<small> 万円</small></span></div>' +
+          '<div class="nb-cell"><span class="k">これから払う利息</span><span class="v icol">' + man2(restI) + '<small> 万円</small></span></div>' +
+        '</div>';
+    })();
     if($('focusYear')){ let fy=Math.round(iv('focusYear')||1); if(fy>years) $('focusYear').value=years; if(fy<1) $('focusYear').value=1; }
     renderStatement();
 
@@ -2886,6 +2993,7 @@
       const rowShare = row.payment>0 ? (row.interest/row.payment*100) : 0;
       const tr = document.createElement('tr');
       tr.setAttribute('data-y', row.year);
+      if(row.past) tr.classList.add('paid');   // すでに返済ずみの年
       tr.innerHTML =
         '<td>'+row.year+'</td>' +
         '<td class="age-col">'+ageCell+'</td>' +
@@ -2967,6 +3075,39 @@
       if(nx){ nx.focus(); try{ nx.select(); }catch(_){} }
       else el.blur();
     });
+  }
+
+  // 住宅ローン控除：結果画面のバー ⇄ 入力パネルを同期させる
+  function setupCreditBar(){
+    var ySel=$('moveInYearR'), src=$('moveInYear');
+    if(!ySel || !src) return;
+    ySel.innerHTML = src.innerHTML;                      // 入居年の選択肢をそのまま複製
+    function pull(){                                     // 入力パネル → バー
+      ySel.value = src.value;
+      if($('envCategoryR')) $('envCategoryR').value = $('envCategory').value;
+      if($('householdR')) $('householdR').checked = $('household').checked;
+      var kind = document.querySelector('input[name=buildType]:checked').value;
+      Array.prototype.forEach.call(document.querySelectorAll('#crKind .qb-seg-btn'), function(b){
+        b.classList.toggle('on', b.getAttribute('data-kind') === kind);
+      });
+    }
+    function push(){ renderCredit(); }
+    ySel.addEventListener('change', function(){ src.value = ySel.value; push(); });
+    if($('envCategoryR')) $('envCategoryR').addEventListener('change', function(){ $('envCategory').value = this.value; push(); });
+    if($('householdR')) $('householdR').addEventListener('change', function(){ $('household').checked = this.checked; push(); });
+    Array.prototype.forEach.call(document.querySelectorAll('#crKind .qb-seg-btn'), function(b){
+      b.addEventListener('click', function(){
+        var r=document.querySelector('input[name=buildType][value="'+b.getAttribute('data-kind')+'"]');
+        if(r){ r.checked = true; }
+        pull(); push();
+      });
+    });
+    ['moveInYear','envCategory','household'].forEach(function(id){
+      if($(id)) $(id).addEventListener('change', pull);
+    });
+    document.querySelectorAll('input[name=buildType]').forEach(function(el){ el.addEventListener('change', pull); });
+    window.gCreditBarSync = pull;
+    pull();
   }
 
   function setupTableSelect(){
@@ -3930,6 +4071,7 @@
       ((cbAge && cbAge>0) ? '／借入時 ' + Math.round(cbAge) + '歳' : '') +
       ' の年末残高を使用';
 
+    if(window.gCreditBarSync) window.gCreditBarSync();
     const e = creditEligibility();
 
     if(e.status === 'zero-env'){
@@ -4110,6 +4252,9 @@
   });
   ['principal','rate','years','bonusRatio','borrowerAge'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', payoffSim);
+  });
+  ['inRepay','elapsedY','elapsedM'].forEach(function(id){
+    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, function(){ recalcAll(); diagnose(); }); });
   });
   document.querySelectorAll('input[name=method]').forEach(el=>{ el.addEventListener('change', payoffSim); });
 
@@ -4486,7 +4631,11 @@
             '<button type="button" class="dt-btn" id="custLoad">読込</button>' +
             '<button type="button" class="dt-btn dt-del" id="custDel">削除</button>' +
           '</div>' +
-          '<button type="button" class="dt-btn dt-reset" id="resetAll">全ての入力をリセット</button>' +
+          '<div class="dt-row">' +
+            '<button type="button" class="dt-btn dt-save" id="defSave">いまの入力を既定値にする</button>' +
+            '<button type="button" class="dt-btn" id="defClear">既定値を出荷時に戻す</button>' +
+          '</div>' +
+          '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
         '</div>' +
       '</details>' +
@@ -4603,8 +4752,12 @@
       $('bonusAmountWrap').classList.toggle('hidden', !amt);
       recalcAll(); diagnose();
     }
-    // 初期値（既定）＝入力移動直後の状態を控える。全リセットで使用
-    var INITIAL_STATE = collectState();
+    // 初期値（既定）＝入力移動直後の状態。営業ごとの既定値を保存していればそちらを使う
+    var FACTORY_STATE = collectState();
+    var DEF_KEY = 'loanSimDefaults';
+    function getDefaults(){ try{ return JSON.parse(localStorage.getItem(DEF_KEY)) || null; }catch(e){ return null; } }
+    var INITIAL_STATE = getDefaults() || FACTORY_STATE;
+    if(getDefaults()){ applyState(INITIAL_STATE); }   // 保存済みの既定値があれば起動時に反映
 
     // ---- FP流の入力挙動：既定値はグレー／フォーカスで全選択／入力で即時自動計算（計算ボタン不要） ----
     function isNumText(el){ return el && el.tagName==='INPUT' && (el.type==='number'||el.type==='text') && el.id!=='custName' && el.id.indexOf('fundR_')!==0; }
@@ -4653,7 +4806,18 @@
       syncQuickBar();
       if(msg) note(msg);
     }
-    $('resetAll').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
+    $('resetAll').addEventListener('click', function(){ doResetAll('既定値に戻しました'); });
+    // いまの入力を既定値として保存／出荷時に戻す
+    if($('defSave')) $('defSave').addEventListener('click', function(){
+      INITIAL_STATE = collectState();
+      try{ localStorage.setItem(DEF_KEY, JSON.stringify(INITIAL_STATE)); }catch(e){}
+      note('いまの入力を既定値にしました（次回からこの値で開きます）');
+    });
+    if($('defClear')) $('defClear').addEventListener('click', function(){
+      try{ localStorage.removeItem(DEF_KEY); }catch(e){}
+      INITIAL_STATE = FACTORY_STATE;
+      doResetAll('既定値を出荷時に戻しました');
+    });
     // 結果画面のクイックバーにある「全クリア」も同じ全リセットを実行
     if($('qReset')) $('qReset').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
     refreshCustList();
@@ -4696,6 +4860,7 @@
   variableSim();
   setupKeypadDone();
   setupTableSelect();
+  setupCreditBar();
   setupRateFormats();
   setupEnterToNext();
   // タブ（画面上部に固定）の高さを測り、表の見出しがその真下に貼り付くようにする
