@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>配色サンプル｜元金・利息</title>
+<title>配色サンプル一覧｜元金・利息</title>
 <style>
   :root{
     --bg:#f7f5ef; --panel:#fff; --text:#1b2a4a; --text-dim:#46506a;
@@ -14,57 +14,90 @@
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--gothic);
-       padding:18px 12px 60px;-webkit-text-size-adjust:100%;}
-  h1{font-family:var(--mincho);font-size:1.15rem;margin:0 0 4px;}
-  .lead{font-size:0.78rem;color:var(--text-dim);line-height:1.7;margin:0 0 18px;}
+       padding:14px 10px 50px;-webkit-text-size-adjust:100%;}
+  h1{font-family:var(--mincho);font-size:1.05rem;margin:0 0 4px;}
+  .lead{font-size:0.72rem;color:var(--text-dim);line-height:1.65;margin:0 0 14px;}
   .lead b{color:var(--text);}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
-        padding:14px 14px 16px;margin-bottom:14px;
-        box-shadow:0 1px 2px rgba(27,42,74,.06),0 10px 24px -8px rgba(27,42,74,.12);}
-  .card.cur{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.18);}
-  .chead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
-  .cno{font-family:var(--mono);font-size:0.95rem;font-weight:700;color:var(--gold);
-       border:1px solid var(--gold);border-radius:6px;padding:0 7px;line-height:1.6;}
-  .cname{font-family:var(--mincho);font-size:0.98rem;font-weight:600;}
-  .ctag{font-size:0.64rem;color:#fff;background:var(--gold);border-radius:4px;padding:1px 6px;}
-  .chex{font-family:var(--mono);font-size:0.66rem;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
-  .row{display:flex;align-items:stretch;height:26px;border-radius:5px;overflow:hidden;margin-bottom:8px;}
-  .row span{display:flex;align-items:center;justify-content:center;color:#fff;
-            font-family:var(--mono);font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;}
-  .amort{width:100%;height:104px;display:block;background:#fcfbf8;
-         border:1px solid var(--border-soft);border-radius:6px;}
-  .cap{display:flex;justify-content:space-between;font-family:var(--mono);
-       font-size:0.6rem;color:var(--text-dim);margin-top:3px;}
-  .legend{display:flex;gap:14px;align-items:center;margin-top:9px;font-size:0.7rem;color:var(--text-dim);}
-  .legend i{width:11px;height:11px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px;}
-  .mini{display:flex;align-items:center;gap:12px;margin-top:10px;}
-  .mini svg{flex:0 0 auto;}
-  .mini .mnum{font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.7;}
-  .mini .mnum b{font-size:0.9rem;}
-  .sec{font-family:var(--mincho);font-size:1.0rem;margin:4px 0 12px;padding-bottom:6px;
+  .sec{font-family:var(--mincho);font-size:0.9rem;margin:16px 0 8px;padding-bottom:4px;
        border-bottom:2px solid var(--gold);color:var(--gold-soft);}
-  .sec2{margin-top:26px;}
-  .foot{font-size:0.72rem;color:var(--text-dim);line-height:1.8;
-        background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+
+  /* 一覧グリッド：iPhoneで2列、広い画面では自動で列を増やす */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:8px;}
+  .c{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+     padding:8px 8px 9px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+     transition:box-shadow .12s,border-color .12s;}
+  .c:hover{border-color:var(--gold);}
+  .c.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.2);}
+  .c.cur .no{background:var(--gold);color:#fff;}
+  .top{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+  .no{font-family:var(--mono);font-size:0.68rem;font-weight:700;color:var(--gold);
+      border:1px solid var(--gold);border-radius:4px;padding:0 4px;line-height:1.5;flex:0 0 auto;}
+  .nm{font-size:0.63rem;font-weight:700;line-height:1.25;letter-spacing:-0.02em;}
+  .sw{display:flex;height:15px;border-radius:3px;overflow:hidden;margin-bottom:4px;}
+  .am{width:100%;height:44px;display:block;background:#fcfbf8;
+      border:1px solid var(--border-soft);border-radius:4px;}
+  .hx{font-family:var(--mono);font-size:0.54rem;color:var(--text-dim);margin-top:4px;
+      display:flex;justify-content:space-between;gap:4px;}
+
+  /* 拡大表示 */
+  .detail{background:var(--panel);border:1px solid var(--gold);border-radius:10px;
+          padding:14px;margin:12px 0 4px;display:none;
+          box-shadow:0 1px 2px rgba(27,42,74,.06),0 10px 24px -8px rgba(27,42,74,.14);}
+  .detail.on{display:block;}
+  .dhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:9px;}
+  .dhead .dno{font-family:var(--mono);font-size:0.95rem;font-weight:700;color:var(--gold);
+              border:1px solid var(--gold);border-radius:6px;padding:0 7px;}
+  .dhead .dnm{font-family:var(--mincho);font-size:1rem;font-weight:600;}
+  .dhead .dhx{font-family:var(--mono);font-size:0.66rem;color:var(--text-dim);margin-left:auto;}
+  .drow{display:flex;height:26px;border-radius:5px;overflow:hidden;margin-bottom:8px;}
+  .drow span{display:flex;align-items:center;justify-content:center;color:#fff;
+             font-family:var(--mono);font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;}
+  .dam{width:100%;height:104px;display:block;background:#fcfbf8;
+       border:1px solid var(--border-soft);border-radius:6px;}
+  .dcap{display:flex;justify-content:space-between;font-family:var(--mono);
+        font-size:0.6rem;color:var(--text-dim);margin-top:3px;}
+  .dmini{display:flex;align-items:center;gap:12px;margin-top:10px;}
+  .dmini .mnum{font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.7;}
+  .dmini .mnum b{font-size:0.9rem;}
+  .dclose{margin-top:10px;font-size:0.7rem;color:var(--gold-soft);background:#fff;
+          border:1px solid var(--gold-soft);border-radius:6px;padding:5px 10px;cursor:pointer;}
+  .foot{font-size:0.7rem;color:var(--text-dim);line-height:1.8;margin-top:16px;
+        background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 13px;}
 </style>
 </head>
 <body>
-<h1>元金・利息の配色サンプル</h1>
+<h1>元金・利息の配色サンプル（全20案）</h1>
 <p class="lead">
-  借入 4,000万円／金利 1.5%／35年／元利均等 の実データで描いています。<br>
-  気に入った番号（例：<b>「13番で」</b>）を教えてください。掛け合わせ（例：<b>「13の元金＋16の利息」</b>）や
-  「もっと濃く／薄く」といった微調整でも構いません。
+  借入 4,000万円／金利 1.5%／35年／元利均等 の実データ。<br>
+  <b>カードをタップすると大きく表示</b>します。気に入った番号（例：<b>「13番で」</b>）をお知らせください。
 </p>
+
+<div class="detail" id="detail"></div>
+
 <h2 class="sec">明るく鮮やか（11〜20）</h2>
-<div id="listB"></div>
-<h2 class="sec sec2">落ち着いた系（1〜10・前回の案）</h2>
-<div id="list"></div>
+<div class="grid" id="gridB"></div>
+
+<h2 class="sec">落ち着いた系（1〜10）</h2>
+<div class="grid" id="gridA"></div>
+
 <div class="foot">
   ※ 家賃・頭金の色（今買う vs 待つ）は、選ばれた配色に合わせて後から調整します。<br>
-  ※ 印刷（PDF）でも沈まないよう、いずれも明度差を確保した組み合わせにしています。
+  ※「16の元金＋18の利息」のような掛け合わせ、「13をもう少し濃く」などの微調整も承ります。
 </div>
 
 <script>
+var CALM = [
+  {n:'インク × ブロンズ', p:'#22303f', i:'#b08442', cur:true},
+  {n:'ネイビー × ワイン',        p:'#2c4257', i:'#9c3d54'},
+  {n:'ミッドナイト × サンド',    p:'#1f2a37', i:'#c9a86a'},
+  {n:'インディゴ × アンバー',    p:'#2b3a67', i:'#d99a2b'},
+  {n:'スレート × コーラル',      p:'#37474f', i:'#e07a5f'},
+  {n:'ディープティール × クレイ',p:'#14524b', i:'#c67b5c'},
+  {n:'フォレスト × テラコッタ',  p:'#2f5d50', i:'#b5654a'},
+  {n:'チャコール × オリーブ',    p:'#33373d', i:'#93a267'},
+  {n:'ブルーグレー × ラスト',    p:'#44576d', i:'#b4531f'},
+  {n:'墨 × 朱（和）',           p:'#2b2b2b', i:'#b34a3a'}
+];
 var VIVID = [
   {n:'オーシャン × マンダリン',   p:'#0F7FA8', i:'#F2872B'},
   {n:'エメラルド × サンセット',   p:'#12A594', i:'#F2622E'},
@@ -77,90 +110,88 @@ var VIVID = [
   {n:'アクア × マゼンタ',         p:'#0FA3B1', i:'#D6336C'},
   {n:'スカイ × タンジェリン',     p:'#2E9BE0', i:'#FF8A3D'}
 ];
-var PALETTES = [
-  {n:'インク × ブロンズ', p:'#22303f', i:'#b08442', cur:true,  note:'現行'},
-  {n:'ネイビー × ワイン',       p:'#2c4257', i:'#9c3d54'},
-  {n:'ミッドナイト × サンド',   p:'#1f2a37', i:'#c9a86a'},
-  {n:'インディゴ × アンバー',   p:'#2b3a67', i:'#d99a2b'},
-  {n:'スレート × コーラル',     p:'#37474f', i:'#e07a5f'},
-  {n:'ディープティール × クレイ',p:'#14524b', i:'#c67b5c'},
-  {n:'フォレスト × テラコッタ', p:'#2f5d50', i:'#b5654a'},
-  {n:'チャコール × オリーブ',   p:'#33373d', i:'#93a267'},
-  {n:'ブルーグレー × ラスト',   p:'#44576d', i:'#b4531f'},
-  {n:'墨 × 朱（和）',          p:'#2b2b2b', i:'#b34a3a'}
-];
+var ALL = {}; // 番号→配色
+CALM.forEach(function(x,k){ ALL[k+1]=x; });
+VIVID.forEach(function(x,k){ ALL[k+11]=x; });
 
 // ===== 元利均等の年次内訳（実計算） =====
 function yearly(P, ratePct, years){
-  var r = (ratePct/100)/12, n = years*12;
-  var A = r < 1e-12 ? P/n : P*r/(1-Math.pow(1+r,-n));
-  var bal = P, rows = [];
-  for(var y=0; y<years; y++){
-    var p=0, i=0;
-    for(var m=0; m<12; m++){
-      var it = bal*r, pr = A-it;
-      if(pr>bal) pr=bal;
-      i+=it; p+=pr; bal-=pr;
-    }
-    rows.push({p:p, i:i});
+  var r=(ratePct/100)/12, n=years*12;
+  var A = r<1e-12 ? P/n : P*r/(1-Math.pow(1+r,-n));
+  var bal=P, rows=[];
+  for(var y=0;y<years;y++){
+    var p=0,i=0;
+    for(var m=0;m<12;m++){ var it=bal*r, pr=A-it; if(pr>bal)pr=bal; i+=it; p+=pr; bal-=pr; }
+    rows.push({p:p,i:i});
   }
   return rows;
 }
 var ROWS = yearly(4000*10000, 1.5, 35);
 var TP = ROWS.reduce(function(s,r){return s+r.p;},0);
 var TI = ROWS.reduce(function(s,r){return s+r.i;},0);
-var MAXV = ROWS.reduce(function(m,r){return Math.max(m, r.p+r.i);}, 1);
+var MAXV = ROWS.reduce(function(m,r){return Math.max(m, r.p+r.i);},1);
 var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+var WP = TP/(TP+TI)*100, WI = 100-WP;
 
-function amortSVG(pc, ic){
-  var N=ROWS.length, W=720, H=104, padT=5, padB=5, plotH=H-padT-padB;
+function amortSVG(pc, ic, cls, H){
+  var N=ROWS.length, W=720, padT=4, padB=4, plotH=H-padT-padB;
   var bw=W/N, gap=Math.min(bw*0.2,2.6), bwid=Math.max(0.5,bw-gap), out='';
   ROWS.forEach(function(r, idx){
     var x=(bw*idx+gap/2).toFixed(2), yB=padT+plotH;
-    [[r.p,pc],[r.i,ic]].forEach(function(seg){
-      if(!(seg[0]>0)) return;
-      var h=plotH*Math.min(1,seg[0]/MAXV); yB-=h;
-      out+='<rect x="'+x+'" y="'+yB.toFixed(2)+'" width="'+bwid.toFixed(2)+'" height="'+h.toFixed(2)+'" fill="'+seg[1]+'"/>';
+    [[r.p,pc],[r.i,ic]].forEach(function(sg){
+      if(!(sg[0]>0)) return;
+      var h=plotH*Math.min(1,sg[0]/MAXV); yB-=h;
+      out+='<rect x="'+x+'" y="'+yB.toFixed(2)+'" width="'+bwid.toFixed(2)+'" height="'+h.toFixed(2)+'" fill="'+sg[1]+'"/>';
     });
   });
-  return '<svg class="amort" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'+out+'</svg>';
+  return '<svg class="'+cls+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'+out+'</svg>';
 }
 function donutSVG(pc, ic){
   var R=34, C=2*Math.PI*R, pf=TP/(TP+TI);
   return '<svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">'+
     '<circle cx="45" cy="45" r="'+R+'" fill="none" stroke="'+ic+'" stroke-width="15"/>'+
     '<circle cx="45" cy="45" r="'+R+'" fill="none" stroke="'+pc+'" stroke-width="15" '+
-      'stroke-dasharray="'+(C*pf).toFixed(2)+' '+(C*(1-pf)).toFixed(2)+'" transform="rotate(-90 45 45)"/>'+
-    '</svg>';
+      'stroke-dasharray="'+(C*pf).toFixed(2)+' '+(C*(1-pf)).toFixed(2)+'" transform="rotate(-90 45 45)"/></svg>';
 }
 
-function render(list, offset){ return list.map(function(pl, k0){ var k = k0 + offset;
-  var wp = TP/(TP+TI)*100, wi = 100-wp;
-  return '<div class="card'+(pl.cur?' cur':'')+'">'+
-    '<div class="chead">'+
-      '<span class="cno">'+(k+1)+'</span>'+
-      '<span class="cname">'+pl.n+'</span>'+
-      (pl.note?'<span class="ctag">'+pl.note+'</span>':'')+
-      '<span class="chex">'+pl.p+' / '+pl.i+'</span>'+
-    '</div>'+
-    '<div class="row">'+
-      '<span style="flex:0 0 '+wp.toFixed(2)+'%;background:'+pl.p+'">元金 '+man(TP)+'</span>'+
-      '<span style="flex:0 0 '+wi.toFixed(2)+'%;background:'+pl.i+'">利息 '+man(TI)+'</span>'+
-    '</div>'+
-    amortSVG(pl.p, pl.i)+
-    '<div class="cap"><span>1年目</span><span>元利均等・35年</span><span>35年目</span></div>'+
-    '<div class="mini">'+donutSVG(pl.p, pl.i)+
-      '<div class="mnum">総返済額 <b>'+man(TP+TI)+'</b> 万円<br>'+
-      '元金 '+man(TP)+' 万円（77.8%）<br>利息 '+man(TI)+' 万円（22.2%）</div>'+
-    '</div>'+
-    '<div class="legend">'+
-      '<span><i style="background:'+pl.p+'"></i>元金</span>'+
-      '<span><i style="background:'+pl.i+'"></i>利息</span>'+
-    '</div>'+
+function cardHTML(pl, no){
+  return '<div class="c'+(pl.cur?' cur':'')+'" data-no="'+no+'">'+
+    '<div class="top"><span class="no">'+no+'</span><span class="nm">'+pl.n+'</span></div>'+
+    '<div class="sw"><span style="flex:0 0 '+WP.toFixed(2)+'%;background:'+pl.p+'"></span>'+
+      '<span style="flex:0 0 '+WI.toFixed(2)+'%;background:'+pl.i+'"></span></div>'+
+    amortSVG(pl.p, pl.i, 'am', 44)+
+    '<div class="hx"><span>'+pl.p+'</span><span>'+pl.i+'</span></div>'+
   '</div>';
-  }).join(''); }
-document.getElementById('listB').innerHTML = render(VIVID, 10);
-document.getElementById('list').innerHTML  = render(PALETTES, 0);
+}
+document.getElementById('gridB').innerHTML = VIVID.map(function(x,k){ return cardHTML(x,k+11); }).join('');
+document.getElementById('gridA').innerHTML = CALM.map(function(x,k){ return cardHTML(x,k+1); }).join('');
+
+var det = document.getElementById('detail');
+function open(no){
+  var pl = ALL[no]; if(!pl) return;
+  det.innerHTML =
+    '<div class="dhead"><span class="dno">'+no+'</span><span class="dnm">'+pl.n+'</span>'+
+      '<span class="dhx">'+pl.p+' / '+pl.i+'</span></div>'+
+    '<div class="drow"><span style="flex:0 0 '+WP.toFixed(2)+'%;background:'+pl.p+'">元金 '+man(TP)+'</span>'+
+      '<span style="flex:0 0 '+WI.toFixed(2)+'%;background:'+pl.i+'">利息 '+man(TI)+'</span></div>'+
+    amortSVG(pl.p, pl.i, 'dam', 104)+
+    '<div class="dcap"><span>1年目</span><span>元利均等・35年</span><span>35年目</span></div>'+
+    '<div class="dmini">'+donutSVG(pl.p, pl.i)+
+      '<div class="mnum">総返済額 <b>'+man(TP+TI)+'</b> 万円<br>'+
+      '元金 '+man(TP)+' 万円（77.8%）<br>利息 '+man(TI)+' 万円（22.2%）</div></div>'+
+    '<button type="button" class="dclose" id="dclose">閉じる</button>';
+  det.classList.add('on');
+  [].forEach.call(document.querySelectorAll('.c'), function(c){ c.classList.toggle('on', c.getAttribute('data-no')===String(no)); });
+  document.getElementById('dclose').addEventListener('click', function(){
+    det.classList.remove('on');
+    [].forEach.call(document.querySelectorAll('.c'), function(c){ c.classList.remove('on'); });
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.addEventListener('click', function(e){
+  var c = e.target.closest ? e.target.closest('.c') : null;
+  if(c) open(Number(c.getAttribute('data-no')));
+});
 </script>
 </body>
 </html>
