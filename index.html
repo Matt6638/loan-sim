@@ -583,6 +583,12 @@
   .el-legend{display:flex;gap:16px;font-size:0.72rem;color:var(--text-dim);}
   .el-legend span{display:inline-flex;align-items:center;gap:5px;}
   .mini-svg{width:100%;height:74px;display:block;background:#fcfbf8;border:1px solid var(--border-soft);border-radius:5px;}
+  .mini-wrap{position:relative;}
+  /* 完済位置と短縮できた期間の見出し（グラフの上に重ねる） */
+  .mini-cut, .mini-done{position:absolute;font-family:var(--mono);font-size:0.6rem;font-weight:700;
+    color:#c2185b;background:rgba(255,255,255,.92);border-radius:3px;padding:0 4px;white-space:nowrap;line-height:1.5;}
+  .mini-cut{top:4px;transform:translateX(-50%);}
+  .mini-done{bottom:4px;transform:translateX(-100%);margin-left:-3px;}
   .mini-cap{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px;gap:6px;}
   .mini-cap .mini-mark{color:#c2185b;font-weight:700;white-space:nowrap;}
   .hf-with-btn{position:relative;}
@@ -1121,6 +1127,13 @@
     .diag-rate{font-size:0.62rem !important;letter-spacing:-0.03em !important;}
     .inline-num{width:48px !important;font-size:16px !important;padding:3px 4px !important;margin:0 3px !important;}
     .wait-bar{gap:6px 8px !important;}
+    /* グラフ下のまとめは1行に1項目（見出し左・数値右）で上下に並べる */
+    .stat-strip, .stat-strip.four{grid-template-columns:1fr !important;}
+    .stat-strip .stat{border-right:none !important;border-bottom:1px solid var(--border) !important;
+      display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 12px !important;}
+    .stat-strip .stat:last-child{border-bottom:none !important;}
+    .stat-strip .stat-label{margin-bottom:0 !important;flex:1 1 auto;}
+    .stat-strip .stat-value{flex:0 0 auto;text-align:right;white-space:nowrap;}
   }
 </style>
 
@@ -2622,7 +2635,7 @@
 
   // 共通：ミニ元利均等グラフ。rows=[{p,i,rent}] を1年1本の積み上げ棒で描く。
   // hi={from,to} を渡すと、その年だけ色付けし、それ以外は淡色にする。
-  function miniAmortSVG(rows, maxV, maxYears, hi, mark){
+  function miniAmortSVG(rows, maxV, maxYears, hi, mark, cut){
     const N = Math.max(1, maxYears || rows.length);
     const W = 720, H = 96, padT = 4, padB = 4;
     const plotH = H - padT - padB;
@@ -2662,7 +2675,15 @@
            '<line x1="' + mx.toFixed(2) + '" y1="' + padT + '" x2="' + mx.toFixed(2) + '" y2="' + (padT + plotH) +
            '" stroke="#c2185b" stroke-width="2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
     }
-    return '<svg class="mini-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' + bars + box + mk + '</svg>';
+    // 完済位置に実線を引き、短縮できた期間（本来まだ返していたはずの区間）を斜線の枠で示す
+    let ct = '';
+    if(cut && cut.to > cut.from){
+      const x1 = bw * cut.from, x2 = bw * cut.to;
+      ct = '<rect x="' + x1.toFixed(2) + '" y="' + padT + '" width="' + (x2 - x1).toFixed(2) + '" height="' + plotH + '" fill="#c2185b" fill-opacity="0.09"/>' +
+           '<rect x="' + x1.toFixed(2) + '" y="' + padT + '" width="' + (x2 - x1).toFixed(2) + '" height="' + plotH + '" fill="none" stroke="#c2185b" stroke-width="1.3" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>' +
+           '<line x1="' + x1.toFixed(2) + '" y1="' + padT + '" x2="' + x1.toFixed(2) + '" y2="' + (padT + plotH) + '" stroke="#c2185b" stroke-width="2.6" vector-effect="non-scaling-stroke"/>';
+    }
+    return '<svg class="mini-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' + bars + box + mk + ct + '</svg>';
   }
   // 借入条件から年ごとの元金・利息をつくる（元利均等／元金均等どちらも）
   // 棒の中に金額が収まりきらない場合は、その金額を棒の外（下の行）へ逃がす。
@@ -3414,6 +3435,7 @@
     const prepayMonths = M + restMonths;
     const savedMonths = Math.max(0, nAll - prepayMonths);
     const cutY = Math.floor(prepayMonths/12), cutM = prepayMonths%12;
+    const cutLabel = function(m){ var y=Math.floor(m/12), mm=m%12; return (y>0 ? y+'年' : '') + (mm>0 ? mm+'ヶ月' : (y>0?'':'0ヶ月')); };
 
     const diff = laterTotal - nowTotal;           // 正なら「今買う」が得
     const man = v => Math.round(v/10000).toLocaleString('ja-JP');
@@ -3464,7 +3486,15 @@
       });
       const rws = kind ? allRows[kind] : null;
       const mk = (kind==='prepay') ? prepayYear : 0;
-      const mini = rws ? miniAmortSVG(rws, maxAnnual, maxYears, null, mk) +
+      // 繰上返済の行だけ、完済位置と「本来まだ返していたはずの期間」を描く
+      const cut = (kind==='prepay' && savedMonths > 0) ? {from: prepayMonths/12, to: years} : null;
+      let over = '';
+      if(cut){
+        const cxPct = ((cut.from + cut.to) / 2) / maxYears * 100;
+        over = '<span class="mini-cut" style="left:' + Math.min(88, Math.max(12, cxPct)).toFixed(1) + '%">短縮 ' + cutLabel(savedMonths) + '</span>' +
+               '<span class="mini-done" style="left:' + (cut.from / maxYears * 100).toFixed(1) + '%">' + cutLabel(prepayMonths) + 'で完済</span>';
+      }
+      const mini = rws ? '<div class="mini-wrap">' + miniAmortSVG(rws, maxAnnual, maxYears, null, mk, cut) + over + '</div>' +
         '<div class="mini-cap"><span>1年目</span><span>' +
           (mk ? '<b class="mini-mark">｜'+mk+'年目に'+man(prepay)+'万円を繰上返済</b>' : '完済まで '+rws.length+'年') +
         '</span><span>'+maxYears+'年目</span></div>' : '';
@@ -3480,7 +3510,7 @@
       row(wy+'年後に買う・金利＋'+(Math.round(upPct*100)/100)+'%（合計 '+man(laterTotal)+'万円）', [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
         {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}], 'waitUp') +
-      row('今すぐ買って '+wy+'年後に '+man(prepay)+'万円 を繰上返済（合計 '+man(prepayTotal)+'万円・'+cutY+'年'+(cutM?cutM+'ヶ月':'')+'で完済）', [
+      row('今すぐ買って '+wy+'年後に '+man(prepay)+'万円 を繰上返済（合計 '+man(prepayTotal)+'万円・'+cutY+'年'+(cutM?cutM+'ヶ月':'')+'で完済＝'+cutLabel(savedMonths)+'短縮）', [
         {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay');
     elFitBars($('waitBars'));
 
