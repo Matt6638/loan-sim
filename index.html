@@ -620,7 +620,8 @@
   .mini-pre{position:absolute;bottom:3px;transform:translateX(-4px);
     font-family:var(--mono);font-size:0.6rem;font-weight:700;color:#c2185b;
     background:rgba(255,255,255,.92);border-radius:3px;padding:0 4px;white-space:nowrap;line-height:1.5;}
-  .mini-done{bottom:4px;transform:translateX(-100%);margin-left:-3px;}
+  /* 完済の注記は中ほどに置く（下段は繰上返済の注記が入るため重ならないように） */
+  .mini-done{top:50%;transform:translate(-100%,-50%);margin-left:-3px;}
   .mini-cap{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px;gap:6px;}
   .mini-cap .mini-mark{color:#c2185b;font-weight:700;white-space:nowrap;}
   .hf-with-btn{position:relative;}
