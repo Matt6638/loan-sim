@@ -2091,7 +2091,7 @@
             <div class="stat-value teal mono" id="monthlyCap">—</div>
           </div>
           <div class="stat">
-            <div class="stat-label">返済負担率（返済比率）</div>
+            <div class="stat-label">適用した返済負担率</div>
             <div class="stat-value mono" id="burdenActual">—</div>
           </div>
         </div>
@@ -2302,7 +2302,7 @@
 
     <p><strong>住宅ローン控除の「納税額による上限」：</strong>住宅ローン控除は納めた税金から差し引く制度のため、控除額は<b>所得税額＋住民税からの控除（年9.75万円が上限）</b>を超えられません。所得税額は年収から次の簡易計算で<strong>概算</strong>しています：給与所得控除（〜162.5万円は55万円／〜180万円は収入×40%−10万円／〜360万円は収入×30%+8万円／〜660万円は収入×20%+44万円／〜850万円は収入×10%+110万円／850万円超は195万円）、社会保険料は収入の15%、基礎控除48万円を差し引いた課税所得に所得税の速算表を適用し、復興特別所得税2.1%を加算。<strong>扶養控除・生命保険料控除・iDeCo等は考慮していないため、実際の税額とは異なります。</strong>源泉徴収票の「源泉徴収税額」を入力するとその金額が優先されます。<strong>これらの税率・控除額は改正されるため、必ず最新の国税庁情報でご確認ください。</strong></p>
 
-    <p><strong>返済負担率（返済比率）：</strong>実際に入力している借入プラン（借入金額・金利・返済期間・返済方法）の<b>年間返済額 ÷ 年収</b>で計算しています（他の借入がある場合は加算）。借入可能額の逆算に使う「返済負担率の基準」とは別で、こちらは<b>いまの計画が基準の範囲に収まっているか</b>を見るための数値です。</p>
+    <p><strong>返済負担率：</strong>「適用した返済負担率」は、借入可能額を逆算するために指定している率です（入力欄・プリセットボタンで変更できます）。<b>「自動」</b>のあいだは、いま入力している借入プラン（借入金額・金利・返済期間・返済方法）の<b>年間返済額 ÷ 年収</b>＝実際の返済比率をそのまま適用するため、借入可能額はいまの借入金額と同じ額になります。その下の説明文には、率を変えても<b>いまの借入プランの実際の返済比率</b>を表示しています（他の借入がある場合は加算）。参考として、フラット35の総返済負担率の基準は年収400万円未満で30%以下、400万円以上で35%以下です（出典：住宅金融支援機構 フラット35 ご利用条件）。民間金融機関の基準は非公表・各行で異なります。</p>
 
     <p><strong>住宅ローン控除の借入限度額・控除期間（2026年〜2030年入居）：</strong>控除率0.7%。借入限度額（カッコ内は子育て世帯等＝19歳未満の子がいる、または夫婦のいずれかが40歳未満の世帯）と控除期間は次のとおりです。<br>
     <b>新築・買取再販</b>：長期優良・低炭素 4,500（5,000）万円×13年／ZEH水準省エネ 3,500（4,500）万円×13年／省エネ基準適合 2,000（3,000）万円×13年（2026・2027年入居。2028年以降は支援対象外で、2027年末までに建築確認を受けたもの等のみ2,000万円×10年）／その他の住宅 対象外。<br>
@@ -3085,11 +3085,15 @@
 
     $('annualCap').textContent = yen(annualCap) + ' 円';
     $('monthlyCap').textContent = yen(monthlyCap) + ' 円';
-    if($('burdenActual')) $('burdenActual').textContent = burdenActual > 0 ? burdenActual.toFixed(1) + ' %' : '—';
-    if($('burdenActualSub')) $('burdenActualSub').textContent = burdenActual > 0
-      ? '実際の借入プラン（' + (iv('principal')||0).toLocaleString('ja-JP') + '万円・' + (iv('rate')||0) + '%・' + Math.round(iv('years')||0) + '年）の年間返済額 ' +
-        Math.round(planAnnual/10000).toLocaleString('ja-JP') + '万円 ÷ 年収 ' + incomeMan.toLocaleString('ja-JP') + '万円' +
-        (burdenActual > ratioPct ? '　※基準' + ratioPct + '%を超えています' : '')
+    // 上の数値は「いま適用している返済負担率」＝入力欄の値。入力を変えるとここも変わる
+    if($('burdenActual')) $('burdenActual').textContent = ratioPct.toFixed(1) + ' %';
+    if($('burdenActualSub')) $('burdenActualSub').innerHTML = burdenActual > 0
+      ? '<b>いまの借入プラン（' + (iv('principal')||0).toLocaleString('ja-JP') + '万円・' + (iv('rate')||0) + '%・' + Math.round(iv('years')||0) + '年）の返済比率は ' +
+        burdenActual.toFixed(1) + '%</b>（年間返済額 ' + Math.round(planAnnual/10000).toLocaleString('ja-JP') +
+        '万円 ÷ 年収 ' + incomeMan.toLocaleString('ja-JP') + '万円' + (otherDebtMan>0 ? '＋他の借入' : '') + '）' +
+        (Math.abs(burdenActual - ratioPct) < 0.05
+          ? '。いまはこの比率をそのまま適用しています。'
+          : '。上の ' + ratioPct.toFixed(1) + '% は、借入可能額を逆算するために指定している率です。')
       : '';
 
     $('diagCondition').textContent =
