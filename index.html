@@ -541,16 +541,16 @@
   .el-head{font-size:0.72rem;color:var(--text-dim);font-weight:600;margin-bottom:3px;}
   .el-bar{display:flex;align-items:stretch;height:24px;position:relative;}
   /* 棒に収まらない金額を、棒の中に重ねて表示する（背景を敷いて可読性を確保） */
-  /* .el-bar .el-i などの背景指定に負けないよう、詳細度を上げて指定する */
-  .el-bar .el-in{position:absolute;top:50%;transform:translateY(-50%);z-index:2;
-    font-family:var(--mono);font-size:0.72rem;font-weight:700;white-space:nowrap;
-    padding:1px 6px;border-radius:4px;
-    box-shadow:0 0 0 1px rgba(27,42,74,.12);}
-  .el-bar .el-in-left{left:4px;} .el-bar .el-in-right{right:4px;}
-  .el-bar .el-in.el-p{color:var(--principal-ink);background:rgba(255,255,255,.95);}
-  .el-bar .el-in.el-i{color:var(--interest-ink);background:rgba(255,255,255,.95);}
-  .el-bar .el-in.el-rent{color:var(--rentc);background:rgba(255,255,255,.95);}
-  .el-bar .el-in.el-down{color:#7c879c;background:rgba(255,255,255,.95);}
+  /* 棒に収まらない金額は、棒の上に出して引き出し線で対象を指す（境目を隠さないため） */
+  .el-bar.has-call{margin-top:23px;}
+  .el-bar .el-call{position:absolute;bottom:calc(100% + 12px);transform:translateX(-50%);z-index:3;
+    font-family:var(--mono);font-size:0.72rem;font-weight:700;white-space:nowrap;line-height:1.1;}
+  .el-bar .el-lead{position:absolute;left:0;bottom:100%;width:100%;height:12px;
+    overflow:visible;pointer-events:none;z-index:2;}
+  .el-bar .el-call.el-p, .el-bar .el-lead.el-p{color:var(--principal-ink);}
+  .el-bar .el-call.el-i, .el-bar .el-lead.el-i{color:var(--interest-ink);}
+  .el-bar .el-call.el-rent, .el-bar .el-lead.el-rent{color:var(--rentc);}
+  .el-bar .el-call.el-down, .el-bar .el-lead.el-down{color:#7c879c;}
   .el-bar .el-seg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
   .el-bar .el-p{background:var(--principal);border-radius:5px 0 0 5px;}
   .el-bar .el-i{background:var(--interest);border-radius:0 5px 5px 0;color:#4a2f08;}
@@ -576,6 +576,8 @@
   .el-hi{font-family:var(--mono);color:var(--interest-ink);font-weight:600;}
   /* 文の途中で改行されないよう、語句のかたまりごとに折り返す */
   .nw{display:inline-block;}
+  /* 最終行に1〜2文字だけ残る折り返しを避ける（対応ブラウザのみ・害はない） */
+  body{text-wrap:pretty;}
   .el-shorten{margin-top:10px;padding:10px 12px;background:#f2f5fa;border:1px solid var(--border-soft);border-left:3px solid var(--principal);border-radius:7px;font-size:0.76rem;line-height:1.75;color:var(--text-dim);}
   .el-shorten b{color:var(--text);}
   .el-legend{display:flex;gap:16px;font-size:0.72rem;color:var(--text-dim);}
@@ -2669,28 +2671,71 @@
     if(!root) return;
     [].forEach.call(root.querySelectorAll('.el-bar'), function(bar){
       if(!bar.clientWidth) return; // 非表示のタブでは幅が測れないので触らない
+      // 前回つくった吹き出し・引き出し線を消し、外に出した金額も棒の中に戻してから測り直す
+      [].forEach.call(bar.querySelectorAll('.el-call,.el-lead,.el-in'), function(n){ n.remove(); });
+      bar.classList.remove('has-call');
       var row = bar.parentNode;
       var outs = row ? row.querySelector('.el-outs') : null;
+      if(outs) outs.innerHTML = '';
       var segs = [].slice.call(bar.querySelectorAll('.el-seg'));
-      // 元金・利息の2本だけの棒なら、はみ出す金額は棒の中に重ねて置ける
+      segs.forEach(function(seg){
+        if(seg.dataset.val) seg.innerHTML = '<span class="el-lab">'+seg.dataset.lab+'</span>'+seg.dataset.val;
+      });
+      // 元金・利息の2本だけの棒なら、はみ出す金額は棒の「上」に出して引き出し線で指す
       var overlayOk = (segs.length === 2);
-      segs.forEach(function(seg, idx){
+      var barW = bar.clientWidth;
+      segs.forEach(function(seg){
         if(!seg.textContent.trim()) return;
         if(seg.scrollWidth <= seg.clientWidth + 1) return; // 収まっている
-        var lab = seg.querySelector('.el-lab');
-        var name = lab ? lab.textContent : '';
+        var labEl = seg.querySelector('.el-lab');
+        var name = labEl ? labEl.textContent : '';
         var val = seg.textContent.replace(name, '').trim();
+        seg.dataset.lab = name; seg.dataset.val = val;   // 測り直せるよう控えておく
         seg.innerHTML = '';
         var cls = ['el-p','el-i','el-rent','el-down'].filter(function(c){ return seg.classList.contains(c); })[0] || 'el-p';
         if(overlayOk){
-          // 棒の中（狭いセグメント側の端）に重ねる。背景を敷いて下の色の上でも読めるようにする
-          var side = (idx === 0) ? 'left' : 'right';
+          var cx = seg.offsetLeft + seg.offsetWidth / 2;   // 指したいセグメントの中心
+          var call = document.createElement('span');
+          call.className = 'el-call ' + cls;
+          call.textContent = name + ' ' + val + '万円';
+          bar.appendChild(call);
+          var lw = call.offsetWidth;
+          // 吹き出しが棒からはみ出さない位置に寄せる
+          var lx = Math.min(Math.max(cx, lw / 2 + 1), Math.max(lw / 2 + 1, barW - lw / 2 - 1));
+          call.style.left = lx.toFixed(1) + 'px';
+          // 吹き出しの下から対象セグメントの上端へ、折れ線で引く
           bar.insertAdjacentHTML('beforeend',
-            '<span class="el-in '+cls+' el-in-'+side+'">'+name+' '+val+'万円</span>');
+            '<svg class="el-lead ' + cls + '" viewBox="0 0 ' + barW + ' 12" preserveAspectRatio="none">' +
+              '<path d="M ' + lx.toFixed(1) + ' 0 L ' + lx.toFixed(1) + ' 4 L ' + cx.toFixed(1) + ' 8 L ' + cx.toFixed(1) + ' 12" ' +
+              'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+            '</svg>');
+          bar.classList.add('has-call');
           return;
         }
         if(outs) outs.insertAdjacentHTML('beforeend', '<span class="el-outlab '+cls+'">'+name+' '+val+'万円</span>');
       });
+    });
+  }
+
+  // 「（…）」のかたまりと「数字＋単位」を、途中で折り返さないようにまとめる。
+  // 「◯年間の積立元本 合計 ◯万円（差額は運用益で補う概算）」の "算）" だけが
+  // 次の行に落ちるような折り返しを、画面全体で同じルールで防ぐ。
+  var KEEP_SEL = '.yo-note, .strip-sub, .headline-sub, .el-head, .el-shorten, .note-ref,'
+               + ' .field-hint, .sl-note, .yield-out .yo-line, .stat-value, .mini-cap span,'
+               + ' .tp-cond, .diag-rate, .help-body, .fr-body .strip-sub';
+  var KP_DONE = (typeof WeakMap === 'function') ? new WeakMap() : null;
+  function keepPhrases(root){
+    var scope = root || document;
+    [].forEach.call(scope.querySelectorAll(KEEP_SEL), function(el){
+      var html = el.innerHTML;
+      if(!html || (KP_DONE && KP_DONE.get(el) === html)) return;   // 内容が変わっていなければ何もしない
+      // タグをまたがない「（…）」だけをまとめる（属性値などを壊さないため < > を除外）
+      var out = html.replace(/（[^（）<>]{1,40}）/g, function(m){ return '<span class="nw">' + m + '</span>'; });
+      // 「1,234 万円」のような数字と単位の間で切れないようにする
+      out = out.replace(/([0-9][0-9,\.]*)\s(万円|円|年|歳|ヶ月|％|%)/g,
+        function(m, a, b){ return '<span class="nw">' + a + ' ' + b + '</span>'; });
+      if(out !== html) el.innerHTML = out;
+      if(KP_DONE) KP_DONE.set(el, el.innerHTML);
     });
   }
 
@@ -3387,7 +3432,7 @@
     if($('waitFlatTotal')) $('waitFlatTotal').innerHTML = man(flatTotal) + '<small> 万円</small>';
     if($('waitPrepayTotal')) $('waitPrepayTotal').innerHTML = man(prepayTotal) + '<small> 万円</small>';
     $('waitAgeDiff').innerHTML = (age>0
-      ? '今' + (age+years) + '／待つ ' + (age+wy+years) + '／繰上 ' + (age+Math.ceil(prepayMonths/12)) + '<small>歳</small>'
+      ? '<span class="nw">今' + (age+years) + '歳</span>／<span class="nw">待つ ' + (age+wy+years) + '歳</span>／<span class="nw">繰上 ' + (age+Math.ceil(prepayMonths/12)) + '歳</span>'
       : '—');
 
     // 積み上げ棒（家賃／頭金／元金／利息）
@@ -4081,7 +4126,7 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); relaySim(); waitSim(); variableSim(); stressTest(); convertSim(); renderCredit(); }
+  function recalcAll(){ calculate(); payoffSim(); relaySim(); waitSim(); variableSim(); stressTest(); convertSim(); renderCredit(); keepPhrases(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
@@ -4452,6 +4497,7 @@
       gActiveMod = key; renderPatterns(); // 比較パネルの表示状態を復元（0件やタブ外では隠す）
       // 表示に切り替わって初めて棒の幅が測れるので、はみ出す金額をここで棒の外へ逃がす
       if(typeof refitAllBars === 'function') refitAllBars();
+      if(typeof keepPhrases === 'function') keepPhrases();
       dbody.scrollTop = 0;
       if(doScroll && active && active.nodes[0]){
         var nav = document.querySelector('.tabnav');
