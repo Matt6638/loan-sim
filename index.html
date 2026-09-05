@@ -587,7 +587,7 @@
   /* 完済位置と短縮できた期間の見出し（グラフの上に重ねる） */
   .mini-cut, .mini-done{position:absolute;font-family:var(--mono);font-size:0.6rem;font-weight:700;
     color:#c2185b;background:rgba(255,255,255,.92);border-radius:3px;padding:0 4px;white-space:nowrap;line-height:1.5;}
-  .mini-cut{top:4px;transform:translateX(-50%);}
+  .mini-cut{top:4px;right:4px;}
   .mini-done{bottom:4px;transform:translateX(-100%);margin-left:-3px;}
   .mini-cap{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px;gap:6px;}
   .mini-cap .mini-mark{color:#c2185b;font-weight:700;white-space:nowrap;}
@@ -1132,8 +1132,8 @@
     .stat-strip .stat{border-right:none !important;border-bottom:1px solid var(--border) !important;
       display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 12px !important;}
     .stat-strip .stat:last-child{border-bottom:none !important;}
-    .stat-strip .stat-label{margin-bottom:0 !important;flex:1 1 auto;}
-    .stat-strip .stat-value{flex:0 0 auto;text-align:right;white-space:nowrap;}
+    .stat-strip .stat-label{margin-bottom:0 !important;flex:0 1 auto;}
+    .stat-strip .stat-value{flex:0 1 auto;min-width:0;text-align:right;white-space:normal;}
   }
 </style>
 
@@ -3490,8 +3490,8 @@
       const cut = (kind==='prepay' && savedMonths > 0) ? {from: prepayMonths/12, to: years} : null;
       let over = '';
       if(cut){
-        const cxPct = ((cut.from + cut.to) / 2) / maxYears * 100;
-        over = '<span class="mini-cut" style="left:' + Math.min(88, Math.max(12, cxPct)).toFixed(1) + '%">短縮 ' + cutLabel(savedMonths) + '</span>' +
+        // 短縮の区間は幅が狭く文字が入らないので、ラベルはグラフの右端に寄せて置く
+        over = '<span class="mini-cut">短縮 ' + cutLabel(savedMonths) + '</span>' +
                '<span class="mini-done" style="left:' + (cut.from / maxYears * 100).toFixed(1) + '%">' + cutLabel(prepayMonths) + 'で完済</span>';
       }
       const mini = rws ? '<div class="mini-wrap">' + miniAmortSVG(rws, maxAnnual, maxYears, null, mk, cut) + over + '</div>' +
