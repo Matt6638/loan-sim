@@ -547,10 +547,10 @@
     font-family:var(--mono);font-size:0.72rem;font-weight:700;white-space:nowrap;line-height:1.1;}
   .el-bar .el-lead{position:absolute;left:0;bottom:100%;width:100%;height:12px;
     overflow:visible;pointer-events:none;z-index:2;}
-  .el-bar .el-call.el-p, .el-bar .el-lead.el-p{color:var(--principal-ink);}
-  .el-bar .el-call.el-i, .el-bar .el-lead.el-i{color:var(--interest-ink);}
-  .el-bar .el-call.el-rent, .el-bar .el-lead.el-rent{color:var(--rentc);}
-  .el-bar .el-call.el-down, .el-bar .el-lead.el-down{color:#7c879c;}
+  .el-bar .el-call.c-p, .el-bar .el-lead.c-p{color:var(--principal-ink);}
+  .el-bar .el-call.c-i, .el-bar .el-lead.c-i{color:var(--interest-ink);}
+  .el-bar .el-call.c-rent, .el-bar .el-lead.c-rent{color:var(--rentc);}
+  .el-bar .el-call.c-down, .el-bar .el-lead.c-down{color:#7c879c;}
   .el-bar .el-seg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
   .el-bar .el-p{background:var(--principal);border-radius:5px 0 0 5px;}
   .el-bar .el-i{background:var(--interest);border-radius:0 5px 5px 0;color:#4a2f08;}
@@ -2696,7 +2696,7 @@
         if(overlayOk){
           var cx = seg.offsetLeft + seg.offsetWidth / 2;   // 指したいセグメントの中心
           var call = document.createElement('span');
-          call.className = 'el-call ' + cls;
+          call.className = 'el-call c-' + cls.slice(3);   // el-i → c-i（帯の背景色が付かないよう別名にする）
           call.textContent = name + ' ' + val + '万円';
           bar.appendChild(call);
           var lw = call.offsetWidth;
@@ -2705,7 +2705,7 @@
           call.style.left = lx.toFixed(1) + 'px';
           // 吹き出しの下から対象セグメントの上端へ、折れ線で引く
           bar.insertAdjacentHTML('beforeend',
-            '<svg class="el-lead ' + cls + '" viewBox="0 0 ' + barW + ' 12" preserveAspectRatio="none">' +
+            '<svg class="el-lead c-' + cls.slice(3) + '" viewBox="0 0 ' + barW + ' 12" preserveAspectRatio="none">' +
               '<path d="M ' + lx.toFixed(1) + ' 0 L ' + lx.toFixed(1) + ' 4 L ' + cx.toFixed(1) + ' 8 L ' + cx.toFixed(1) + ' 12" ' +
               'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
             '</svg>');
