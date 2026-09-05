@@ -24,10 +24,10 @@
     --gold-soft:#7d6240;
     --teal:#2f6b4f;
     --rose:#9b3b3b;
-    --principal:#1f8a7a; /* 元金＝深いティール */
-    --interest:#e0912f;  /* 利息＝アンバー（元金と色相を大きく離して見分けやすく） */
-    --rentc:#6b7a99;     /* 家賃＝スレート */
-    --downc:#a8b2c4;     /* 頭金＝ライトスレート */
+    --principal:#22303f; /* 元金＝インクブルー */
+    --interest:#b08442;  /* 利息＝ブロンズ（見出しのゴールドと同系でまとめる） */
+    --rentc:#7d8a9c;     /* 家賃＝スレート */
+    --downc:#b9c0cb;     /* 頭金＝ライトスレート */
     --radius:10px;
     --shadow:0 1px 2px rgba(27,42,74,.06),0 12px 30px -6px rgba(27,42,74,.14);
     --gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","YuGothic","Noto Sans JP",system-ui,sans-serif;
@@ -537,7 +537,18 @@
   .el-bars{margin-top:10px;}
   .el-row{margin-bottom:9px;}
   .el-head{font-size:0.72rem;color:var(--text-dim);font-weight:600;margin-bottom:3px;}
-  .el-bar{display:flex;align-items:stretch;height:24px;}
+  .el-bar{display:flex;align-items:stretch;height:24px;position:relative;}
+  /* 棒に収まらない金額を、棒の中に重ねて表示する（背景を敷いて可読性を確保） */
+  /* .el-bar .el-i などの背景指定に負けないよう、詳細度を上げて指定する */
+  .el-bar .el-in{position:absolute;top:50%;transform:translateY(-50%);z-index:2;
+    font-family:var(--mono);font-size:0.72rem;font-weight:700;white-space:nowrap;
+    padding:1px 6px;border-radius:4px;
+    box-shadow:0 0 0 1px rgba(27,42,74,.12);}
+  .el-bar .el-in-left{left:4px;} .el-bar .el-in-right{right:4px;}
+  .el-bar .el-in.el-p{color:var(--principal);background:rgba(255,255,255,.95);}
+  .el-bar .el-in.el-i{color:var(--interest);background:rgba(255,255,255,.95);}
+  .el-bar .el-in.el-rent{color:var(--rentc);background:rgba(255,255,255,.95);}
+  .el-bar .el-in.el-down{color:#7c879c;background:rgba(255,255,255,.95);}
   .el-bar .el-seg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;min-width:0;}
   .el-bar .el-p{background:var(--principal);border-radius:5px 0 0 5px;}
   .el-bar .el-i{background:var(--interest);border-radius:0 5px 5px 0;}
@@ -561,12 +572,15 @@
   .el-bar .el-out.ic{color:var(--interest);}
   .el-bar .el-out.pc{color:var(--principal);}
   .el-hi{font-family:var(--mono);color:var(--interest);font-weight:600;}
+  /* 文の途中で改行されないよう、語句のかたまりごとに折り返す */
+  .nw{display:inline-block;}
   .el-shorten{margin-top:10px;padding:10px 12px;background:#f3f6f5;border:1px solid var(--border-soft);border-left:3px solid var(--principal);border-radius:7px;font-size:0.76rem;line-height:1.75;color:var(--text-dim);}
   .el-shorten b{color:var(--text);}
   .el-legend{display:flex;gap:16px;font-size:0.72rem;color:var(--text-dim);}
   .el-legend span{display:inline-flex;align-items:center;gap:5px;}
   .mini-svg{width:100%;height:74px;display:block;background:#fcfbf8;border:1px solid var(--border-soft);border-radius:5px;}
-  .mini-cap{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px;}
+  .mini-cap{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px;gap:6px;}
+  .mini-cap .mini-mark{color:#c2410c;font-weight:700;white-space:nowrap;}
   .hf-with-btn{position:relative;}
   .hf-actions{position:absolute;right:24px;top:12px;display:flex;align-items:center;gap:8px;}
   .cmp-add-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.76rem;font-weight:600;color:#fff;background:var(--gold);border:1px solid var(--gold-soft);border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
@@ -706,6 +720,8 @@
   .yield-picker .yp-chips{margin-top:0;}
   .yield-picker .yp-input{width:auto;flex:0 0 auto;padding:6px 10px;}
   .yield-picker .yp-input input{width:58px;text-align:right;font-size:16px;}
+  /* ラベルと入力欄を同じ行に、チップは必ず次の行に送る（1行ぶん詰める） */
+  .yield-picker .yp-chips{flex:1 0 100%;}
   .yield-out{margin-top:12px;background:#f3f6f5;border:1px solid var(--border-soft);border-left:3px solid var(--principal);border-radius:7px;padding:12px 14px;}
   .yield-out .yo-lead{font-size:0.76rem;color:var(--text-dim);margin-bottom:5px;line-height:1.5;}
   .yield-out .yo-amt{font-family:var(--mono);font-size:1.5rem;color:var(--principal);font-weight:500;}
@@ -1501,10 +1517,11 @@
         <div class="strip-sub" id="payoffYieldSub"></div>
         <div class="yield-picker">
           <span class="yp-label">想定利回り（年率）</span>
+          <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldPayoff" value="6"><span class="unit">%</span></div>
           <div class="chip-row yp-chips" data-target="yieldPayoff">
             <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
           </div>
-          <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldPayoff" value="6"><span class="unit">%</span></div>
+          
         </div>
         <div class="yield-out" id="payoffYieldOut"></div>
 
@@ -1636,10 +1653,11 @@
         <div class="strip-sub" id="stressYieldSub"></div>
         <div class="yield-picker">
           <span class="yp-label">想定利回り（年率）</span>
+          <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldStress" value="6"><span class="unit">%</span></div>
           <div class="chip-row yp-chips" data-target="yieldStress">
             <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
           </div>
-          <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldStress" value="6"><span class="unit">%</span></div>
+          
         </div>
         <div class="yield-out" id="stressYieldOut"></div>
 
@@ -1858,10 +1876,11 @@
           <div class="strip-title">増える分を積み立てて備える</div>
           <div class="yield-picker">
             <span class="yp-label">想定利回り（年率）</span>
+            <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldVar" value="6"><span class="unit">%</span></div>
             <div class="chip-row yp-chips" data-target="yieldVar">
               <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
             </div>
-            <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldVar" value="6"><span class="unit">%</span></div>
+            
           </div>
           <div class="yield-out" id="varYieldOut"></div>
           <details class="fund-ref">
@@ -2599,14 +2618,14 @@
 
   // 共通：ミニ元利均等グラフ。rows=[{p,i,rent}] を1年1本の積み上げ棒で描く。
   // hi={from,to} を渡すと、その年だけ色付けし、それ以外は淡色にする。
-  function miniAmortSVG(rows, maxV, maxYears, hi){
+  function miniAmortSVG(rows, maxV, maxYears, hi, mark){
     const N = Math.max(1, maxYears || rows.length);
     const W = 720, H = 96, padT = 4, padB = 4;
     const plotH = H - padT - padB;
     const bw = W / N;
     const gap = Math.min(bw * 0.2, 2.6);
     const bwid = Math.max(0.5, bw - gap);
-    let bars = '';
+    let bars = '', edge = [];
     rows.forEach(function(r, idx){
       const x = (bw * idx + gap / 2).toFixed(2);
       const on = !hi || (idx + 1 >= hi.from && idx + 1 <= hi.to);
@@ -2620,6 +2639,8 @@
       }
       put(r.rent, 'var(--rentc)');
       put(r.p, 'var(--principal)');
+      // 元金と利息の境目（ここが年ごとにどう動くかを線でなぞる）
+      edge.push([bw * idx, yBase], [bw * (idx + 1), yBase]);
       put(r.i, 'var(--interest)');
     });
     let box = '';
@@ -2627,7 +2648,17 @@
       const lx = bw * (hi.from - 1), rx = bw * hi.to;
       box = '<rect x="' + lx.toFixed(2) + '" y="' + padT + '" width="' + (rx - lx).toFixed(2) + '" height="' + plotH + '" fill="none" stroke="#c2410c" stroke-width="1.6" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"/>';
     }
-    return '<svg class="mini-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' + bars + box + '</svg>';
+    // 打ち入れ（繰上返済）した年の位置に縦線を引き、元金と利息の境目を線でなぞって
+    // 打ち入れの前後で「ずれる」ことが見えるようにする
+    let mk = '';
+    if(mark && mark > 0){
+      const mx = bw * mark;
+      mk = '<polyline points="' + edge.map(function(pt){ return pt[0].toFixed(1)+','+pt[1].toFixed(1); }).join(' ') +
+           '" fill="none" stroke="#c2410c" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' +
+           '<line x1="' + mx.toFixed(2) + '" y1="' + padT + '" x2="' + mx.toFixed(2) + '" y2="' + (padT + plotH) +
+           '" stroke="#c2410c" stroke-width="2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
+    }
+    return '<svg class="mini-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' + bars + box + mk + '</svg>';
   }
   // 借入条件から年ごとの元金・利息をつくる（元利均等／元金均等どちらも）
   // 棒の中に金額が収まりきらない場合は、その金額を棒の外（下の行）へ逃がす。
@@ -2638,16 +2669,25 @@
       if(!bar.clientWidth) return; // 非表示のタブでは幅が測れないので触らない
       var row = bar.parentNode;
       var outs = row ? row.querySelector('.el-outs') : null;
-      [].forEach.call(bar.querySelectorAll('.el-seg'), function(seg){
+      var segs = [].slice.call(bar.querySelectorAll('.el-seg'));
+      // 元金・利息の2本だけの棒なら、はみ出す金額は棒の中に重ねて置ける
+      var overlayOk = (segs.length === 2);
+      segs.forEach(function(seg, idx){
         if(!seg.textContent.trim()) return;
         if(seg.scrollWidth <= seg.clientWidth + 1) return; // 収まっている
         var lab = seg.querySelector('.el-lab');
         var name = lab ? lab.textContent : '';
         var val = seg.textContent.replace(name, '').trim();
         seg.innerHTML = '';
-        if(!outs) return;
         var cls = ['el-p','el-i','el-rent','el-down'].filter(function(c){ return seg.classList.contains(c); })[0] || 'el-p';
-        outs.insertAdjacentHTML('beforeend', '<span class="el-outlab '+cls+'">'+name+' '+val+'万円</span>');
+        if(overlayOk){
+          // 棒の中（狭いセグメント側の端）に重ねる。背景を敷いて下の色の上でも読めるようにする
+          var side = (idx === 0) ? 'left' : 'right';
+          bar.insertAdjacentHTML('beforeend',
+            '<span class="el-in '+cls+' el-in-'+side+'">'+name+' '+val+'万円</span>');
+          return;
+        }
+        if(outs) outs.insertAdjacentHTML('beforeend', '<span class="el-outlab '+cls+'">'+name+' '+val+'万円</span>');
       });
     });
   }
@@ -3216,12 +3256,10 @@
     const maxT = Math.max(base.total, withRule.total, noRule ? noRule.total : 0) || 1;
     function row(head, o){
       const wP = o.p/maxT*100, wI = o.i/maxT*100;
-      const inP = wP >= 12, inI = wI >= 12;
-      let bar = '<span class="el-seg el-p" style="flex:0 0 '+wP.toFixed(2)+'%">'+(inP?'<span class="el-lab">元金</span>'+man(o.p):'')+'</span>'+
-                '<span class="el-seg el-i" style="flex:0 0 '+wI.toFixed(2)+'%">'+(inI?'<span class="el-lab">利息</span>'+man(o.i):'')+'</span>';
-      let outs = (!inP?'<span class="el-outlab el-p">元金 '+man(o.p)+'万円</span>':'')+(!inI?'<span class="el-outlab el-i">利息 '+man(o.i)+'万円</span>':'');
+      let bar = '<span class="el-seg el-p" style="flex:0 0 '+wP.toFixed(2)+'%"><span class="el-lab">元金</span>'+man(o.p)+'</span>'+
+                '<span class="el-seg el-i" style="flex:0 0 '+wI.toFixed(2)+'%"><span class="el-lab">利息</span>'+man(o.i)+'</span>';
       return '<div class="el-row"><div class="el-head">'+head+'（合計 '+man(o.total)+'万円）</div><div class="el-bar">'+bar+'</div>'+
-             '<div class="el-outs">'+outs+'</div></div>';
+             '<div class="el-outs"></div></div>';
     }
     $('varBars').innerHTML =
       row('金利が上がらない場合', base) +
@@ -3308,14 +3346,21 @@
     const Anow = annuityPayment(mpNow, rM, nAll);
     const M = Math.min(nAll-1, wy*12);
     let balP = mpNow, paidP = 0, paidI = 0;
-    for(let k=0;k<M;k++){ const it=balP*rM; let pr=Anow-it; if(pr>balP)pr=balP; paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); }
+    // ミニグラフ用の年次内訳（合計と必ず一致するよう同じループで集計する）
+    let ppRows = [], ypP = 0, ypI = 0, ppMonths = 0;
+    const ppTick = function(it, pr){ ypI += it; ypP += pr; ppMonths++;
+      if(ppMonths % 12 === 0){ ppRows.push({p:ypP, i:ypI}); ypP=0; ypI=0; } };
+    for(let k=0;k<M;k++){ const it=balP*rM; let pr=Anow-it; if(pr>balP)pr=balP; paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); ppTick(it,pr); }
     const prepay = Math.min(down, balP);
     balP = Math.max(0, balP - prepay); paidP += prepay;
+    // 打ち入れした年（1始まり）。この翌年から利息が段差をつけて減る
+    const prepayYear = Math.ceil(M/12);
     let restMonths = 0;
     while(balP > 1 && restMonths < nAll){
       const it=balP*rM; let pr=Anow-it; if(pr>balP)pr=balP;
-      paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); restMonths++;
+      paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); restMonths++; ppTick(it,pr);
     }
+    if(ypP > 0 || ypI > 0) ppRows.push({p:ypP, i:ypI});
     const bonusPart = bpNow>0 ? loanTotals(bpNow, rate, years, method) : {p:0,i:0};
     const prepayP = paidP + bonusPart.p, prepayI = paidI + bonusPart.i;
     const prepayTotal = prepayP + prepayI;
@@ -3354,7 +3399,7 @@
       if(kind==='now') ys = yearlyOf(price, rate, years, method);
       else if(kind==='waitUp') ys = yearlyOf(borrowLater, rate+upPct, years, method);
       else if(kind==='waitFlat') ys = yearlyOf(borrowLater, rate, years, method);
-      else if(kind==='prepay') ys = yearlyOf(price, rate, years, method).slice(0, Math.ceil(prepayMonths/12));
+      else if(kind==='prepay') ys = ppRows.slice();  // 打ち入れを反映した実際の内訳
       ys.forEach(function(y){ out.push({p:y.p, i:y.i}); });
       return out;
     }
@@ -3364,19 +3409,20 @@
     Object.keys(allRows).forEach(function(k){ allRows[k].forEach(function(r){ maxAnnual = Math.max(maxAnnual, (r.p||0)+(r.i||0)+(r.rent||0)); }); });
 
     function row(head, segs, kind){
-      let inner='', outs='';
+      let inner='';
       segs.forEach(function(x){
         if(x.v<=0) return;
         const w = x.v/maxT*100;
-        const inside = w >= 12;   // 棒に文字が入る幅かどうか
-        inner += '<span class="el-seg '+x.c+'" style="flex:0 0 '+w.toFixed(2)+'%">'+(inside?'<span class="el-lab">'+x.l+'</span>'+man(x.v):'')+'</span>';
-        if(!inside) outs += '<span class="el-outlab '+x.c+'">'+x.l+' '+man(x.v)+'万円</span>';
+        inner += '<span class="el-seg '+x.c+'" style="flex:0 0 '+w.toFixed(2)+'%"><span class="el-lab">'+x.l+'</span>'+man(x.v)+'</span>';
       });
       const rws = kind ? allRows[kind] : null;
-      const mini = rws ? miniAmortSVG(rws, maxAnnual, maxYears, null) +
-        '<div class="mini-cap"><span>1年目</span><span>完済まで '+rws.length+'年</span><span>'+maxYears+'年目</span></div>' : '';
+      const mk = (kind==='prepay') ? prepayYear : 0;
+      const mini = rws ? miniAmortSVG(rws, maxAnnual, maxYears, null, mk) +
+        '<div class="mini-cap"><span>1年目</span><span>' +
+          (mk ? '<b class="mini-mark">｜'+mk+'年目に'+man(prepay)+'万円を繰上返済</b>' : '完済まで '+rws.length+'年') +
+        '</span><span>'+maxYears+'年目</span></div>' : '';
       return '<div class="el-row"><div class="el-head">'+head+'</div><div class="el-bar">'+inner+'</div>'+
-             '<div class="el-outs">'+outs+'</div>'+mini+'</div>';
+             '<div class="el-outs"></div>'+mini+'</div>';
     }
     $('waitBars').innerHTML =
       row('今すぐ買う（合計 '+man(nowTotal)+'万円）', [
@@ -3529,8 +3575,9 @@
     const ageR=(s,e)=> (a!=null&&!isNaN(a)) ? '（'+(a+s-1)+'〜'+(a+e-1)+'歳）' : '';
     // 見出しに合計とうち利息を明記（棒の中に入らない細いセグメントでも金額が必ず読める）
     const headOf=function(t,s0,e0,o){
-      return t+W+'年（'+s0+'〜'+e0+'年目）'+ageR(s0,e0)+
-             '　合計 '+toMan(o.p+o.i)+'万円（うち利息 <b class="el-hi">'+toMan(o.i)+'万円</b>）';
+      return '<span class="nw">'+t+W+'年（'+s0+'〜'+e0+'年目）'+ageR(s0,e0)+'</span>'+
+             '<span class="nw">　合計 '+toMan(o.p+o.i)+'万円</span>'+
+             '<span class="nw">（うち利息 <b class="el-hi">'+toMan(o.i)+'万円</b>）</span>';
     };
     if($('earlyHead')) $('earlyHead').innerHTML=headOf('序盤',eStart,eEnd,E);
     if($('lateHead')) $('lateHead').innerHTML=headOf('終盤',lStart,lEnd,L);
@@ -3538,12 +3585,9 @@
     const maxT = Math.max(E.p+E.i, L.p+L.i) || 1;
     function bar(o){
       const wP = o.p/maxT*100, wI = o.i/maxT*100;
-      const inP = wP >= 12, inI = wI >= 12;
-      let html = '<span class="el-seg el-p" style="flex:0 0 '+wP.toFixed(2)+'%">'+(inP ? '<span class="el-lab">元金</span>'+toMan(o.p) : '')+'</span>'+
-                 '<span class="el-seg el-i" style="flex:0 0 '+wI.toFixed(2)+'%">'+(inI ? '<span class="el-lab">利息</span>'+toMan(o.i) : '')+'</span>';
-      let outs = (!inP ? '<span class="el-outlab el-p">元金 '+toMan(o.p)+'万円</span>' : '') +
-                 (!inI ? '<span class="el-outlab el-i">利息 '+toMan(o.i)+'万円</span>' : '');
-      return {bar:html, outs:outs};
+      let html = '<span class="el-seg el-p" style="flex:0 0 '+wP.toFixed(2)+'%"><span class="el-lab">元金</span>'+toMan(o.p)+'</span>'+
+                 '<span class="el-seg el-i" style="flex:0 0 '+wI.toFixed(2)+'%"><span class="el-lab">利息</span>'+toMan(o.i)+'</span>';
+      return {bar:html, outs:''};
     }
     const bE=bar(E), bL=bar(L);
     if($('earlyBar')){ $('earlyBar').innerHTML=bE.bar; var eo=$('earlyOuts'); if(eo) eo.innerHTML=bE.outs; }
@@ -3559,12 +3603,14 @@
     // 違いは同時に消える利息の大きさ（序盤ほど大きい）。
     if($('elShorten')){
       const ageEnd = (a!=null&&!isNaN(a)) ? '（'+(a+N-1)+'歳→'+(a+N-W-1)+'歳）' : '';
+      const nw=function(t){ return '<span class="nw">'+t+'</span>'; };
       $('elShorten').innerHTML =
-        'どちらの区間も、その'+W+'年ぶんの<b>元金</b>をまとめて繰上返済すれば、完済は<b>'+W+'年早まります</b>'+
-        '（'+N+'年→'+(N-W)+'年'+ageEnd+'）。<br>'+
-        '違うのは<b>同時に消える利息</b>で、序盤なら <b class="el-hi">'+toMan(E.i)+'万円</b>、'+
-        '終盤なら <b class="el-hi">'+toMan(L.i)+'万円</b>です。'+
-        (E.i > L.i ? '<b>同じ「'+W+'年短縮」でも、早いほど得られる効果が大きくなります。</b>' : '');
+        nw('どちらの区間も、')+nw('その'+W+'年ぶんの<b>元金</b>を')+nw('まとめて繰上返済すれば、')+
+        nw('完済は<b>'+W+'年早まります</b>')+nw('（'+N+'年→'+(N-W)+'年'+ageEnd+'）。')+'<br>'+
+        nw('違うのは<b>同時に消える利息</b>で、')+
+        nw('序盤なら <b class="el-hi">'+toMan(E.i)+'万円</b>、')+
+        nw('終盤なら <b class="el-hi">'+toMan(L.i)+'万円</b>です。')+
+        (E.i > L.i ? nw('<b>同じ「'+W+'年短縮」でも、</b>')+nw('<b>早いほど得られる効果が大きくなります。</b>') : '');
     }
     const diff=Math.abs(E.i-L.i);
     if($('earlyLateHelp')) $('earlyLateHelp').innerHTML=
