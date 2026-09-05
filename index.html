@@ -970,6 +970,13 @@
     background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 6px;margin:0 3px;}
   .inline-sel:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
   .cr-bar{gap:8px 10px;}
+  /* すでに返済中：チェックを入れたときだけ経過年数を出す */
+  .repay-bar{gap:8px 12px;}
+  .repay-bar .repay-el{display:none;}
+  .repay-bar.on .repay-el{display:inline-flex;}
+  .repay-bar.on .repay-note{display:none;}
+  .repay-bar .repay-note{font-size:0.66rem;}
+  .res-panel > .repay-bar{grid-column:1 / -1;}
   .inline-num{width:58px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
   .inline-num:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
 
@@ -1441,21 +1448,6 @@
       </div>
 
       <div class="field-row">
-        <label class="toggle-row" for="inRepay" style="margin-top:0;">
-          <input type="checkbox" id="inRepay">
-          すでに返済中（途中から試算する）
-        </label>
-        <div class="field-hint">上の「借入金額・金利・返済期間」は<b>当初の借入条件</b>を入れ、下に返済を始めてからの経過を入れてください。現在の残債・残りの期間・これから払う利息が出ます。</div>
-        <div class="field-input" id="elapsedWrap" style="margin-top:8px;">
-          <span class="unit" style="margin-right:6px;">返済して</span>
-          <input type="number" id="elapsedY" value="0" min="0" max="50" step="1" style="max-width:70px;">
-          <span class="unit">年</span>
-          <input type="number" id="elapsedM" value="0" min="0" max="11" step="1" style="max-width:60px;">
-          <span class="unit">ヶ月</span>
-        </div>
-      </div>
-
-      <div class="field-row">
         <label for="rate">年利（金利）</label>
         <div class="field-input">
           <input type="number" id="rate" placeholder="1.5" min="0" max="20" step="0.01">
@@ -1542,6 +1534,21 @@
           </svg>
         </button>
         </div>
+      </div>
+
+      <!-- すでに返済中の場合。結果画面でそのまま切り替えられるようにする -->
+      <div class="diag-bar repay-bar">
+        <label class="diag-toggle" for="inRepay">
+          <input type="checkbox" id="inRepay">
+          <span>すでに返済中</span>
+        </label>
+        <span class="diag-toggle repay-el" style="cursor:default;">
+          <input type="text" inputmode="numeric" id="elapsedY" class="inline-num" placeholder="0">
+          <span class="diag-rate">年</span>
+          <input type="text" inputmode="numeric" id="elapsedM" class="inline-num" placeholder="0">
+          <span class="diag-rate">ヶ月 返済ずみ</span>
+        </span>
+        <span class="diag-rate repay-note">上の「借入・金利・期間」は<b>当初の条件</b>を入れてください</span>
       </div>
 
       <div class="headline-figure hf-with-btn">
@@ -4258,8 +4265,14 @@
     if($(id)) $(id).addEventListener('change', payoffSim);
   });
   ['inRepay','elapsedY','elapsedM'].forEach(function(id){
-    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, function(){ recalcAll(); diagnose(); }); });
+    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, function(){
+      var bar=document.querySelector('.repay-bar');
+      if(bar) bar.classList.toggle('on', $('inRepay').checked);
+      recalcAll(); diagnose();
+    }); });
   });
+  if($('elapsedY')) attachClear($('elapsedY'));
+  if($('elapsedM')) attachClear($('elapsedM'));
   document.querySelectorAll('input[name=method]').forEach(el=>{ el.addEventListener('change', payoffSim); });
 
   // グラフをタップ／左右ドラッグで「経過年」を動かす
