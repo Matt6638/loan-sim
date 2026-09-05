@@ -2694,7 +2694,11 @@
       var barW = bar.clientWidth;
       segs.forEach(function(seg){
         if(!seg.textContent.trim()) return;
-        if(seg.scrollWidth <= seg.clientWidth - 5) return; // 余裕をもって収まっている
+        // 文字の実寸を測り、6px以上の余裕をもって収まるときだけ棒の中に残す
+        // （scrollWidth は収まっている間 clientWidth と同じ値になり、余裕の判定に使えない）
+        var need = 0;
+        try{ var rng = document.createRange(); rng.selectNodeContents(seg); need = rng.getBoundingClientRect().width; }catch(_){ need = 0; }
+        if(need > 0 ? (need <= seg.clientWidth - 6) : (seg.scrollWidth <= seg.clientWidth + 1)) return;
         var labEl = seg.querySelector('.el-lab');
         var name = labEl ? labEl.textContent : '';
         var val = seg.textContent.replace(name, '').trim();
