@@ -849,7 +849,7 @@
   /* 表を開いているあいだ、上の「閉じる」ボタンを画面上部に固定する。
      見出しはそのすぐ下に貼り付き、年度の行だけがスワイプで動く */
   #tableToggle.stuck{position:sticky;top:var(--navh,56px);z-index:8;
-    margin:20px 0 0;width:calc(100% - 40px);align-self:center;
+    margin:20px auto 0;width:calc(100% - 40px);display:block;
     box-shadow:0 6px 10px -8px rgba(27,42,74,.35);}
   .table-wrap.selecting tbody tr{cursor:pointer;}
   .table-wrap.selecting tbody{touch-action:none;}   /* 指でなぞるあいだ画面が動かないようにする */
@@ -4648,7 +4648,7 @@
       var b=document.getElementById('tableToggle');
       var open=document.getElementById('tableWrap');
       var on = b && open && open.classList.contains('open');
-      var h = on ? Math.round(b.getBoundingClientRect().height + 20) : 0;   // 上マージン20pxを含む
+      var h = on ? Math.round(b.getBoundingClientRect().height) : 0;
       document.documentElement.style.setProperty('--tblclose', h+'px');
     }
     setTblClose();
