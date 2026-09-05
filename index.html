@@ -836,9 +836,11 @@
     background:#fff;border:1px solid var(--gold-soft);border-radius:7px;padding:5px 11px;cursor:pointer;
     white-space:nowrap;transition:all .15s;}
   .sel-btn.on{background:var(--gold);color:#fff;border-color:var(--gold);}
-  /* 閉じるボタンは見出しと一緒に画面上部へ貼り付ける（年度の行だけがスワイプで動く） */
-  .tbl-close-top{margin:0;width:100%;position:sticky;top:var(--navh,56px);z-index:8;
-    background:var(--panel);border-radius:0;}
+  /* 閉じるボタンは見出しと一緒に画面上部へ貼り付ける（年度の行だけがスワイプで動く）。
+     .table-toggle の margin/角丸に負けないよう詳細度を上げる */
+  .table-wrap .tbl-close-top{margin:0 0 0;width:100%;position:sticky;top:var(--navh,56px);z-index:8;
+    background:#f4f1e8;border-radius:0;border-left:none;border-right:none;
+    box-shadow:0 1px 0 var(--border);}
   .table-wrap.selecting tbody tr{cursor:pointer;}
   .table-wrap.selecting tbody{touch-action:none;}   /* 指でなぞるあいだ画面が動かないようにする */
   .table-wrap.selecting tbody tr:hover{background:#f4f7fc;}
