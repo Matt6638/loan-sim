@@ -2405,7 +2405,12 @@
   }
   function attachRateFormat(el){
     if(!el || el.dataset.rateFmt) return; el.dataset.rateFmt='1';
-    el.addEventListener('blur', function(){ if(String(this.value).trim()!=='') fmtRate(this); });
+    el.addEventListener('blur', function(){
+      if(String(this.value).trim()==='') return;
+      fmtRate(this);
+      // クイックバー側の表示もそろえる
+      if(typeof syncQuickBar === 'function') syncQuickBar();
+    });
   }
 
   // 数値欄（％・年など）：フォーカスで全選択→打ち替え／空欄で離れたら復元
