@@ -4201,7 +4201,11 @@
       });
       q.addEventListener('blur', function(){
         var src=$(pair[1]());
-        if(src && String(src.value).trim()!==''){ try{ fmtNum(src); }catch(_){} }
+        if(src && String(src.value).trim()!==''){
+          // 金利は小数第2位までにそろえる（2 → 2.00）。それ以外は3桁区切り
+          if(RATE_IDS[src.id] || RATE_IDS[pair[0]]) fmtRate(src);
+          else { try{ fmtNum(src); }catch(_){} }
+        }
         syncQuickBar();
       });
     });
@@ -4345,6 +4349,8 @@
     const opening = !w.classList.contains('open');
     w.classList.toggle('open');
     $('tableToggle').textContent = opening ? '年間返済予定表を閉じる' : '年間返済予定表を表示';
+    // 閉じるボタンの高さを測り直し、表の見出しがその真下に貼り付くようにする
+    if(window.gSetTblClose) setTimeout(window.gSetTblClose, 0);
     // 下の閉じるボタンで閉じたら、上のトグルまでスクロールして迷子を防ぐ
     if(!opening && fromBottom){ var nav=document.querySelector('.tabnav'); var navH=nav?nav.getBoundingClientRect().height:0; window.scrollTo(0, Math.max(0, $('tableToggle').getBoundingClientRect().top + window.scrollY - navH - 8)); }
   }
@@ -4617,9 +4623,10 @@
       document.documentElement.style.setProperty('--tblclose', h+'px');
     }
     setTblClose();
+    window.gSetTblClose = setTblClose;   // 表の開閉時に測り直す
     window.addEventListener('resize', setTblClose);
     var tw=document.getElementById('tableWrap');
-    if(tw && window.ResizeObserver){ new ResizeObserver(setTblClose).observe(tw); }
+    if(tw && window.ResizeObserver){ new ResizeObserver(function(){ setTimeout(setTblClose,0); }).observe(tw); }
     window.addEventListener('resize', function(){ if(typeof refitAllBars === 'function') refitAllBars(); });
     window.addEventListener('orientationchange', function(){ setTimeout(setNavH, 250); });
     // タブ自体の高さが変わったとき（折り返し等）にも追従させる
