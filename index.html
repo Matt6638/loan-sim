@@ -2896,6 +2896,14 @@
   var gLastYearly=null, gLastPrincipal=0, gStartAge=null;
   var gLabelY = 0.62;    // 「◯年目◯歳」ラベルの上下位置（0＝上端／1＝下端）
   // すでに返済中の場合の経過月数（0なら「これから借りる」）
+  // 経過月数の時点の理論残高（残債を直接入力していない場合に使う）
+  function balanceAfter(months){
+    var P = (iv('principal')||0)*10000, r=(iv('rate')||0)/100/12, n=Math.round(iv('years')||0)*12;
+    if(!(P>0)||!(n>0)) return 0;
+    var A = annuityPayment(P, r, n), b = P;
+    for(var m=0;m<months && m<n;m++){ var it=b*r; b -= (A-it); }
+    return Math.max(0, b);
+  }
   function elapsedMonths(){
     if(!$('inRepay') || !$('inRepay').checked) return 0;
     var y = Math.max(0, Math.round(iv('elapsedY') || 0));
@@ -4587,14 +4595,27 @@
   function num(v){ var n = parseFloat(zen2han(String(v==null?'':v)).replace(/[^0-9.\-]/g,'')); return isFinite(n) ? n : NaN; }
 
   // ===== 繰上返済 vs 運用 =====
-  // 毎月の返済額は変えず、金利が上がったら返済期間が延びる前提（期間短縮型の繰上返済）。
-  // 同じ時点（＝繰上返済しなかった場合の完済時期）で、どちらの資産が多いかで比べる。
-  function ppRun(bal, r0Pct, upPct, riseMonth, pay){
+  // 金利が上がったら、そこで毎月返済額を見直して「当初の完済時期」を守る前提（実務に近い）。
+  // 繰上返済は期間短縮型。比較する時点は「繰上返済しない場合の完済時期＝残りの返済期間の終わり」。
+  // 毎月の支払い（返済額）は両案とも同額なので、差は「手元資金Xの使い道」だけになる。
+  function ppSchedule(r0Pct, upPct, riseMonth, bal, n){
+    // 返済額の推移（見直しあり）を作る。riseMonth 以降は残高と残存期間で再計算
+    var r0 = (r0Pct/100)/12, r1 = ((r0Pct+upPct)/100)/12;
+    var pay0 = annuityPayment(bal, r0, n);
+    var b = bal;
+    for(var m=0; m<Math.min(riseMonth, n); m++){ var it=b*r0; b -= (pay0-it); }
+    var rest = n - Math.min(riseMonth, n);
+    var pay1 = rest > 0 ? annuityPayment(Math.max(0,b), r1, rest) : pay0;
+    return {pay0:pay0, pay1:pay1, r0:r0, r1:r1};
+  }
+  function ppRun(bal, sc, riseMonth){
+    // 上で決めた返済額の通りに払ったとき、いつ完済し、利息はいくらか
     var b = bal, m = 0, interest = 0;
     while(b > 1 && m < 1200){
-      var r = ((m >= riseMonth ? r0Pct + upPct : r0Pct) / 100) / 12;
+      var r = (m >= riseMonth) ? sc.r1 : sc.r0;
+      var pay = (m >= riseMonth) ? sc.pay1 : sc.pay0;
       var it = b * r, pr = pay - it;
-      if(pr <= 0) return null;             // 毎月返済額が利息を下回る＝返し切れない
+      if(pr <= 0) return null;
       if(pr > b) pr = b;
       interest += it; b -= pr; m++;
     }
@@ -4631,26 +4652,39 @@
     window.gPPCalc = calc;
     function calc(){
       var out = $('ppOut'); if(!out || panel.style.display === 'none') return;
-      var P = (iv('principal')||0) * 10000;
-      var r0 = iv('rate')||0;
+      // 返済中なら「いまの残債・残りの期間」を基準にする（比較期間が長くなりすぎないように）
+      var em = elapsedMonths();
+      var P, n, r0 = iv('rate')||0;
       var years = Math.round(iv('years')||0);
+      if(em > 0){
+        n = Math.max(1, years*12 - em);
+        P = (gActualBalance != null) ? gActualBalance : balanceAfter(em);
+      } else {
+        n = years * 12;
+        P = (iv('principal')||0) * 10000;
+      }
       var X = (num($('ppCash').value)||0) * 10000;
       var y = num($('ppYield').value); if(!isFinite(y)) y = 3;
       var riseY = num($('ppRiseY').value); if(!isFinite(riseY)) riseY = 5;
       var up = num($('ppRiseUp').value); if(!isFinite(up)) up = 0;
-      if(!(P > 0) || !(years > 0)){ out.innerHTML = '<div class="pp-note">先に借入条件を入力してください。</div>'; return; }
+      if(!(P > 0) || !(n > 0)){ out.innerHTML = '<div class="pp-note">先に借入条件を入力してください。</div>'; return; }
       if(!(X > 0)){ out.innerHTML = '<div class="pp-note">手元の資金を入れると比較できます。</div>'; return; }
       if(X >= P){ out.innerHTML = '<div class="pp-note">手元の資金が残債以上です。全額返済できるため比較の対象外です。</div>'; return; }
-      var n = years * 12;
-      var pay = annuityPayment(P, (r0/100)/12, n);          // 毎月返済額（当初金利で算出）
       var riseM = Math.max(0, Math.round(riseY * 12));
-      var base = ppRun(P, r0, up, riseM, pay);
-      var pre  = ppRun(P - X, r0, up, riseM, pay);
-      if(!base || !pre){ out.innerHTML = '<div class="pp-note">金利の上げ幅が大きく、いまの毎月返済額では返し切れません（未払利息が発生します）。上げ幅を小さくしてご確認ください。</div>'; return; }
+      var sc = ppSchedule(r0, up, riseM, P, n);
+      var base = ppRun(P, sc, riseM);
+      var pre  = ppRun(P - X, sc, riseM);
+      if(!base || !pre){ out.innerHTML = '<div class="pp-note">金利の上げ幅が大きく、返済額の見直しでも返し切れません。上げ幅を小さくしてご確認ください。</div>'; return; }
       var T = base.months;                                   // 比較する時点＝繰上げしない場合の完済
       var d = T - pre.months;                                // 短縮できた月数
-      var wealthA = fvMonthly(pay, y, d);                    // 繰上げ：完済後に毎月返済額を積み立てる
-      var wealthB = X * Math.pow(1 + (y/100)/12, T);         // 運用：手元資金をそのまま運用
+      var i0 = (y/100)/12;
+      // 繰上げ側：完済したあと、それまで払っていた返済額を同じ利回りで積み立てる
+      var wealthA = 0;
+      for(var mm = pre.months; mm < T; mm++){
+        wealthA = wealthA * (1 + i0) + ((mm >= riseM) ? sc.pay1 : sc.pay0);
+      }
+      var wealthB = X * Math.pow(1 + i0, T);                 // 運用：手元資金をそのまま運用
+      var pay = sc.pay0;
       var saved = base.interest - pre.interest;              // 減らせた利息
       var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
       var aWin = wealthA >= wealthB;
