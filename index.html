@@ -3398,7 +3398,12 @@
   }
 
   function diagnose(){
-    if(!isFinite(iv('income')) || (iv('income')||0)<=0) return;
+    if(!isFinite(iv('income')) || (iv('income')||0)<=0){
+      // 年収がないと診断できない。前回の数値を残すと誤解を招くので消す
+      ['borrowCapacity','annualCap','monthlyCap','burdenActual'].forEach(function(id){ var e=$(id); if(e) e.innerHTML='—'; });
+      ['borrowSub','burdenActualSub','diagCondition'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; });
+      return;
+    }
     const incomeMan = iv('income') || 0;
     const otherDebtMan = iv('otherDebt') || 0;
     const useStress = $('stressRate').checked;
@@ -5274,7 +5279,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 15:14</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 15:16</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
