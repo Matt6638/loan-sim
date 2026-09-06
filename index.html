@@ -227,6 +227,8 @@
   .dt-reset{width:100%;background:#fff;color:var(--rose);border:1px dashed var(--rose);}
   .dt-reset:hover{background:#fbf1ee;}
   .dt-note{font-size:0.72rem;color:var(--gold-soft);min-height:1em;line-height:1.4;}
+  .file-note{color:var(--text-dim);}
+  .file-note b{color:var(--rose);}
 
   /* iPad系（幅768px以上かつ高さ600px以上）＝入力は右からのサイドドロワー・結果は全幅 */
   /* ※iPhoneは横向きでも高さが低いため対象外＝下部ドロワーのまま */
@@ -1049,6 +1051,7 @@
   .pp-svg{width:100%;height:180px;display:block;background:#fff;border:1px solid var(--border-soft);border-radius:6px;}
   .pp-plot .pyl{position:absolute;left:5px;transform:translateY(-50%);font-family:var(--mono);font-size:0.6rem;
     color:var(--text-dim);background:rgba(255,255,255,.82);padding:0 3px;border-radius:2px;pointer-events:none;}
+  .pp-crash-note{font-size:0.66rem;color:var(--rose);font-weight:700;margin-top:4px;line-height:1.5;}
   .pp-plot .pyu{position:absolute;right:6px;top:3px;font-size:0.58rem;color:var(--text-dim);
     background:rgba(255,255,255,.82);padding:0 3px;pointer-events:none;}
   .pp-legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:0.66rem;color:var(--text-dim);margin-top:5px;}
@@ -1668,6 +1671,17 @@
               <button type="button" class="on" data-v="0">なし</button><button type="button" data-v="0.5">0.5%</button><button type="button" data-v="1">1%</button><button type="button" data-v="1.5">1.5%</button><button type="button" data-v="2">2%</button>
             </span>
             <input type="hidden" id="ppRiseY" value="5"><input type="hidden" id="ppRiseUp" value="0">
+          </div>
+          <div class="rp-f rp-pick"><span class="rp-k">過去の暴落</span>
+            <span class="br-chips" id="ppCrashChips">
+              <button type="button" class="on" data-c="">なし</button><button type="button" data-c="it">ITバブル</button><button type="button" data-c="lehman">リーマン</button><button type="button" data-c="corona">コロナ</button><button type="button" data-c="bm">ブラックマンデー</button><button type="button" data-c="jp">日本のバブル</button>
+            </span>
+            <span class="rp-u">が</span>
+            <span class="br-chips" id="ppCrashYChips">
+              <button type="button" data-v="0">いま</button><button type="button" class="on" data-v="5">5年後</button><button type="button" data-v="10">10年後</button><button type="button" data-v="20">20年後</button>
+            </span>
+            <span class="rp-u">に起きたら</span>
+            <input type="hidden" id="ppCrash" value=""><input type="hidden" id="ppCrashY" value="5">
           </div>
           <div class="rp-f rp-pick"><span class="rp-k">グラフの期間</span>
             <span class="br-chips ch-2line" id="ppTermChips">
@@ -2842,6 +2856,154 @@
   }
   var gInRepayCalc = false;
 
+  // ---- 入力をファイルに保存し、あとで開いたときは「開いた時点」に合わせて直す ----
+  // 結果画面のパネルは設定ドロワーの外にあるので、ここで別に集める
+  var PANEL_FIELDS = ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge',
+                      'rpPaidCount','rpFullY','elapsedY','elapsedM',
+                      'ppCash','ppYield','ppRiseY','ppRiseUp','ppTermY','ppCrash','ppCrashY'];
+  function collectPanels(){
+    var o = {fields:{}};
+    PANEL_FIELDS.forEach(function(id){ var e = $(id); if(e) o.fields[id] = e.value; });
+    o.inRepay = !!($('inRepay') && $('inRepay').checked);
+    o.mode = window.gRepayMode || 'bal';
+    o.ppOpen = !!($('ppPanel') && $('ppPanel').style.display !== 'none');
+    return o;
+  }
+  function restorePanels(o){
+    if(!o) return;
+    PANEL_FIELDS.forEach(function(id){ var e = $(id); if(e && o.fields && o.fields[id] != null) e.value = o.fields[id]; });
+    syncChipsFromHidden();
+    // モード（残債から／当初条件＋経過）
+    var mb = $('rpMode') && $('rpMode').querySelector('.qb-seg-btn[data-m="'+(o.mode||'bal')+'"]');
+    if(mb && !mb.classList.contains('on')) mb.click();
+    var chk = $('inRepay');
+    if(chk && chk.checked !== !!o.inRepay){ chk.checked = !!o.inRepay; chk.dispatchEvent(new Event('change', {bubbles:true})); }
+    var pp = $('ppPanel');
+    if(pp && (pp.style.display !== 'none') !== !!o.ppOpen && $('ppToggle')) $('ppToggle').click();
+    if(window.gRepayCalc){ try{ window.gRepayCalc(); }catch(_){ } }
+    if(window.gPPCalc){ try{ window.gPPCalc(); }catch(_){ } }
+  }
+  // 残高を months ヶ月ぶん進める（毎月 pay を払い続けた場合）
+  function rollBalance(bal, ratePct, pay, months){
+    var r = (ratePct/100)/12, b = bal;
+    for(var k = 0; k < months && b > 0; k++){
+      var it = b * r, pr = pay - it;
+      if(pr <= 0) return null;                  // 返済額が利息以下＝進められない
+      if(pr > b) pr = b;
+      b -= pr;
+    }
+    return Math.max(0, b);
+  }
+  function fileNote(html){ var e = $('fileNote'); if(e) e.innerHTML = html || ''; }
+  function saveToFile(){
+    var nm = (($('custName')||{}).value || '').trim();
+    var d = new Date();
+    var data = {
+      app: 'housing-loan-simulator', v: 1,
+      savedAt: {y: d.getFullYear(), m: d.getMonth()+1, d: d.getDate()},
+      name: nm, state: window.gCollectState ? window.gCollectState() : null, panels: collectPanels()
+    };
+    var pad = function(n){ return (n<10?'0':'') + n; };
+    var fn = '住宅ローン試算_' + (nm ? nm.replace(/[\\/:*?"<>|]/g,'') + '_' : '') +
+             data.savedAt.y + '-' + pad(data.savedAt.m) + '-' + pad(data.savedAt.d) + '.json';
+    try{
+      var blob = new Blob([JSON.stringify(data, null, 1)], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fn; document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1500);
+      fileNote('<b>' + fn + '</b> に保存しました。次に開いたときは、その時点に合わせて残債や年齢を自動で直します。');
+    }catch(e){ fileNote('保存できませんでした（' + e.message + '）'); }
+  }
+  function loadFromFile(file){
+    var fr = new FileReader();
+    fr.onload = function(){
+      var data;
+      try{ data = JSON.parse(fr.result); }catch(e){ fileNote('このファイルは読み込めませんでした。'); return; }
+      if(!data || data.app !== 'housing-loan-simulator'){ fileNote('このシミュレーターで保存したファイルではありません。'); return; }
+      if(data.state && window.gApplyState) window.gApplyState(data.state);
+      restorePanels(data.panels);
+      var msgs = shiftToToday(data.savedAt, data.panels);
+      if(data.name && $('custName')) $('custName').value = data.name;
+      recalcAll(); diagnose(); syncQuickBar();
+      if(window.gRepayCalc){ try{ window.gRepayCalc(); }catch(_){ } }
+      if(window.gPPCalc){ try{ window.gPPCalc(); }catch(_){ } }
+      var sv = data.savedAt || {};
+      fileNote('<b>' + sv.y + '年' + sv.m + '月</b>に保存された内容を読み込みました。' +
+        (msgs.length ? '<br>いまの時点（' + NOW_YEAR + '年' + NOW_MONTH + '月）に合わせて直しました：<br>・' + msgs.join('<br>・')
+                     : '<br>経過がないため、そのままの内容です。'));
+    };
+    fr.readAsText(file);
+  }
+  // 保存した時点から今日までの経過を、残債・年齢・入居年に反映する
+  function shiftToToday(sv, panels){
+    var msgs = [];
+    if(!sv || !sv.y) return msgs;
+    var months = (NOW_YEAR - sv.y) * 12 + (NOW_MONTH - sv.m);
+    if(!(months > 0)) return msgs;
+    var yrs = Math.floor(months / 12);
+    var wasRepay = !!(panels && panels.inRepay);
+    // 1) 返済中なら、残債をそのぶん進める
+    if(wasRepay && $('rpBalance')){
+      var bal0 = (num($('rpBalance').value) || 0) * 10000;
+      var rt = num($('rpRate').value); if(!isFinite(rt)) rt = iv('rate') || 0;
+      var pay = num($('rpPay').value) || 0;
+      if(bal0 > 0 && pay > 0){
+        var b1 = rollBalance(bal0, rt, pay, months);
+        if(b1 != null){
+          $('rpBalance').value = Math.round(b1/10000).toLocaleString('en-US');
+          msgs.push('残債 ' + Math.round(bal0/10000).toLocaleString('ja-JP') + '万円 → <b>' +
+                    Math.round(b1/10000).toLocaleString('ja-JP') + '万円</b>（' + months + 'ヶ月ぶん返済）' +
+                    (b1 <= 0 ? '　※すでに完済の計算です' : ''));
+        }
+      }
+      var pc = num(($('rpPaidCount')||{}).value);
+      if(isFinite(pc) && pc > 0){
+        $('rpPaidCount').value = Math.round(pc) + months;
+        msgs.push('払込回数 ' + Math.round(pc) + '回 → <b>' + (Math.round(pc)+months) + '回</b>');
+      }
+      var na = num(($('rpNowAge')||{}).value);
+      if(isFinite(na) && na > 0 && yrs > 0){
+        $('rpNowAge').value = Math.round(na) + yrs;
+        msgs.push('現在の年齢 ' + Math.round(na) + '歳 → <b>' + (Math.round(na)+yrs) + '歳</b>');
+      }
+    } else if(yrs > 0 && $('borrowerAge')){
+      // 2) これから借りる想定なら、返済開始時の年齢が経過ぶん上がる
+      var ba = iv('borrowerAge');
+      if(isFinite(ba) && ba > 0){
+        $('borrowerAge').value = Math.round(ba) + yrs;
+        $('borrowerAge').classList.remove('pristine');
+        msgs.push('返済開始の年齢 ' + Math.round(ba) + '歳 → <b>' + (Math.round(ba)+yrs) + '歳</b>');
+      }
+    }
+    // 3) 住宅ローン控除の入居年が過去になっていたら、今年に寄せる
+    var mi = $('moveInYear');
+    if(mi){
+      var my = num(mi.value);
+      if(isFinite(my) && my > 0 && my < NOW_YEAR){
+        mi.value = NOW_YEAR;
+        msgs.push('入居年 ' + my + '年 → <b>' + NOW_YEAR + '年</b>（住宅ローン控除の判定用）');
+      }
+    }
+    return msgs;
+  }
+
+  // hidden の値からボタンの選択状態を作り直す（読込・リセットの後に使う）
+  function syncChipsFromHidden(){
+    [['ppRiseYChips','data-v','ppRiseY'],['ppRiseUpChips','data-v','ppRiseUp'],
+     ['ppTermChips','data-t','ppTermY'],['ppCrashChips','data-c','ppCrash'],
+     ['ppCrashYChips','data-v','ppCrashY']].forEach(function(c){
+      var w = $(c[0]), h = $(c[2]); if(!w || !h) return;
+      Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
+        b.classList.toggle('on', b.getAttribute(c[1]) === String(h.value));
+      });
+    });
+    var w = $('ppYieldChips'), h = $('ppYield');
+    if(w && h) Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
+      b.classList.toggle('on', num(b.getAttribute('data-y')) === num(h.value));
+    });
+  }
+
   // 「全クリア」でここも空にする。結果画面のパネルは設定ドロワーの外にあるので個別に消す
   function resetRepayPanels(){
     ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge','rpPaidCount','rpFullY',
@@ -2853,13 +3015,9 @@
     if($('ppRiseY'))  $('ppRiseY').value  = '5';
     if($('ppRiseUp')) $('ppRiseUp').value = '0';
     if($('ppTermY'))  $('ppTermY').value  = '';
-    [['ppRiseYChips','data-v','5'],['ppRiseUpChips','data-v','0'],['ppTermChips','data-t','']].forEach(function(c){
-      var w = $(c[0]); if(!w) return;
-      Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
-        b.classList.toggle('on', b.getAttribute(c[1]) === c[2]);
-      });
-    });
-    if($('ppYieldChips')) Array.prototype.forEach.call($('ppYieldChips').querySelectorAll('button'), function(b){ b.classList.remove('on'); });
+    if($('ppCrash'))  $('ppCrash').value  = '';
+    if($('ppCrashY')) $('ppCrashY').value = '5';
+    syncChipsFromHidden();
     // 期間ボタンの西暦表示も消す（前の条件の年が残らないように）
     if($('ppTermChips')) Array.prototype.forEach.call($('ppTermChips').querySelectorAll('button'), function(b){
       var t = b.getAttribute('data-t');
@@ -3058,6 +3216,16 @@
   var gActualBalance = null, gActualRate = null;   // 残債から入力した場合の実額
   var gSuggestYears = 0, gSuggestFrom = '';        // 払込回数などから計算した全期間の候補
   var gPPBal = 0;                                  // 繰上vs運用で使う「いまの残債」
+
+  // 過去の主な暴落（概算）。drop=下落率、dropM=下げきるまでの月数、recM=元の水準に戻るまでの月数
+  // ※市場の代表的な指数の高値→安値→高値回復までの、公表値にもとづく概算。実際の運用成績を示すものではありません
+  var CRASHES = {
+    it:     {name:'ITバブル崩壊',     idx:'S&P500', span:'2000年3月〜2007年5月',  drop:-0.49, dropM:31,  recM:55},
+    lehman: {name:'リーマンショック', idx:'S&P500', span:'2007年10月〜2013年3月', drop:-0.57, dropM:17,  recM:48},
+    corona: {name:'コロナショック',   idx:'S&P500', span:'2020年2月〜2020年8月',  drop:-0.34, dropM:2,   recM:5},
+    bm:     {name:'ブラックマンデー', idx:'S&P500', span:'1987年8月〜1989年7月',  drop:-0.34, dropM:3,   recM:20},
+    jp:     {name:'日本のバブル崩壊', idx:'日経平均', span:'1989年12月〜2024年2月', drop:-0.80, dropM:160, recM:250}
+  };
   var gTableUnit = 'man'; // 年間返済予定表の単位（既定＝万円 / 'yen' で円）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
@@ -4879,6 +5047,8 @@
       });
     }
     wireChips('ppTermChips','ppTermY','data-t');
+    wireChips('ppCrashChips','ppCrash','data-c');
+    wireChips('ppCrashYChips','ppCrashY','data-v');
     wireChips('ppRiseYChips','ppRiseY','data-v');
     wireChips('ppRiseUpChips','ppRiseUp','data-v');
     if($('ppCashAll')){
@@ -4928,21 +5098,36 @@
       if(isFinite(horY) && horY > 0) T = Math.max(12, horY*12);
       var d = payoffM - pre.months;                          // 短縮できた月数
       var i0 = (y/100)/12;
+      // ---- 過去の暴落を当てはめる（下げきる期間と、元の水準に戻るまでの期間を月利に置き換える） ----
+      var cr = CRASHES[(($('ppCrash')||{}).value) || ''] || null;
+      var crS = Math.max(0, Math.round((num(($('ppCrashY')||{}).value) || 0) * 12));   // 何ヶ月後に始まるか
+      var crDropR = cr ? Math.pow(1 + cr.drop, 1/cr.dropM) - 1 : 0;
+      var crRecR  = cr ? Math.pow(1/(1 + cr.drop), 1/cr.recM) - 1 : 0;
+      var crEnd = cr ? (crS + cr.dropM + cr.recM) : 0;               // 元の水準に戻る時点
+      function mRate(m){
+        if(!cr || m < crS) return i0;
+        if(m < crS + cr.dropM) return crDropR;                        // 下落中
+        if(m < crEnd) return crRecR;                                  // 回復中
+        return i0;                                                    // 平常
+      }
       // 毎月まわして、両案の資産と「このまま返す場合の残債」を同時に作る
-      var wealthA = surplus, wealthB = X, bal = P;
-      var ptsM = [], ptsA = [], ptsB = [], ptsBal = [], maxV = 1;
+      var wealthA = surplus, wealthB = X, wealthB0 = X, bal = P;
+      var ptsM = [], ptsA = [], ptsB = [], ptsB0 = [], ptsBal = [], maxV = 1;
       for(var mm = 0; mm <= T; mm++){
         if(mm % 12 === 0 || mm === T){
-          ptsM.push(mm); ptsA.push(wealthA); ptsB.push(wealthB); ptsBal.push(bal);
+          ptsM.push(mm); ptsA.push(wealthA); ptsB.push(wealthB); ptsB0.push(wealthB0); ptsBal.push(bal);
           if(wealthA > maxV) maxV = wealthA;
           if(wealthB > maxV) maxV = wealthB;
+          if(cr && wealthB0 > maxV) maxV = wealthB0;
           if(bal > maxV) maxV = bal;
         }
         if(mm === T) break;
         var pm = (mm >= riseM) ? sc.pay1 : sc.pay0;
         var rr = (mm >= riseM) ? sc.r1 : sc.r0;
-        wealthA = wealthA*(1+i0) + ((mm >= pre.months) ? pm : 0);    // 繰上げ側：完済後は返済額を積立
-        wealthB = wealthB*(1+i0) + ((mm >= payoffM)    ? pm : 0);    // 運用側：完済したらこちらも積立
+        var ri = mRate(mm);
+        wealthA  = wealthA *(1+ri) + ((mm >= pre.months) ? pm : 0);   // 繰上げ側：完済後は返済額を積立
+        wealthB  = wealthB *(1+ri) + ((mm >= payoffM)    ? pm : 0);   // 運用側：完済したらこちらも積立
+        wealthB0 = wealthB0*(1+i0) + ((mm >= payoffM)    ? pm : 0);   // 暴落がなかった場合の運用
         if(bal > 0){ var it2 = bal*rr, pr2 = pm - it2; if(pr2 > bal) pr2 = bal; bal -= pr2; if(bal < 1) bal = 0; }
       }
       var pay = sc.pay0;
@@ -4997,10 +5182,23 @@
           b.innerHTML = (t ? (t + '年') : '完済') + '<i>' + yy + '年</i>';
         });
       })();
+      // 暴落の期間を帯で示す
+      var band = '';
+      if(cr && crS < T){
+        var bx1 = xAtM(Math.min(crS, T)), bx2 = xAtM(Math.min(crEnd, T));
+        var bx3 = xAtM(Math.min(crS + cr.dropM, T));
+        band = '<rect x="'+bx1.toFixed(1)+'" y="'+padT+'" width="'+Math.max(1,(bx2-bx1)).toFixed(1)+'" height="'+plotH+
+                 '" fill="var(--rose)" fill-opacity="0.07"/>' +
+               '<rect x="'+bx1.toFixed(1)+'" y="'+padT+'" width="'+Math.max(1,(bx3-bx1)).toFixed(1)+'" height="'+plotH+
+                 '" fill="var(--rose)" fill-opacity="0.10"/>' +
+               '<line x1="'+bx1.toFixed(1)+'" y1="'+padT+'" x2="'+bx1.toFixed(1)+'" y2="'+(padT+plotH)+
+                 '" stroke="var(--rose)" stroke-width="1.4" vector-effect="non-scaling-stroke"/>';
+      }
       var chart =
         '<div class="pp-plot">' +
         '<svg class="pp-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' +
-          grid +
+          grid + band +
+          (cr ? '<path d="'+path(ptsB0)+'" fill="none" stroke="var(--interest)" stroke-width="1.4" stroke-dasharray="3 3" stroke-opacity="0.75" vector-effect="non-scaling-stroke"/>' : '') +
           '<path d="'+area(ptsB)+'" fill="var(--interest)" fill-opacity="0.14"/>' +
           '<path d="'+area(ptsA)+'" fill="var(--principal)" fill-opacity="0.14"/>' +
           '<path d="'+path(ptsBal)+'" fill="none" stroke="var(--rentc)" stroke-width="2" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"/>' +
@@ -5045,7 +5243,14 @@
           '<span><i style="background:var(--interest)"></i>運用に回す</span>' +
           '<span><i style="background:var(--rentc)"></i>ローン残債（このまま返す場合）</span>' +
           '<span class="pp-mark">縦の点線＝完済の時点</span>' +
-        '</div>';
+          (cr ? '<span class="pp-mark">赤い帯＝' + cr.name + '（点線＝暴落がなかった場合）</span>' : '') +
+        '</div>' +
+        (cr ? '<div class="pp-crash-note">' + cr.name + '（' + cr.idx + '・' + cr.span + '）と同じことが <b>' +
+              Math.round(crS/12) + '年後</b>に起きた前提。' +
+              '<b>' + Math.round(cr.drop*-100) + '%</b> 下がるのに <b>' + Math.floor(cr.dropM/12) + '年' + (cr.dropM%12) + 'ヶ月</b>、' +
+              '元の水準に戻るまで さらに <b>' + Math.floor(cr.recM/12) + '年' + (cr.recM%12) + 'ヶ月</b>' +
+              '（合計 <b>' + Math.round((cr.dropM+cr.recM)/12) + '年</b>）。この間の利回りは想定値ではなく実際の値動きに置き換えています。' +
+              (crEnd > T ? '　※グラフの期間内には回復しきりません。' : '') + '</div>' : '');
 
       out.innerHTML = chart +
         '<div class="pp-cards">' +
@@ -5064,13 +5269,18 @@
             '<div class="pp-li">元本 <b>' + man(X) + '</b>万円を年 <b>' + y + '</b>%で運用<br>' +
               '<b>' + Math.floor(T/12) + '</b>年<b>' + (T%12) + '</b>ヶ月 運用' +
               (T === payoffM ? '（残りの返済期間）' : '（グラフの期間）') + '<br>' +
+              (cr ? '<span style="color:var(--rose)">' + cr.name + 'で <b>' + man(wealthB0 - wealthB) + '</b>万円 目減り' +
+                    '（暴落なしなら ' + man(wealthB0) + '万円）</span><br>' : '') +
               'ローンは最後まで返済</div>' +
           '</div>' +
         '</div>' +
         '<div class="pp-diff">' + (aWin ? (full ? '<b>いま全額返す</b>ほうが ' : '<b>繰上返済</b>のほうが ') : '<b>運用</b>のほうが ') +
           '<b>' + man(diff) + '万円</b> 多く残る試算です' +
           (up > 0 ? '（' + riseY + '年後に金利が ' + r0 + '％→' + (Math.round((r0+up)*100)/100) + '％ に上がる前提）'
-                  : '（金利は ' + r0 + '％のまま）') + '</div>' +
+                  : '（金利は ' + r0 + '％のまま）') +
+          (cr ? '<br><span style="color:var(--rose)">' + Math.round(crS/12) + '年後に' + cr.name + '級の暴落が起きた場合。' +
+                '暴落がなければ ' + (wealthA >= wealthB0 ? '<b>繰上返済</b>' : '<b>運用</b>') + 'のほうが ' +
+                man(Math.abs(wealthA - wealthB0)) + '万円 多く残る計算です。</span>' : '') + '</div>' +
         '<div class="pp-note">前提：繰上返済は<b>期間短縮型</b>。金利が上がったときは、その時点で<b>毎月返済額を見直して当初の完済時期を守る</b>前提です（実際の変動金利の見直しに近い扱い）。' +
           '毎月の支払いは両案とも同じなので、差は<b>手元資金の使い道だけ</b>になります。' +
           '比較する時点は<b>' + Math.floor(T/12) + '年' + (T%12 ? (T%12)+'ヶ月' : '') + '後</b>' +
@@ -5461,9 +5671,15 @@
             '<button type="button" class="dt-btn dt-save" id="defSave">いまの入力を既定値にする</button>' +
             '<button type="button" class="dt-btn" id="defClear">既定値を出荷時に戻す</button>' +
           '</div>' +
+          '<div class="dt-row">' +
+            '<button type="button" class="dt-btn dt-save" id="fileSave">ファイルに保存（日付つき）</button>' +
+            '<button type="button" class="dt-btn" id="fileLoadBtn">ファイルから読込</button>' +
+            '<input type="file" id="fileLoad" accept=".json,application/json" style="display:none">' +
+          '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:48</span></div>' +
+          '<div class="dt-note file-note" id="fileNote"></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 22:05</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -5581,6 +5797,7 @@
       recalcAll(); diagnose();
     }
     // 初期値（既定）＝入力移動直後の状態。営業ごとの既定値を保存していればそちらを使う
+    window.gCollectState = collectState; window.gApplyState = applyState;
     var FACTORY_STATE = collectState();
     var DEF_KEY = 'loanSimDefaults';
     function getDefaults(){ try{ return JSON.parse(localStorage.getItem(DEF_KEY)) || null; }catch(e){ return null; } }
@@ -5649,6 +5866,13 @@
     });
     // 結果画面のクイックバーにある「全クリア」も同じ全リセットを実行
     if($('qReset')) $('qReset').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
+    // ファイルに保存／ファイルから読込
+    if($('fileSave')) $('fileSave').addEventListener('click', saveToFile);
+    if($('fileLoadBtn')) $('fileLoadBtn').addEventListener('click', function(){ $('fileLoad').click(); });
+    if($('fileLoad')) $('fileLoad').addEventListener('change', function(){
+      if(this.files && this.files[0]) loadFromFile(this.files[0]);
+      this.value = '';
+    });
     refreshCustList();
 
     show('base', false);
