@@ -696,6 +696,7 @@
     line-height:1;pointer-events:none;opacity:.75;}
   .el-win .ew-gl{left:2px;} .el-win .ew-gr{right:2px;}
   .el-drag-hint{font-size:0.66rem;color:#c2185b;font-weight:700;margin:6px 0 2px;}
+  .wait-bar .wb-4{color:var(--gold);font-weight:700;}
   /* 繰上返済で短くなった期間を、グラフの赤い区間に ←→ で示す */
   .mini-wrap .mw-arrow{position:absolute;top:52%;height:0;border-top:2px solid #c2185b;pointer-events:none;z-index:2;}
   .mini-wrap .mw-arrow i{position:absolute;top:-4px;width:0;height:0;
@@ -2129,6 +2130,11 @@
           <div class="field-input"><input type="text" inputmode="numeric" id="waitSave" value="5"><span class="unit">万円 / 月</span></div>
         </div>
         <div class="field-row">
+          <label for="waitSave4">④「今すぐ買って繰上返済」で毎月ためる額</label>
+          <div class="field-input"><input type="text" inputmode="numeric" id="waitSave4" value="5"><span class="unit">万円 / 月</span></div>
+          <div class="field-hint">空欄にすると「頭金として毎月ためる額」と同じ額で試算します。ためた総額をそのまま繰上返済に使います。</div>
+        </div>
+        <div class="field-row">
           <label for="waitRateUp">その時の金利上昇幅</label>
           <div class="field-input"><span class="unit">＋</span><input type="text" inputmode="decimal" id="waitRateUp" value="1.0"><span class="unit">%</span></div>
         </div>
@@ -2157,6 +2163,13 @@
           <span class="diag-toggle" style="cursor:default;">金利
             <input type="text" inputmode="decimal" id="waitRateUpR" class="inline-num" placeholder="1.0">
             <span class="diag-rate">% 上昇</span>
+          </span>
+          <span class="diag-toggle wb-4" style="cursor:default;">④の積立
+            <input type="text" inputmode="numeric" id="waitSave4R" class="inline-num" placeholder="5">
+            <span class="diag-rate">万円/月</span>
+          </span>
+          <span class="br-chips" id="waitSave4Chips">
+            <button type="button" data-v="3">3</button><button type="button" data-v="5">5</button><button type="button" data-v="10">10</button><button type="button" data-v="15">15</button><button type="button" data-v="20">20</button>
           </span>
         </div>
         <div class="headline-figure">
@@ -4266,7 +4279,11 @@
     const flat = loanTotals(borrowLater, rate, years, method);
     const flatTotal = rentTotal + down + flat.p + flat.i;
 
-    // 今すぐ買って、待つ場合と同じ額を積み立て、wy年後に頭金相当を繰上返済（期間短縮）
+    // ④の積立額（未入力なら②③と同じ額）。ためた総額をそのまま繰上返済に使う
+    const s4 = iv('waitSave4');
+    const saveM4 = ((isFinite(s4) && s4 > 0) ? s4 : (iv('waitSave')||0)) * 10000;
+    const fund4 = saveM4*12*wy;
+    // 今すぐ買って、その額を積み立て、wy年後に繰上返済（期間短縮）
     const rM = (rate/100)/12;
     const nAll = years*12;
     const bpNow = bonusPrincipalOf(price), mpNow = price - bpNow;
@@ -4278,7 +4295,7 @@
     const ppTick = function(it, pr){ ypI += it; ypP += pr; ppMonths++;
       if(ppMonths % 12 === 0){ ppRows.push({p:ypP, i:ypI}); ypP=0; ypI=0; } };
     for(let k=0;k<M;k++){ const it=balP*rM; let pr=Anow-it; if(pr>balP)pr=balP; paidI+=it; paidP+=pr; balP=Math.max(0,balP-pr); ppTick(it,pr); }
-    const prepay = Math.min(down, balP);
+    const prepay = Math.min(fund4, balP);
     balP = Math.max(0, balP - prepay); paidP += prepay;
     // 打ち入れした年（1始まり）。この翌年から利息が段差をつけて減る
     const prepayYear = Math.ceil(M/12);
@@ -4410,7 +4427,7 @@
         pay1('＝毎月', rentM + saveM) + pay1('買ったあと 毎月の返済', later.pay)) +
       row(hd('4', '今すぐ買って繰上返済', prepayTotal), [
         {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay',
-        pay1('毎月の返済', Anow) + (saveM > 0 ? pay1('＋積立（'+wy+'年）', saveM) + pay1('＝毎月', Anow + saveM) : '') +
+        pay1('毎月の返済', Anow) + (saveM4 > 0 ? pay1('＋積立（'+wy+'年）', saveM4) + pay1('＝毎月', Anow + saveM4) : '') +
         pay1('繰上返済のあとも 毎月', Anow));
     elFitBars($('waitBars'));
     fitMiniLabels($('waitBars'));   // 「◯年短縮」がグラフからはみ出さないように寄せる
@@ -4421,7 +4438,7 @@
       (pricePct!==0 ? '（物件価格 ' + man(futurePrice) + '万円）' : '') +
       '／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(flat.pay) + '円、利息 ' + man(flat.i) + '万円<br>' +
       '<b>' + wy + '年後に買う（金利＋' + (Math.round(upPct*100)/100) + '%）</b>：同じ条件で金利 ' + (Math.round((rate+upPct)*100)/100) + '％　→　毎月 ' + yen(later.pay) + '円、利息 ' + man(later.i) + '万円（金利そのままとの差 ' + man(laterTotal-flatTotal) + '万円）<br>' +
-      '<b>今すぐ買って繰上返済</b>：毎月 ' + yen(Anow) + '円で返しながら毎月 ' + (iv('waitSave')||0) + '万円を積立　→　' + wy + '年後に ' + man(prepay) + '万円 を繰上返済（期間短縮）　→　' +
+      '<b>今すぐ買って繰上返済</b>：毎月 ' + yen(Anow) + '円で返しながら毎月 ' + man(saveM4) + '万円を積立　→　' + wy + '年後に ' + man(prepay) + '万円 を繰上返済（期間短縮）　→　' +
       cutY + '年' + (cutM?cutM+'ヶ月':'') + 'で完済、総額 ' + man(prepayTotal) + '万円（今すぐ買うだけより ' + man(nowTotal-prepayTotal) + '万円 少なく、' + Math.floor(savedMonths/12) + '年' + (savedMonths%12?savedMonths%12+'ヶ月':'') + ' 早く完済）';
 
     if($('waitHelp')) $('waitHelp').innerHTML =
@@ -4946,14 +4963,24 @@
   });
 
   // 今買う vs 待つ（設定側と結果側の入力を双方向同期）
-  var WAIT_PAIRS = [['waitRent','waitRentR'],['waitSave','waitSaveR'],['waitYears','waitYearsR'],['waitRateUp','waitRateUpR']];
+  var WAIT_PAIRS = [['waitRent','waitRentR'],['waitSave','waitSaveR'],['waitYears','waitYearsR'],['waitRateUp','waitRateUpR'],['waitSave4','waitSave4R']];
   function syncWaitInputs(fromR){
     WAIT_PAIRS.forEach(function(pr){
       var a=$(pr[0]), b=$(pr[1]); if(!a||!b) return;
       if(fromR) a.value=b.value; else b.value=a.value;
     });
   }
-  ['waitYears','waitRent','waitSave','waitRateUp','waitPriceUp'].forEach(function(id){
+  if($('waitSave4Chips')){
+    Array.prototype.forEach.call($('waitSave4Chips').querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){
+        $('waitSave4').value = b.getAttribute('data-v');
+        syncWaitInputs(false);
+        Array.prototype.forEach.call($('waitSave4Chips').querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
+        waitSim();
+      });
+    });
+  }
+  ['waitYears','waitRent','waitSave','waitSave4','waitRateUp','waitPriceUp'].forEach(function(id){
     if($(id)){ attachClear($(id)); $(id).addEventListener('change', function(){ syncWaitInputs(false); waitSim(); }); }
   });
   WAIT_PAIRS.forEach(function(pr){
@@ -5938,7 +5965,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 14:05</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 14:40</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
