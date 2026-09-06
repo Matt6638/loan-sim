@@ -697,6 +697,9 @@
   .el-win .ew-gl{left:2px;} .el-win .ew-gr{right:2px;}
   .el-drag-hint{font-size:0.66rem;color:#c2185b;font-weight:700;margin:6px 0 2px;}
   .wait-bar .wb-4{color:var(--gold);font-weight:700;}
+  .auto-chip{font-family:var(--gothic);font-size:0.6rem;font-weight:700;color:#fff;background:var(--gold-soft);
+    border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:1px;}
+  input.auto-val{color:var(--gold-soft);}
   /* 繰上返済で短くなった期間を、グラフの赤い区間に ←→ で示す */
   .mini-wrap .mw-arrow{position:absolute;top:52%;height:0;border-top:2px solid #c2185b;pointer-events:none;z-index:2;}
   .mini-wrap .mw-arrow i{position:absolute;top:-4px;width:0;height:0;
@@ -2147,8 +2150,9 @@
         </div>
         <div class="field-row">
           <label for="waitSave4">④「今すぐ買って繰上返済」で毎月ためる額</label>
-          <div class="field-input"><input type="text" inputmode="numeric" id="waitSave4" value="5"><span class="unit">万円 / 月</span></div>
-          <div class="field-hint">空欄にすると「頭金として毎月ためる額」と同じ額で試算します。ためた総額をそのまま繰上返済に使います。</div>
+          <div class="field-input"><input type="text" inputmode="decimal" id="waitSave4"><span class="unit">万円 / 月</span></div>
+          <div class="field-hint">未入力なら<b>自動</b>：②③で毎月出ていく額（家賃＋頭金の積立）から、今すぐ買った場合のローン返済額を引いた差額が入ります。
+            月々の負担を同じにしたまま比べられます。数字を入れれば上書きでき、空欄に戻すとまた自動になります。</div>
         </div>
         <div class="field-row">
           <label for="waitRateUp">その時の金利上昇幅</label>
@@ -2181,11 +2185,9 @@
             <span class="diag-rate">% 上昇</span>
           </span>
           <span class="diag-toggle wb-4" style="cursor:default;">④の積立
-            <input type="text" inputmode="numeric" id="waitSave4R" class="inline-num" placeholder="5">
+            <input type="text" inputmode="decimal" id="waitSave4R" class="inline-num">
             <span class="diag-rate">万円/月</span>
-          </span>
-          <span class="br-chips" id="waitSave4Chips">
-            <button type="button" data-v="3">3</button><button type="button" data-v="5">5</button><button type="button" data-v="10">10</button><button type="button" data-v="15">15</button><button type="button" data-v="20">20</button>
+            <span class="auto-chip" id="waitSave4Auto">自動</span>
           </span>
         </div>
         <div class="headline-figure">
@@ -4295,15 +4297,27 @@
     const flat = loanTotals(borrowLater, rate, years, method);
     const flatTotal = rentTotal + down + flat.p + flat.i;
 
-    // ④の積立額（未入力なら②③と同じ額）。ためた総額をそのまま繰上返済に使う
-    const s4 = iv('waitSave4');
-    const saveM4 = ((isFinite(s4) && s4 > 0) ? s4 : (iv('waitSave')||0)) * 10000;
-    const fund4 = saveM4*12*wy;
     // 今すぐ買って、その額を積み立て、wy年後に繰上返済（期間短縮）
     const rM = (rate/100)/12;
     const nAll = years*12;
     const bpNow = bonusPrincipalOf(price), mpNow = price - bpNow;
     const Anow = annuityPayment(mpNow, rM, nAll);
+    // ④の積立額。既定は「②③で毎月出ていく額（家賃＋頭金の積立）− 今すぐ買った場合のローン返済」
+    // ＝月々の負担をそろえたときに、繰上返済へ回せる額。1,000円単位に丸める
+    const autoS4 = Math.max(0, Math.round(((rentM + saveM) - Anow)/1000)*1000);
+    const s4 = iv('waitSave4');
+    const saveM4 = (gSave4Manual && isFinite(s4) && s4 > 0) ? s4*10000 : autoS4;
+    const fund4 = saveM4*12*wy;
+    (function(){                                   // 自動のときは入力欄にもその額を映す
+      var txt = String(Math.round(autoS4/1000)/10);
+      if($('waitSave4Auto')) $('waitSave4Auto').style.display = gSave4Manual ? 'none' : '';
+      [$('waitSave4'), $('waitSave4R')].forEach(function(el){
+        if(!el) return;
+        el.classList.toggle('auto-val', !gSave4Manual);
+        el.placeholder = txt;
+        if(!gSave4Manual && document.activeElement !== el) el.value = txt;
+      });
+    })();
     const M = Math.min(nAll-1, wy*12);
     let balP = mpNow, paidP = 0, paidI = 0;
     // ミニグラフ用の年次内訳（合計と必ず一致するよう同じループで集計する）
@@ -5008,6 +5022,7 @@
   });
 
   // 今買う vs 待つ（設定側と結果側の入力を双方向同期）
+  var gSave4Manual = false;    // ④の積立額を自分で入れたかどうか
   var WAIT_PAIRS = [['waitRent','waitRentR'],['waitSave','waitSaveR'],['waitYears','waitYearsR'],['waitRateUp','waitRateUpR'],['waitSave4','waitSave4R']];
   function syncWaitInputs(fromR){
     WAIT_PAIRS.forEach(function(pr){
@@ -5015,23 +5030,26 @@
       if(fromR) a.value=b.value; else b.value=a.value;
     });
   }
-  if($('waitSave4Chips')){
-    Array.prototype.forEach.call($('waitSave4Chips').querySelectorAll('button'), function(b){
-      b.addEventListener('click', function(){
-        $('waitSave4').value = b.getAttribute('data-v');
-        syncWaitInputs(false);
-        Array.prototype.forEach.call($('waitSave4Chips').querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
-        waitSim();
-      });
-    });
-  }
+  // 打ち込んだその場で反映する（他の欄に移らなくても結果が変わる）
   ['waitYears','waitRent','waitSave','waitSave4','waitRateUp','waitPriceUp'].forEach(function(id){
-    if($(id)){ attachClear($(id)); $(id).addEventListener('change', function(){ syncWaitInputs(false); waitSim(); }); }
+    if(!$(id)) return;
+    attachClear($(id));
+    ['input','change'].forEach(function(ev){
+      $(id).addEventListener(ev, function(){ syncWaitInputs(false); waitSim(); });
+    });
   });
   WAIT_PAIRS.forEach(function(pr){
     var b=$(pr[1]); if(!b) return;
     attachClear(b);
-    b.addEventListener('change', function(){ syncWaitInputs(true); waitSim(); });
+    ['input','change'].forEach(function(ev){
+      b.addEventListener(ev, function(){ syncWaitInputs(true); waitSim(); });
+    });
+  });
+  // ④の積立は、数字を入れたらその値／空欄に戻したら自動
+  ['waitSave4','waitSave4R'].forEach(function(id){
+    var el=$(id); if(!el) return;
+    el.addEventListener('input', function(){ gSave4Manual = String(this.value||'').trim() !== ''; });
+    el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
   });
   if($('waitHelpBtn')) $('waitHelpBtn').addEventListener('click', function(){
     var b=$('waitHelp'); if(!b) return; var open=b.style.display!=='none';
@@ -5939,6 +5957,9 @@
     if($('focusYear')) $('focusYear').value = 10;
     gFocusTouched = false;
     gElEarly = null; gElLate = null;
+    gSave4Manual = false;
+    if($('waitSave4')) $('waitSave4').value = '';
+    if($('waitSave4R')) $('waitSave4R').value = '';
     document.querySelector('input[name=method][value=equalPayment]').checked = true;
     document.querySelector('input[name=bonusMode][value=ratio]').checked = true;
     $('bonusRatio').value = 0; $('bonusAmount').value = 0;
@@ -6010,7 +6031,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 15:20</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 16:05</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
