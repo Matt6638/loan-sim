@@ -4511,8 +4511,11 @@
              '<span class="nw">　合計 '+toMan(o.p+o.i)+'万円</span>'+
              '<span class="nw">（うち利息 <b class="el-hi">'+toMan(o.i)+'万円</b>）</span>';
     };
-    if($('earlyHead')) $('earlyHead').innerHTML=headOf('序盤',eStart,eEnd,E);
-    if($('lateHead')) $('lateHead').innerHTML=headOf('終盤',lStart,lEnd,L);
+    // 枠は動かせるので、名前は前後関係で決める
+    const eName = (eStart <= lStart) ? '早い時期の' : '遅い時期の';
+    const lName = (eStart <= lStart) ? '遅い時期の' : '早い時期の';
+    if($('earlyHead')) $('earlyHead').innerHTML=headOf(eName,eStart,eEnd,E);
+    if($('lateHead')) $('lateHead').innerHTML=headOf(lName,lStart,lEnd,L);
     // 積み上げ棒（棒の中に金額を表示）。2本を同じ基準で比べられるよう最大の合計で正規化
     const maxT = Math.max(E.p+E.i, L.p+L.i) || 1;
     function bar(o){
@@ -4550,15 +4553,15 @@
         nw('どちらの区間も、')+nw('その'+W+'年ぶんの<b>元金</b>を')+nw('まとめて繰上返済すれば、')+
         nw('完済は<b>'+W+'年早まります</b>')+nw('（'+N+'年→'+(N-W)+'年'+ageEnd+'）。')+'<br>'+
         nw('違うのは<b>同時に消える利息</b>で、')+
-        nw('序盤なら <b class="el-hi">'+toMan(E.i)+'万円</b>、')+
-        nw('終盤なら <b class="el-hi">'+toMan(L.i)+'万円</b>です。')+
+        nw(eStart+'〜'+eEnd+'年目なら <b class="el-hi">'+toMan(E.i)+'万円</b>、')+
+        nw(lStart+'〜'+lEnd+'年目なら <b class="el-hi">'+toMan(L.i)+'万円</b>です。')+
         (E.i > L.i ? nw('<b>同じ「'+W+'年短縮」でも、</b>')+nw('<b>早いほど得られる効果が大きくなります。</b>') : '');
     }
     const diff=Math.abs(E.i-L.i);
     if($('earlyLateHelp')) $('earlyLateHelp').innerHTML=
-      '同じ'+W+'年間でも、序盤は返済額に占める利息が大きく、終盤はほとんどが元金です。'+
-      '序盤の利息は <b>'+toMan(E.i)+'万円</b>、終盤は <b>'+toMan(L.i)+'万円</b>で、'+
-      (E.i > L.i ? '序盤のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息が大きくなります。</b>'
+      '同じ'+W+'年間でも、早い時期は返済額に占める利息が大きく、遅い時期はほとんどが元金です。'+
+      eStart+'〜'+eEnd+'年目の利息は <b>'+toMan(E.i)+'万円</b>、'+lStart+'〜'+lEnd+'年目は <b>'+toMan(L.i)+'万円</b>で、'+
+      (E.i > L.i ? '前者のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息が大きくなります。</b>'
                  : '差は <b>'+toMan(diff)+'万円</b> です（返済期間が短いため差は小さくなります）。');
   }
 
@@ -5913,7 +5916,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 13:05</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 13:18</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
