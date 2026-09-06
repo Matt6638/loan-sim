@@ -991,13 +991,13 @@
   .rp-f input.rp-yr{width:78px;text-align:left;}
   .rp-f input.rp-mo{width:34px;}
   .rp-wareki{font-size:0.64rem;color:var(--principal-ink);font-weight:700;white-space:nowrap;margin-left:4px;}
-  .rp-f.rp-wide{flex:1 1 100%;flex-wrap:wrap;}
-  .rp-f.rp-wide input.rp-yr{width:96px;}
-  /* 和暦の表示は入りきらなければ次の行に落として、切れないようにする */
-  .rp-f.rp-wide .rp-wareki{margin-left:auto;}
+  /* 年月の欄は横に伸ばさず、和暦は下段に小さく出す */
+  .rp-f.rp-wide{flex:0 1 auto;flex-wrap:wrap;}
+  .rp-f.rp-wide input.rp-yr{width:64px;}
+  .rp-f.rp-wide .rp-wareki{flex:1 1 100%;margin-left:0;text-align:right;padding-top:1px;font-size:0.6rem;}
   @media (max-width:560px){
-    .rp-f.rp-wide .rp-wareki{flex:1 1 100%;margin-left:0;text-align:right;padding-top:2px;}
-    .rp-f.rp-wide input.rp-yr{width:82px;}
+    .rp-f.rp-wide input.rp-yr{width:58px;}
+    .rp-f.rp-wide input.rp-mo{width:28px;}
   }
   .rp-out{margin-top:10px;font-size:0.74rem;color:var(--text);line-height:1.8;}
   .rp-out b{font-family:var(--mono);font-size:0.92rem;}
@@ -1028,6 +1028,21 @@
   .pp-legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:0.66rem;color:var(--text-dim);margin-top:5px;}
   .pp-legend i{width:11px;height:11px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px;}
   .pp-legend .pp-mark{color:#c2185b;font-weight:700;}
+  /* 横軸（西暦・年齢）と完済の目印 */
+  .pp-axis{position:relative;height:30px;margin-top:2px;}
+  .pp-axis .pa-t{position:absolute;top:0;transform:translateX(-50%);font-family:var(--mono);
+    font-size:0.58rem;color:var(--text-dim);line-height:1.35;text-align:center;white-space:nowrap;}
+  .pp-axis .pa-first{transform:none;} .pp-axis .pa-last{transform:translateX(-100%);}
+  .pp-marks{position:relative;height:16px;margin-top:1px;}
+  .pp-marks span{position:absolute;top:0;font-size:0.62rem;font-weight:700;white-space:nowrap;line-height:1.4;}
+  .pp-marks .pm-pre{color:#c2185b;transform:translateX(-50%);}
+  .pp-marks .pm-base{right:0;color:var(--interest-ink);}
+  @media (max-width:560px){
+    .pp-axis .pa-t{font-size:0.54rem;}
+    .pp-marks{height:30px;}
+    .pp-marks .pm-pre{transform:none;left:0 !important;}
+    .pp-marks .pm-base{top:15px;}
+  }
   .pp-cards{margin-top:10px;}
   @media (max-width:560px){ .pp-cards{grid-template-columns:1fr;} }
   @media (max-width:560px){
@@ -1628,7 +1643,7 @@
           <div class="qb-seg" id="rpMode">
             <button type="button" class="qb-seg-btn on" data-m="bal">残債から入れる</button><button type="button" class="qb-seg-btn" data-m="elapsed">当初条件＋経過</button>
           </div>
-          <span class="rp-hint" id="rpHint">繰上返済や金利の見直しがあっても、いまの残債を入れれば正しく試算できます</span>
+          <span class="rp-hint" id="rpHint">返済予定表の<b>残高</b>と<b>払込回数</b>（または借入時期）を入れれば、当初の借入額・全期間まで逆算します</span>
         </div>
 
         <div class="rp-grid" id="rpBalWrap">
@@ -1642,6 +1657,8 @@
             <input type="text" inputmode="text" id="rpEndY" class="rp-yr" placeholder="R31 / 2049"><span class="rp-u">年</span>
             <input type="text" inputmode="numeric" id="rpEndM" class="rp-mo" placeholder="3"><span class="rp-u">月</span>
             <span class="rp-wareki" id="rpEndWareki"></span></label>
+          <label class="rp-f"><span class="rp-k">払込回数<span class="rp-opt">（任意）</span></span>
+            <input type="text" inputmode="numeric" id="rpPaidCount" placeholder="150"><span class="rp-u">回</span></label>
           <label class="rp-f"><span class="rp-k">現在の年齢<span class="rp-opt">（任意）</span></span>
             <input type="text" inputmode="numeric" id="rpNowAge" placeholder="52"><span class="rp-u">歳</span></label>
           <label class="rp-f rp-wide"><span class="rp-k">借入した時期<span class="rp-opt">（任意）</span></span>
@@ -4530,10 +4547,10 @@
       var note = $('rpNote');
       var fullN, elapsed, filled = [];
 
-      // 借入した時期がわかれば「全期間」も逆算して、上の入力欄へ自動で反映する
-      if(stY && stM >= 1 && stM <= 12){
-        elapsed = (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM);
-        if(elapsed < 0) elapsed = 0;
+      // 払込回数（＝これまでに返した月数）か、借入した時期がわかれば「全期間」も逆算する
+      var paidCount = num(($('rpPaidCount')||{}).value);
+      if(isFinite(paidCount) && paidCount > 0){
+        elapsed = Math.round(paidCount);
         fullN = elapsed + n;
         var fullY = Math.max(1, Math.round(fullN / 12));
         fullN = fullY * 12;                      // 上の欄は年単位なので、全期間も年に丸めてそろえる
@@ -4545,6 +4562,16 @@
         var p0 = (rM <= 0) ? usePay * fullN : usePay * (1 - Math.pow(1+rM, -fullN)) / rM;
         $('principal').value = Math.round(p0/10000).toLocaleString('en-US');
         filled.push('借入 ' + Math.round(p0/10000).toLocaleString('ja-JP') + '万円');
+      } else if(stY && stM >= 1 && stM <= 12){
+        elapsed = Math.max(0, (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM));
+        var fullY2 = Math.max(1, Math.round((elapsed + n) / 12));
+        fullN = fullY2 * 12; elapsed = Math.max(0, fullN - n);
+        $('years').value = fullY2;
+        filled.push('期間 ' + fullY2 + '年');
+        var rM2 = (rate/100)/12;
+        var p02 = (rM2 <= 0) ? usePay * fullN : usePay * (1 - Math.pow(1+rM2, -fullN)) / rM2;
+        $('principal').value = Math.round(p02/10000).toLocaleString('en-US');
+        filled.push('借入 ' + Math.round(p02/10000).toLocaleString('ja-JP') + '万円');
       } else {
         // 借入時期が未入力なら、上の「期間」を全期間として経過を割り出す
         fullN = Math.round((iv('years')||0) * 12);
@@ -4580,7 +4607,7 @@
         '<br>これから払う利息 <b>' + Math.round(interestRest/10000).toLocaleString('ja-JP') + '</b>万円' +
         '　残りの支払総額 <b>' + Math.round(totalRest/10000).toLocaleString('ja-JP') + '</b>万円' + elapsedTxt;
     }
-    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge'].forEach(function(id){
+    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge','rpPaidCount'].forEach(function(id){
       var el = $(id); if(!el) return;
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
       el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
@@ -4720,6 +4747,15 @@
       };
       var area = function(arr){ return path(arr) + ' L ' + xAt(yearsN).toFixed(1) + ' ' + (padT+plotH) + ' L ' + xAt(0).toFixed(1) + ' ' + (padT+plotH) + ' Z'; };
       var payoffX = xAt(pre.months/12);
+      // 目盛り：今から何年後かを、西暦と年齢で表す
+      var startAge = null;
+      var ba = iv('borrowerAge');
+      if(isFinite(ba) && ba > 0) startAge = Math.round(ba) + Math.floor(em/12);   // いまの年齢
+      var tickAt = function(months){
+        var yy = NOW_YEAR + Math.floor((NOW_MONTH - 1 + months) / 12);
+        var age = (startAge != null) ? (startAge + Math.floor(months/12)) : null;
+        return yy + '年' + (age != null ? '<br>' + age + '歳' : '');
+      };
       var grid = '';
       [0.25,0.5,0.75].forEach(function(f){
         grid += '<line x1="'+padL+'" y1="'+(padT+plotH*f).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+(padT+plotH*f).toFixed(1)+
@@ -4735,13 +4771,30 @@
           '<line x1="'+payoffX.toFixed(1)+'" y1="'+padT+'" x2="'+payoffX.toFixed(1)+'" y2="'+(padT+plotH)+
             '" stroke="#c2185b" stroke-width="1.6" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>' +
         '</svg>' +
+        '<div class="pp-axis">' +
+          (function(){
+            var out = '', ticks = [0, 0.25, 0.5, 0.75, 1];
+            ticks.forEach(function(f){
+              var mm = Math.round(T * f);
+              var pos = (f*100).toFixed(1);
+              var cls = f===0 ? ' pa-first' : (f===1 ? ' pa-last' : '');
+              out += '<span class="pa-t' + cls + '" style="left:' + pos + '%">' + tickAt(mm) + '</span>';
+            });
+            return out;
+          })() +
+        '</div>' +
+        '<div class="pp-marks">' +
+          '<span class="pm-pre" style="left:' + (pre.months/T*100).toFixed(1) + '%">▲ 繰上げなら ' +
+            Math.floor(pre.months/12) + '年' + (pre.months%12 ? (pre.months%12)+'ヶ月' : '') + '後に完済' +
+            (startAge!=null ? '（' + (startAge + Math.floor(pre.months/12)) + '歳・' +
+              (NOW_YEAR + Math.floor((NOW_MONTH-1+pre.months)/12)) + '年）' : '') + '</span>' +
+          '<span class="pm-base">▲ このまま返すと ' + Math.floor(T/12) + '年' + (T%12 ? (T%12)+'ヶ月' : '') + '後に完済' +
+            (startAge!=null ? '（' + (startAge + Math.floor(T/12)) + '歳）' : '') + '</span>' +
+        '</div>' +
         '<div class="pp-legend">' +
           '<span><i style="background:var(--principal)"></i>繰上返済して完済後に積立</span>' +
           '<span><i style="background:var(--interest)"></i>運用に回す</span>' +
-          '<span class="pp-mark">｜繰上げなら ' + Math.floor(pre.months/12) + '年' + (pre.months%12) + 'ヶ月で完済</span>' +
-        '</div>' +
-        '<div class="mini-cap"><span>いま</span><span>' + Math.floor(T/12) + '年' + (T%12 ? (T%12)+'ヶ月' : '') +
-        '後（' + (em>0 ? '残りの返済期間の終わり' : '完済時期') + '）で比較</span></div>';
+        '</div>';
 
       out.innerHTML = chart +
         '<div class="pp-cards">' +
