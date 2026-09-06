@@ -4706,11 +4706,12 @@
       var up = num($('ppRiseUp').value); if(!isFinite(up)) up = 0;
       if(!(P > 0) || !(n > 0)){ out.innerHTML = '<div class="pp-note">先に借入条件を入力してください。</div>'; return; }
       if(!(X > 0)){ out.innerHTML = '<div class="pp-note">手元の資金を入れると比較できます。</div>'; return; }
-      if(X >= P){ out.innerHTML = '<div class="pp-note">手元の資金が残債以上です。全額返済できるため比較の対象外です。</div>'; return; }
       var riseM = Math.max(0, Math.round(riseY * 12));
       var sc = ppSchedule(r0, up, riseM, P, n);
       var base = ppRun(P, sc, riseM);
-      var pre  = ppRun(P - X, sc, riseM);
+      var full = (X >= P);                                   // いま全額返せる
+      var surplus = full ? (X - P) : 0;                      // 返した残りは運用に回せる
+      var pre  = full ? {months:0, interest:0} : ppRun(P - X, sc, riseM);
       if(!base || !pre){ out.innerHTML = '<div class="pp-note">金利の上げ幅が大きく、返済額の見直しでも返し切れません。上げ幅を小さくしてご確認ください。</div>'; return; }
       var T = base.months;                                   // 比較する時点＝繰上げしない場合の完済
       var d = T - pre.months;                                // 短縮できた月数
@@ -4720,6 +4721,7 @@
       for(var mm = pre.months; mm < T; mm++){
         wealthA = wealthA * (1 + i0) + ((mm >= riseM) ? sc.pay1 : sc.pay0);
       }
+      if(surplus > 0) wealthA += surplus * Math.pow(1 + i0, T);   // 返して余ったぶんも運用
       var wealthB = X * Math.pow(1 + i0, T);                 // 運用：手元資金をそのまま運用
       var pay = sc.pay0;
       var saved = base.interest - pre.interest;              // 減らせた利息
@@ -4784,12 +4786,12 @@
           })() +
         '</div>' +
         '<div class="pp-marks">' +
-          '<span class="pm-pre" style="left:' + (pre.months/T*100).toFixed(1) + '%">▲ 繰上げなら ' +
-            Math.floor(pre.months/12) + '年' + (pre.months%12 ? (pre.months%12)+'ヶ月' : '') + '後に完済' +
+          '<span class="pm-pre" style="left:' + (pre.months/T*100).toFixed(1) + '%">▲ ' +
+            (full ? 'いま完済' : ('繰上げなら ' + Math.floor(pre.months/12) + '年' + (pre.months%12 ? (pre.months%12)+'ヶ月' : '') + '後に完済')) +
             (startAge!=null ? '（' + (startAge + Math.floor(pre.months/12)) + '歳・' +
               (NOW_YEAR + Math.floor((NOW_MONTH-1+pre.months)/12)) + '年）' : '') + '</span>' +
           '<span class="pm-base">▲ このまま返すと ' + Math.floor(T/12) + '年' + (T%12 ? (T%12)+'ヶ月' : '') + '後に完済' +
-            (startAge!=null ? '（' + (startAge + Math.floor(T/12)) + '歳）' : '') + '</span>' +
+            (startAge!=null ? '（' + (startAge + Math.round(T/12)) + '歳）' : '') + '</span>' +
         '</div>' +
         '<div class="pp-legend">' +
           '<span><i style="background:var(--principal)"></i>繰上返済して完済後に積立</span>' +
@@ -4799,10 +4801,12 @@
       out.innerHTML = chart +
         '<div class="pp-cards">' +
           '<div class="pp-card' + (aWin ? ' win' : '') + '">' +
-            '<div class="pp-ttl">繰上返済する' + (aWin ? '<span class="pp-badge">有利</span>' : '') + '</div>' +
+            '<div class="pp-ttl">' + (full ? 'いま全額返す' : '繰上返済する') + (aWin ? '<span class="pp-badge">有利</span>' : '') + '</div>' +
             '<div class="pp-big">' + man(wealthA) + '<small> 万円</small></div>' +
             '<div class="pp-li">減らせる利息 <b>' + man(saved) + '</b>万円<br>' +
-              '完済が <b>' + Math.floor(d/12) + '</b>年<b>' + (d%12) + '</b>ヶ月 早まる<br>' +
+              (full ? '<b>いま完済</b>（残債 ' + man(P) + '万円を返済）' +
+                      (surplus > 0 ? '<br>余った <b>' + man(surplus) + '</b>万円は運用' : '')
+                    : '完済が <b>' + Math.floor(d/12) + '</b>年<b>' + (d%12) + '</b>ヶ月 早まる') + '<br>' +
               'そのあと毎月 <b>' + yen(Math.round(pay)) + '</b>円を積立</div>' +
           '</div>' +
           '<div class="pp-card' + (aWin ? '' : ' win') + '">' +
@@ -4813,7 +4817,7 @@
               'ローンは最後まで返済</div>' +
           '</div>' +
         '</div>' +
-        '<div class="pp-diff">' + (aWin ? '<b>繰上返済</b>のほうが ' : '<b>運用</b>のほうが ') +
+        '<div class="pp-diff">' + (aWin ? (full ? '<b>いま全額返す</b>ほうが ' : '<b>繰上返済</b>のほうが ') : '<b>運用</b>のほうが ') +
           '<b>' + man(diff) + '万円</b> 多く残る試算です' +
           (up > 0 ? '（' + riseY + '年後に金利が ' + r0 + '％→' + (Math.round((r0+up)*100)/100) + '％ に上がる前提）'
                   : '（金利は ' + r0 + '％のまま）') + '</div>' +
