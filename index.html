@@ -4521,15 +4521,16 @@
       gCalc = null; gActualBalance = null;
       if(!(bal > 0)){ out.innerHTML = '<span class="ng">現在の残債を入れてください。</span>'; return; }
       var r = (rate/100)/12;
-      var n = null, derivedPay = null;
+      var n = null, derivedPay = null, nFromEnd = null, nFromPay = null;
       if(endY && endM >= 1 && endM <= 12){
-        n = (endY - NOW_YEAR) * 12 + (endM - NOW_MONTH);
+        nFromEnd = (endY - NOW_YEAR) * 12 + (endM - NOW_MONTH);
       }
-      if(n == null && pay > 0){
-        if(r <= 0){ n = Math.ceil(bal / pay); }
+      if(pay > 0){
+        if(r <= 0){ nFromPay = Math.ceil(bal / pay); }
         else if(pay <= bal * r){ out.innerHTML = '<span class="ng">毎月の返済額が利息（月 ' + yen(Math.ceil(bal*r)) + ' 円）以下です。金額をご確認ください。</span>'; return; }
-        else { n = Math.ceil(-Math.log(1 - bal * r / pay) / Math.log(1 + r)); }
+        else { nFromPay = Math.ceil(-Math.log(1 - bal * r / pay) / Math.log(1 + r)); }
       }
+      n = (nFromEnd != null && nFromEnd > 0) ? nFromEnd : nFromPay;
       if(n == null || n <= 0){ out.innerHTML = '<span class="ng">「毎月の返済額」か「最終返済（完済）」のどちらかを入れてください。</span>'; return; }
       derivedPay = (r <= 0) ? (bal / n) : annuityPayment(bal, r, n);
       var usePay = pay > 0 ? pay : derivedPay;
@@ -4547,31 +4548,31 @@
       var note = $('rpNote');
       var fullN, elapsed, filled = [];
 
-      // 払込回数（＝これまでに返した月数）か、借入した時期がわかれば「全期間」も逆算する
+      // 経過月数：払込回数があればそれが正確。なければ借入した時期から
       var paidCount = num(($('rpPaidCount')||{}).value);
-      if(isFinite(paidCount) && paidCount > 0){
-        elapsed = Math.round(paidCount);
-        fullN = elapsed + n;
-        var fullY = Math.max(1, Math.round(fullN / 12));
-        fullN = fullY * 12;                      // 上の欄は年単位なので、全期間も年に丸めてそろえる
-        elapsed = Math.max(0, fullN - n);
-        $('years').value = fullY;
-        filled.push('期間 ' + fullY + '年');
+      var elapsed0 = null;
+      if(isFinite(paidCount) && paidCount > 0) elapsed0 = Math.round(paidCount);
+      else if(stY && stM >= 1 && stM <= 12) elapsed0 = Math.max(0, (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM));
+
+      if(elapsed0 != null){
+        var curY = Math.round(iv('years') || 0);
+        var calcN = elapsed0 + n;
+        // ローンの期間は年単位で決まっているので、上の「期間」が1年以内の差ならそれを採用する
+        if(curY > 0 && Math.abs(calcN - curY * 12) <= 12){
+          fullN = curY * 12;
+          filled.push('期間 ' + curY + '年（上の入力どおり）');
+        } else {
+          var fullY = Math.max(1, Math.round(calcN / 12));
+          fullN = fullY * 12;
+          $('years').value = fullY;
+          filled.push('期間 ' + fullY + '年');
+        }
+        elapsed = Math.max(0, Math.min(fullN - 1, elapsed0));
         // 当初の借入額＝毎月返済額を全期間ぶん割り引いた現在価値
         var rM = (rate/100)/12;
         var p0 = (rM <= 0) ? usePay * fullN : usePay * (1 - Math.pow(1+rM, -fullN)) / rM;
         $('principal').value = Math.round(p0/10000).toLocaleString('en-US');
         filled.push('借入 ' + Math.round(p0/10000).toLocaleString('ja-JP') + '万円');
-      } else if(stY && stM >= 1 && stM <= 12){
-        elapsed = Math.max(0, (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM));
-        var fullY2 = Math.max(1, Math.round((elapsed + n) / 12));
-        fullN = fullY2 * 12; elapsed = Math.max(0, fullN - n);
-        $('years').value = fullY2;
-        filled.push('期間 ' + fullY2 + '年');
-        var rM2 = (rate/100)/12;
-        var p02 = (rM2 <= 0) ? usePay * fullN : usePay * (1 - Math.pow(1+rM2, -fullN)) / rM2;
-        $('principal').value = Math.round(p02/10000).toLocaleString('en-US');
-        filled.push('借入 ' + Math.round(p02/10000).toLocaleString('ja-JP') + '万円');
       } else {
         // 借入時期が未入力なら、上の「期間」を全期間として経過を割り出す
         fullN = Math.round((iv('years')||0) * 12);
@@ -4605,7 +4606,12 @@
         '残り <b>' + Math.floor(n/12) + '</b>年<b>' + (n%12) + '</b>ヶ月（<b>' + eY + '</b>年<b>' + eM + '</b>月 完済／' + toWareki(eY) + eM + '月）' +
         '　毎月 <b>' + yen(Math.round(usePay)) + '</b>円' + (pay > 0 ? '' : '（残債と完済時期からの逆算）') +
         '<br>これから払う利息 <b>' + Math.round(interestRest/10000).toLocaleString('ja-JP') + '</b>万円' +
-        '　残りの支払総額 <b>' + Math.round(totalRest/10000).toLocaleString('ja-JP') + '</b>万円' + elapsedTxt;
+        '　残りの支払総額 <b>' + Math.round(totalRest/10000).toLocaleString('ja-JP') + '</b>万円' + elapsedTxt +
+        ((nFromEnd != null && nFromPay != null && Math.abs(nFromEnd - nFromPay) > 2)
+          ? '<br><span class="ng">※ 完済年月から出る残りは ' + Math.floor(nFromEnd/12) + '年' + (nFromEnd%12) + 'ヶ月、' +
+            '毎月の返済額から出る残りは ' + Math.floor(nFromPay/12) + '年' + (nFromPay%12) + 'ヶ月で、' +
+            Math.abs(nFromEnd - nFromPay) + 'ヶ月ちがいます（いまは完済年月を採用）。残債か金利をご確認ください。</span>'
+          : '');
     }
     ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge','rpPaidCount'].forEach(function(id){
       var el = $(id); if(!el) return;
