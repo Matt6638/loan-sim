@@ -491,6 +491,12 @@
   .stmt-svg{width:100%;height:172px;display:block;border:1px solid var(--border-soft);border-radius:6px;background:#fcfbf8;}
   @container (max-width:440px){ .stmt-svg{height:140px;} }
   .stmt-axis{display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin-top:6px;font-family:var(--mono);}
+  /* 「現在」の位置を示す▲と、その下の見出し */
+  .chart-wrap .gf-now{position:absolute;top:100%;transform:translate(-50%,-30%);font-size:0.62rem;line-height:1;
+    color:var(--gold);pointer-events:none;z-index:2;}
+  .stmt-now{position:relative;height:17px;margin-top:1px;}
+  .stmt-now span{position:absolute;top:0;font-size:0.66rem;font-weight:700;color:var(--gold);
+    white-space:nowrap;font-family:var(--gothic);}
   .swatch.bal{width:16px;height:0;background:none;border-top:2px dashed var(--gold-soft);}
 
   /* 結果画面から借入条件を直接変更するクイックバー（ドロワーと連動） */
@@ -2816,8 +2822,18 @@
       lineLabel = '<div class="gf-line-grab" style="left:'+fp.toFixed(2)+'%"></div>' +
         '<div class="gf-line-label" style="left:'+fp.toFixed(2)+'%;top:'+(ly*100).toFixed(2)+'%"><span class="ll-y">'+sy+'年目</span>'+ageLine+'</div>';
     }
-    return '<div class="chart-wrap">'+svg+lineLabel+'</div>' +
-      '<div class="stmt-axis"><span>1年目'+ageTxt(0)+'</span><span>'+N+'年目'+ageTxt(N-1)+'</span></div>';
+    // すでに返済中のとき、「いまはここ」を示す
+    let nowMark = '', nowRow = '';
+    const nw = opts.nowYear;
+    if(nw && nw >= 1 && nw <= N){
+      const np = Math.max(1, Math.min(99, xAt(nw-1)/W*100));
+      nowMark = '<div class="gf-now" style="left:'+np.toFixed(2)+'%">▲</div>';
+      const st = 'left:'+np.toFixed(1)+'%;' +
+        (np > 78 ? 'transform:translateX(-100%);' : (np < 14 ? '' : 'transform:translateX(-50%);'));
+      nowRow = '<div class="stmt-now"><span style="'+st+'">現在 '+nw+'年目'+ageTxt(nw-1)+'</span></div>';
+    }
+    return '<div class="chart-wrap">'+svg+lineLabel+nowMark+'</div>' +
+      '<div class="stmt-axis"><span>1年目'+ageTxt(0)+'</span><span>'+N+'年目'+ageTxt(N-1)+'</span></div>' + nowRow;
   }
 
   // 未入力時の表示（結果はすべて空にし、何を入れるべきかだけ示す）
@@ -3323,6 +3339,14 @@
   function toMan(v){ return Math.round(v/10000).toLocaleString('ja-JP'); }
 
   function focusMaxYear(){ return gLastYearly ? gLastYearly.length : 1; }
+  // すでに返済中のときの「いまは何年目か」（1始まり）。返済中でなければ0
+  function nowYearIndex(){
+    var em = elapsedMonths();
+    if(!(em > 0)) return 0;
+    var N = gLastYearly ? gLastYearly.length : 0;
+    return N ? Math.max(1, Math.min(N, Math.floor(em/12) + 1)) : 0;
+  }
+  var gFocusTouched = false;   // 赤い線を自分で動かしたかどうか
 
   function renderStatement(){
     if(!gLastYearly || !gLastYearly.length) return;
@@ -3331,7 +3355,8 @@
     let sy = Math.round(iv('focusYear')||1);
     sy = Math.max(1, Math.min(N, sy));                            // 1年目〜完済年まで自由に動かせる
     const a = gStartAge;
-    $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal, {selectYear:sy, spanYears:sp, startAge:a, labelY:gLabelY});
+    $('stripChart').innerHTML = statementSVG(gLastYearly, gLastPrincipal,
+      {selectYear:sy, spanYears:sp, startAge:a, labelY:gLabelY, nowYear:nowYearIndex()});
 
     const row = gLastYearly[sy-1];
     const share = row.payment>0 ? row.interest/row.payment*100 : 0;
@@ -3494,7 +3519,12 @@
           ? '<div class="nb-note">※ 当初条件どおりなら残債は ' + man2(theoretical) + '万円ですが、繰上返済や金利の見直しがあったものとして入力値を使っています。償還表・グラフは当初条件で描いているため、経過ぶんの内訳は目安です。</div>'
           : '');
     })();
-    if($('focusYear')){ let fy=Math.round(iv('focusYear')||1); if(fy>years) $('focusYear').value=years; if(fy<1) $('focusYear').value=1; }
+    if($('focusYear')){
+      // 返済中で、まだ自分で動かしていなければ、赤い線を「いま」に合わせる
+      var nyi = nowYearIndex();
+      if(nyi > 0 && !gFocusTouched) $('focusYear').value = nyi;
+      let fy=Math.round(iv('focusYear')||1); if(fy>years) $('focusYear').value=years; if(fy<1) $('focusYear').value=1;
+    }
     renderStatement();
 
     // table（年齢・利息割合の列を追加）※既定は万円、右上のボタンで円に切替
@@ -4754,7 +4784,7 @@
   // 完済：残債・積立を再計算し、グラフの縦ラインも完済年に合わせる
   function payoffRecalc(){
     payoffSim();
-    if(gPayoffYears>0 && $('focusYear')){ $('focusYear').value=gPayoffYears; $('focusYear').classList.remove('pristine'); renderStatement(); }
+    if(gPayoffYears>0 && $('focusYear')){ $('focusYear').value=gPayoffYears; $('focusYear').classList.remove('pristine'); gFocusTouched=true; renderStatement(); }
   }
   // 完済年齢は設定（完済の条件）の入力欄のみ。未入力なら「完済の5年前」を自動採用
   // 完済年齢：設定側と結果側を双方向同期
@@ -4868,7 +4898,7 @@
       window.gRepayMode = mode;
       if(!chk.checked || mode !== 'bal') rpNeed([]);   // 閉じているときは色を消す
     }
-    chk.addEventListener('change', function(){ show(); calc(); recalcAll(); diagnose(); });
+    chk.addEventListener('change', function(){ if(!chk.checked) gFocusTouched = false; show(); calc(); recalcAll(); diagnose(); });
     Array.prototype.forEach.call($('rpMode').querySelectorAll('.qb-seg-btn'), function(b){
       b.addEventListener('click', function(){
         mode = b.getAttribute('data-m');
@@ -5419,7 +5449,7 @@
       var fy=$('focusYear');
       // 左右＝経過年（位置が変わらないときは再描画しない：端でのドラッグ時の点滅を防ぐ）
       if(y!=null && fy && Math.round(iv('focusYear')||0) !== y){
-        fy.value=y; fy.classList.remove('pristine'); changed=true;
+        fy.value=y; fy.classList.remove('pristine'); gFocusTouched=true; changed=true;
       }
       // 上下＝「◯年目◯歳」ラベルの位置（ラベルを掴んだときだけ）
       var wrap=el.querySelector('.chart-wrap');
@@ -5715,6 +5745,7 @@
     $('principal').value = 4000; $('rate').value = 1.5; $('years').value = 35;
     if($('borrowerAge')) $('borrowerAge').value = 40;
     if($('focusYear')) $('focusYear').value = 10;
+    gFocusTouched = false;
     document.querySelector('input[name=method][value=equalPayment]').checked = true;
     document.querySelector('input[name=bonusMode][value=ratio]').checked = true;
     $('bonusRatio').value = 0; $('bonusAmount').value = 0;
@@ -5786,7 +5817,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 10:40</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 11:30</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
