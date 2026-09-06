@@ -4895,7 +4895,11 @@
           })() +
         '</div>' +
         '<div class="pp-marks">' +
-          '<span class="pm-pre" style="left:' + (Math.min(pre.months,T)/T*100).toFixed(1) + '%">▲ ' +
+          (function(){
+            var pp = Math.min(pre.months,T)/T*100;
+            return '<span class="pm-pre" style="left:' + pp.toFixed(1) + '%;' +
+              (pp > 70 ? 'transform:translateX(-100%);' : (pp < 12 ? 'transform:none;' : 'transform:translateX(-50%);')) + '">▲ ';
+          })() +
             (full ? 'いま完済' : ('繰上げなら ' + Math.floor(pre.months/12) + '年' + (pre.months%12 ? (pre.months%12)+'ヶ月' : '') + '後に完済')) +
             (startAge!=null ? '（' + (startAge + Math.floor(pre.months/12)) + '歳・' +
               (NOW_YEAR + Math.floor((NOW_MONTH-1+pre.months)/12)) + '年）' : '') + '</span>' +
@@ -5330,7 +5334,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 17:52</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 18:02</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
