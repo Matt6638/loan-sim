@@ -5031,24 +5031,29 @@
     });
   }
   // 打ち込んだその場で反映する（他の欄に移らなくても結果が変わる）
+  // ④の積立は「数字を入れたらその値／空欄に戻したら自動」。再計算より先に判定する
+  function onWaitInput(el, fromR){
+    if(el && (el.id === 'waitSave4' || el.id === 'waitSave4R')){
+      gSave4Manual = String(el.value||'').trim() !== '';
+    }
+    syncWaitInputs(fromR); waitSim();
+  }
   ['waitYears','waitRent','waitSave','waitSave4','waitRateUp','waitPriceUp'].forEach(function(id){
     if(!$(id)) return;
     attachClear($(id));
     ['input','change'].forEach(function(ev){
-      $(id).addEventListener(ev, function(){ syncWaitInputs(false); waitSim(); });
+      $(id).addEventListener(ev, function(){ onWaitInput(this, false); });
     });
   });
   WAIT_PAIRS.forEach(function(pr){
     var b=$(pr[1]); if(!b) return;
     attachClear(b);
     ['input','change'].forEach(function(ev){
-      b.addEventListener(ev, function(){ syncWaitInputs(true); waitSim(); });
+      b.addEventListener(ev, function(){ onWaitInput(this, true); });
     });
   });
-  // ④の積立は、数字を入れたらその値／空欄に戻したら自動
   ['waitSave4','waitSave4R'].forEach(function(id){
     var el=$(id); if(!el) return;
-    el.addEventListener('input', function(){ gSave4Manual = String(this.value||'').trim() !== ''; });
     el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
   });
   if($('waitHelpBtn')) $('waitHelpBtn').addEventListener('click', function(){
@@ -6031,7 +6036,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 16:05</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 16:18</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
