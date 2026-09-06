@@ -1024,6 +1024,11 @@
     border-radius:8px;padding:9px 12px;font-size:0.76rem;line-height:1.75;}
   .pp-diff b{font-family:var(--mono);font-size:1.02rem;color:var(--gold);}
   .pp-note{font-size:0.66rem;color:var(--text-dim);line-height:1.65;margin-top:7px;}
+  .pp-svg{width:100%;height:150px;display:block;background:#fff;border:1px solid var(--border-soft);border-radius:6px;}
+  .pp-legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:0.66rem;color:var(--text-dim);margin-top:5px;}
+  .pp-legend i{width:11px;height:11px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px;}
+  .pp-legend .pp-mark{color:#c2185b;font-weight:700;}
+  .pp-cards{margin-top:10px;}
   @media (max-width:560px){ .pp-cards{grid-template-columns:1fr;} }
   @media (max-width:560px){
     .repay-panel{padding:0 8px 12px;}
@@ -4511,22 +4516,42 @@
         if(em > 0) elapsedTxt = '<br>借入から <b>' + Math.floor(em/12) + '</b>年<b>' + (em%12) + '</b>ヶ月 経過（' + toWareki(stY) + stM + '月〜）';
       }
       gCalc = {bal:bal, rate:rate, n:n, pay:usePay};
-      // 上の「返済期間」は全期間のまま。残り期間から経過を割り出して自動で入れる
-      var fullN = Math.round((iv('years')||0) * 12);
-      var elapsed = fullN - n;
+      gActualBalance = bal; gActualRate = rate;
       var note = $('rpNote');
-      if(fullN <= 0){
-        if(note) note.innerHTML = '上の「期間」に<b>全期間</b>（当初の返済年数）を入れてください。';
+      var fullN, elapsed, filled = [];
+
+      // 借入した時期がわかれば「全期間」も逆算して、上の入力欄へ自動で反映する
+      if(stY && stM >= 1 && stM <= 12){
+        elapsed = (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM);
+        if(elapsed < 0) elapsed = 0;
+        fullN = elapsed + n;
+        $('years').value = Math.round(fullN / 12);
+        filled.push('期間 ' + Math.round(fullN/12) + '年');
+        // 当初の借入額＝毎月返済額を全期間ぶん割り引いた現在価値
+        var rM = (rate/100)/12;
+        var p0 = (rM <= 0) ? usePay * fullN : usePay * (1 - Math.pow(1+rM, -fullN)) / rM;
+        $('principal').value = Math.round(p0/10000).toLocaleString('en-US');
+        filled.push('借入 ' + Math.round(p0/10000).toLocaleString('ja-JP') + '万円');
+      } else {
+        // 借入時期が未入力なら、上の「期間」を全期間として経過を割り出す
+        fullN = Math.round((iv('years')||0) * 12);
+        elapsed = fullN - n;
+      }
+      $('rate').value = (Math.round(rate*100)/100).toFixed(2);
+      filled.push('金利 ' + (Math.round(rate*100)/100).toFixed(2) + '%');
+      ['principal','rate','years'].forEach(function(id){ if($(id)) $(id).classList.remove('pristine'); });
+
+      if(!(fullN > 0)){
+        if(note) note.innerHTML = '上の「期間」に<b>全期間</b>（当初の返済年数）を入れるか、「借入した時期」を入れてください。';
       } else if(elapsed < 0){
-        if(note) note.innerHTML = '<span style="color:var(--rose)">残り' + Math.floor(n/12) + '年' + (n%12) + 'ヶ月は、上の「期間」' + Math.round(fullN/12) + '年より長い試算です。全期間をご確認ください。</span>';
+        if(note) note.innerHTML = '<span style="color:var(--rose)">残り' + Math.floor(n/12) + '年' + (n%12) + 'ヶ月は、上の「期間」' + Math.round(fullN/12) + '年より長い試算です。全期間か完済時期をご確認ください。</span>';
       } else {
         if($('elapsedY')) $('elapsedY').value = Math.floor(elapsed/12);
         if($('elapsedM')) $('elapsedM').value = elapsed % 12;
-        gActualBalance = bal;                 // 実際の残債（償還表の理論値より優先して表示）
-        gActualRate = rate;
-        if(note) note.innerHTML = '全期間 <b>' + Math.round(fullN/12) + '年</b> のうち <b>' +
-          Math.floor(elapsed/12) + '年' + (elapsed%12) + 'ヶ月</b> が経過（償還表・グラフは全期間で表示し、経過ぶんを薄くしています）';
-        recalcAll();
+        if(note) note.innerHTML = '上の入力欄に反映しました（<b>' + filled.join('・') + '</b>）。' +
+          '全期間 <b>' + Math.round(fullN/12) + '年</b> のうち <b>' + Math.floor(elapsed/12) + '年' + (elapsed%12) + 'ヶ月</b> が経過。' +
+          '償還表・グラフは全期間で表示し、経過ぶんを薄くしています。';
+        recalcAll(); syncQuickBar();
       }
       out.innerHTML =
         '残り <b>' + Math.floor(n/12) + '</b>年<b>' + (n%12) + '</b>ヶ月（<b>' + eY + '</b>年<b>' + eM + '</b>月 完済／' + toWareki(eY) + eM + '月）' +
@@ -4627,7 +4652,50 @@
       var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
       var aWin = wealthA >= wealthB;
       var diff = Math.abs(wealthA - wealthB);
-      out.innerHTML =
+
+      // ---- 資産の推移グラフ（毎年の値を折れ線で描く） ----
+      var i = (y/100)/12;
+      var yearsN = Math.ceil(T/12);
+      var ptsA = [], ptsB = [], maxV = 1;
+      for(var k=0; k<=yearsN; k++){
+        var m = Math.min(k*12, T);
+        var a = (m <= pre.months) ? 0 : fvMonthly(pay, y, m - pre.months);   // 完済後から積み立て
+        var b = X * Math.pow(1 + i, m);
+        ptsA.push(a); ptsB.push(b);
+        if(a > maxV) maxV = a; if(b > maxV) maxV = b;
+      }
+      var W = 720, H = 200, padL = 6, padR = 6, padT = 12, padB = 18;
+      var plotW = W - padL - padR, plotH = H - padT - padB;
+      var xAt = function(k){ return padL + plotW * (k / Math.max(1, yearsN)); };
+      var yAt = function(v){ return padT + plotH * (1 - v / maxV); };
+      var path = function(arr){
+        return arr.map(function(v,k){ return (k? 'L':'M') + xAt(k).toFixed(1) + ' ' + yAt(v).toFixed(1); }).join(' ');
+      };
+      var area = function(arr){ return path(arr) + ' L ' + xAt(yearsN).toFixed(1) + ' ' + (padT+plotH) + ' L ' + xAt(0).toFixed(1) + ' ' + (padT+plotH) + ' Z'; };
+      var payoffX = xAt(pre.months/12);
+      var grid = '';
+      [0.25,0.5,0.75].forEach(function(f){
+        grid += '<line x1="'+padL+'" y1="'+(padT+plotH*f).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+(padT+plotH*f).toFixed(1)+
+                '" stroke="var(--border)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+      });
+      var chart =
+        '<svg class="pp-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' +
+          grid +
+          '<path d="'+area(ptsB)+'" fill="var(--interest)" fill-opacity="0.14"/>' +
+          '<path d="'+area(ptsA)+'" fill="var(--principal)" fill-opacity="0.14"/>' +
+          '<path d="'+path(ptsB)+'" fill="none" stroke="var(--interest)" stroke-width="2.4" vector-effect="non-scaling-stroke"/>' +
+          '<path d="'+path(ptsA)+'" fill="none" stroke="var(--principal)" stroke-width="2.4" vector-effect="non-scaling-stroke"/>' +
+          '<line x1="'+payoffX.toFixed(1)+'" y1="'+padT+'" x2="'+payoffX.toFixed(1)+'" y2="'+(padT+plotH)+
+            '" stroke="#c2185b" stroke-width="1.6" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>' +
+        '</svg>' +
+        '<div class="pp-legend">' +
+          '<span><i style="background:var(--principal)"></i>繰上返済して完済後に積立</span>' +
+          '<span><i style="background:var(--interest)"></i>運用に回す</span>' +
+          '<span class="pp-mark">｜繰上げなら ' + Math.floor(pre.months/12) + '年' + (pre.months%12) + 'ヶ月で完済</span>' +
+        '</div>' +
+        '<div class="mini-cap"><span>いま</span><span>' + Math.floor(T/12) + '年後（元の完済時期）で比較</span></div>';
+
+      out.innerHTML = chart +
         '<div class="pp-cards">' +
           '<div class="pp-card' + (aWin ? ' win' : '') + '">' +
             '<div class="pp-ttl">繰上返済する' + (aWin ? '<span class="pp-badge">有利</span>' : '') + '</div>' +
