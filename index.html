@@ -4657,6 +4657,8 @@
       });
     }
     function calc(){
+      // 閉じているとき／「当初条件＋経過」モードのときは、この計算も赤い枠も出さない
+      if(!chk.checked || mode !== 'bal'){ rpNeed([]); gCalc = null; gActualBalance = null; return; }
       var bal = (num($('rpBalance').value) || 0) * 10000;         // 円
       var rate = num($('rpRate').value);
       if(!isFinite(rate)) rate = iv('rate') || 0;
@@ -5461,7 +5463,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:32</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:40</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
