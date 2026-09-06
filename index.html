@@ -2602,7 +2602,8 @@
     return raw===''?NaN:parseFloat(raw);
   }
   // 必須項目（借入・年齢・年収・金利・返済期間）がすべて入っているか
-  var REQUIRED = ['principal','borrowerAge','income','rate','years'];
+  // 返済額・償還表・グラフに必要なのはこの4つ。年収は借入可能額や控除の判定でだけ使う
+  var REQUIRED = ['principal','borrowerAge','rate','years'];
   var REQ_LABEL = {principal:'借入', borrowerAge:'年齢', income:'年収', rate:'金利', years:'返済期間'};
   function missingInputs(){
     return REQUIRED.filter(function(id){
@@ -4594,6 +4595,13 @@
       ['principal','rate','years'].forEach(function(id){ if($(id)) $(id).classList.remove('pristine'); });
 
       if(!(fullN > 0)){
+        // 期間が決まらなくても、金利と年齢だけは先に入れておく
+        var na0 = num(($('rpNowAge')||{}).value);
+        if(isFinite(na0) && na0 > 0 && !(iv('borrowerAge') > 0)){
+          $('borrowerAge').value = Math.round(na0);
+          $('borrowerAge').classList.remove('pristine');
+          syncQuickBar();
+        }
         if(note) note.innerHTML = '<b>当初の返済期間</b>（例：35年）を入れてください。上の「期間」に入れても同じです。';
       } else if(elapsed < 0){
         if(note) note.innerHTML = '<span style="color:var(--rose)">残り' + Math.floor(n/12) + '年' + (n%12) + 'ヶ月は、上の「期間」' + Math.round(fullN/12) + '年より長い試算です。全期間か完済時期をご確認ください。</span>';
@@ -5238,6 +5246,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 15:08</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
