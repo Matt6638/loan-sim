@@ -862,7 +862,8 @@
   .payoff-ctrl .gf-unit{font-size:0.74rem;color:var(--text-dim);}
 
   /* 想定利回りセレクタ（0.3/6/10/20％＋入力） */
-  .yield-picker{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px;background:#faf8f2;border:1px solid var(--border-soft);border-radius:8px;margin-top:6px;}
+  .yield-picker{display:none !important;}
+  .yield-picker-off{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px;background:#faf8f2;border:1px solid var(--border-soft);border-radius:8px;margin-top:6px;}
   .yield-picker .yp-label{font-size:0.76rem;color:var(--gold-soft);font-weight:600;white-space:nowrap;}
   .yield-picker .yp-chips{margin-top:0;}
   .yield-picker .yp-input{width:auto;flex:0 0 auto;padding:6px 10px;}
@@ -875,6 +876,23 @@
   .yield-out .yo-amt small{font-size:0.9rem;color:var(--text-dim);font-weight:400;margin-left:3px;}
   .yield-out .yo-note{display:block;font-size:0.68rem;color:var(--text-dim);margin-top:5px;}
   .yield-out .yo-block + .yo-block{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+  /* 運用例の表（利回りを1つに絞らず、マイナスを含めて並べる） */
+  .yt-cash{font-size:0.78rem;color:var(--text);margin-bottom:8px;}
+  .yt-cash b{font-family:var(--mono);font-size:1.12rem;color:var(--text);margin:0 3px 0 8px;}
+  .yt-cash .yt-cs{font-size:0.68rem;color:var(--text-dim);margin-left:6px;}
+  .yt-wrap{overflow-x:auto;}
+  .yt-table{width:100%;border-collapse:collapse;font-size:0.76rem;background:#fff;}
+  .yt-table th, .yt-table td{border:1px solid var(--border-soft);padding:5px 7px;text-align:right;white-space:nowrap;}
+  .yt-table thead th{background:#eef2f8;color:var(--principal-ink);font-weight:700;text-align:center;font-family:var(--mono);}
+  .yt-table th.yt-k{background:#faf8f2;color:var(--gold-soft);font-weight:700;text-align:left;font-family:var(--gothic);
+    font-size:0.72rem;line-height:1.35;}
+  .yt-table th.yt-k small{display:block;font-size:0.62rem;font-weight:400;color:var(--text-dim);}
+  .yt-table td{font-family:var(--mono);}
+  .yt-table tbody tr:first-child td{font-size:0.92rem;font-weight:700;color:var(--text);}
+  .yt-table .yt-neg{color:var(--rose);font-weight:700;}
+  .yt-table .yt-pos{color:var(--principal-ink);}
+  .yt-note{font-size:0.66rem;color:var(--text-dim);line-height:1.7;margin-top:7px;}
+  .yt-note b{color:var(--rose);}
   /* 現金で貯める → 運用で貯める の並べ比べ */
   .yo-cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch;}
   .yo-card{background:#fff;border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px;min-width:0;}
@@ -4383,26 +4401,78 @@
         'ボーナス返済は含めていません。</div>';
   }
 
-  // 金利上昇：増額を打ち消す積立を「想定利回り」で試算（シナリオ①②を両方表示）
+// ===== 運用例の共通表示 =====
+  // 生命保険の設計書（変額保険）と同じ作法にそろえる：
+  //  1) 利回りは1つに絞らず、マイナスを含めて必ず並べる
+  //  2) 積立元本の累計を併記し、元本割れが読み取れるようにする
+  //  3) 信託報酬（費用）を差し引き、運用益には税金を見込む
+  //  4) 有利な数字ひとつを見出しにしない
+  var YIELD_RATES = [-3, 0, 3, 6];      // 運用例（年率）
+  var YIELD_FEE   = 0.2;                 // 信託報酬など（年率）の想定
+  var YIELD_TAX   = 0.20315;             // 運用益にかかる税金（所得税15.315%＋住民税5%）
+
+  // 目標額を months ヶ月で用意するのに必要な毎月の積立額。費用控除後・税引後で目標に届く額を返す
+  function yieldPlan(target, months, annualPct){
+    var net = annualPct - YIELD_FEE;                        // 費用を差し引いた年率
+    var i = Math.pow(1 + net/100, 1/12) - 1;
+    var s = (Math.abs(i) < 1e-12) ? months : ((Math.pow(1+i, months) - 1) / i);
+    if(!(s > 0)) return null;
+    var pay;
+    if(s > months){                                          // 益が出る前提のときは税金を見込む
+      pay = target / (months + (s - months) * (1 - YIELD_TAX));
+    } else {
+      pay = target / s;                                      // 目減りする前提では税金はかからない
+    }
+    var principal = pay * months;                            // 自分で出すお金
+    var gain = pay * s - principal;                          // 運用損益（税引前）
+    var net_gain = gain > 0 ? gain * (1 - YIELD_TAX) : gain; // 税引後
+    return {pay: pay, principal: principal, gain: net_gain};
+  }
+
+  // 運用例の表（HTML）。cashPay は「現金で貯める場合」の毎月額
+  function yieldTableHTML(target, months, label){
+    if(!(target > 0) || !(months > 0)) return '';
+    var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+    var ymTxt = (Math.floor(months/12) ? Math.floor(months/12)+'年' : '') + (months%12 ? (months%12)+'ヶ月' : '');
+    var cash = target / months;
+    var rows = YIELD_RATES.map(function(r){ return {r:r, p:yieldPlan(target, months, r)}; });
+    var head = '', pay = '', prin = '', gain = '';
+    rows.forEach(function(x){
+      if(!x.p) return;
+      var neg = x.p.gain < 0;
+      head += '<th>' + (x.r > 0 ? '＋' : '') + x.r.toFixed(1) + '%</th>';
+      pay  += '<td>' + yen(Math.round(x.p.pay)) + '</td>';
+      prin += '<td>' + man(x.p.principal) + '</td>';
+      gain += '<td class="' + (neg ? 'yt-neg' : 'yt-pos') + '">' + (neg ? '△' : '＋') + man(Math.abs(x.p.gain)) + '</td>';
+    });
+    return '<div class="yt-cash">現金で貯める場合<b>' + yen(Math.round(cash)) + '</b>円 / 月' +
+             '<span class="yt-cs">（' + ymTxt + 'で ' + man(target) + '万円・全額が自己資金）</span></div>' +
+           '<div class="yt-wrap"><table class="yt-table">' +
+             '<thead><tr><th class="yt-k">運用例（年率）</th>' + head + '</tr></thead>' +
+             '<tbody>' +
+               '<tr><th class="yt-k">毎月の積立額</th>' + pay + '</tr>' +
+               '<tr><th class="yt-k">積立元本の累計<small>自分で出すお金</small></th>' + prin + '</tr>' +
+               '<tr><th class="yt-k">運用損益<small>税引後</small></th>' + gain + '</tr>' +
+             '</tbody></table></div>' +
+           '<div class="yt-note">' + (label ? label + '<br>' : '') +
+             '例示の運用例が<b>一定で推移したと仮定</b>した概算であり、将来の成果をお約束するものではありません。' +
+             '<b>元本割れの可能性があります。</b>マイナスの場合は現金で貯めるより多くの積立が必要になります。<br>' +
+             '信託報酬など<b>年' + YIELD_FEE + '%の費用を差し引き</b>、運用益には<b>' + (YIELD_TAX*100).toFixed(3) +
+             '%の税金</b>（所得税・住民税）を見込んだ概算です。NISA等の非課税制度を使う場合、税金分は不要になります。' +
+             '金額は万円未満を四捨五入しています。</div>';
+  }
+
+  // 金利上昇：増額を打ち消す積立を運用例で試算（シナリオ①②を両方表示）
   var gStressScenarios=[], gStressSaveYears=0;
   function stressYieldUpdate(){
     const years = gStressSaveYears;
-    const y = iv('yieldStress'); const yieldPct = isFinite(y) ? Math.max(0,y) : 0;
     if($('stressYieldSub')) $('stressYieldSub').innerHTML = '';
     let html = '';
     gStressScenarios.forEach(function(s){
-      const need = Math.round(neededMonthly(s.target, yieldPct, years));
-      const saved = Math.max(0, s.cash - need);
-      html +=
-        '<div class="yo-block">' +
-        '<div class="yo-lead"><b>シナリオ' + s.mark + '（＋' + s.delta + '%）</b>　積立目標（累計）<b class="yo-goal">' + Math.round(s.target/10000).toLocaleString('ja-JP') + '万円</b></div>' +
-        '<div class="yo-arrow">' +
-          '<div class="ya-cap c1">現金でためる</div>' +
-          '<div class="ya-cap c2">運用でためる</div>' +
-          '<div class="ya-amt cash">' + yen(s.cash) + '<small>円/月</small></div>' +
-          '<div class="ya-ar">→</div>' +
-          '<div class="ya-amt inv">' + yen(need) + '<small>円/月</small></div>' +
-        '</div>' +
+      html += '<div class="yo-block">' +
+        '<div class="yo-lead"><b>シナリオ' + s.mark + '（＋' + s.delta + '%）</b>　積立目標（累計）<b class="yo-goal">' +
+          Math.round(s.target/10000).toLocaleString('ja-JP') + '万円</b></div>' +
+        yieldTableHTML(s.target, Math.round(years*12), years + '年間で用意する場合の運用例です。') +
         '</div>';
     });
     if($('stressYieldOut')) $('stressYieldOut').innerHTML = html;
@@ -4534,13 +4604,10 @@
 
   function variableYieldUpdate(){
     if(!(gVarIncrease > 0)){ if($('varYieldOut')) $('varYieldOut').innerHTML=''; if($('fundRefVar')) $('fundRefVar').innerHTML=''; return; }
-    const y = iv('yieldVar'); const yieldPct = isFinite(y) ? Math.max(0,y) : 0;
-    const need = Math.round(neededMonthly(gVarIncrease, yieldPct, gVarYears));
     const man = v => Math.round(v/10000).toLocaleString('ja-JP');
     if($('varYieldOut')) $('varYieldOut').innerHTML =
       '<div class="yo-lead">増える <b class="yo-goal">' + man(gVarIncrease) + '万円</b> を、金利が上がるまでの ' + gVarYears + '年間で用意する場合</div>' +
-      '<div class="yo-amt">' + yen(need) + '<small> 円 / 月</small></div>' +
-      '<div class="yo-note">' + gVarYears + '年間の積立元本 合計 ' + man(need*gVarYears*12) + ' 万円' + (yieldPct>0 ? '（差額は運用益で補う概算）' : '（利回り0%のため全額を自己資金で積む前提）') + '</div>';
+      yieldTableHTML(gVarIncrease, Math.round(gVarYears*12), '');
     renderFundRef('fundRefVar', [{label:'毎月の必要積立額', target:gVarIncrease}], gVarYears, 'yieldVar');
   }
 
@@ -4833,43 +4900,13 @@
       return;
     }
     const saveY = saveM/12;
-    const y=iv('yieldPayoff'); const yieldPct=isFinite(y)?Math.max(0,y):0;
     const ymTxt = (Math.floor(saveM/12) ? Math.floor(saveM/12)+'年' : '') + (saveM%12 ? (saveM%12)+'ヶ月' : '');
-    const needCash = Math.round(gPayoffLump / saveM);                        // 現金で貯める（利回り0%）
-    const needInv  = Math.round(neededMonthly(gPayoffLump, yieldPct, saveY)); // 運用で貯める
-    const man1 = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
-    const nowNote = (gPayoffElapsed > 0)
-      ? '<div class="yo-note yo-now">すでに <b>'+Math.floor(gPayoffElapsed/12)+'年'+(gPayoffElapsed%12)+'ヶ月</b> 返済ずみのため、積み立てられるのは<b>いまから</b>の '+ymTxt+' です</div>'
-      : '';
-    const cashCard =
-      '<div class="yo-card yo-cash">' +
-        '<div class="yo-k">現金で貯める<span>（利回り0%）</span></div>' +
-        '<div class="yo-amt">'+yen(needCash)+'<small> 円 / 月</small></div>' +
-        '<div class="yo-note">'+ymTxt+'で '+man1(needCash*saveM)+'万円 を用意（全額が自己資金）</div>' +
-      '</div>';
     if($('payoffYieldSub')) $('payoffYieldSub').innerHTML='';
-    if($('payoffYieldOut')){
-      if(yieldPct > 0){
-        const gain = Math.max(0, gPayoffLump - needInv*saveM);   // 運用益でまかなう分
-        $('payoffYieldOut').innerHTML =
-          '<div class="yo-cmp">' + cashCard +
-            '<div class="yo-arrow">→</div>' +
-            '<div class="yo-card yo-inv">' +
-              '<div class="yo-k">運用で貯める<span>（年'+yieldPct+'%）</span></div>' +
-              '<div class="yo-amt">'+yen(needInv)+'<small> 円 / 月</small></div>' +
-              '<div class="yo-note">'+ymTxt+'の積立元本 合計 '+man1(needInv*saveM)+'万円' +
-                (gain > 0 ? '（差額 '+man1(gain)+'万円は運用益で補う概算）' : '') + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="yo-diff">運用で貯めると毎月 <b>'+yen(Math.max(0,needCash-needInv))+'円</b> 少なくて済む試算です' +
-            '（自分で出すお金は <b>'+man1(needCash*saveM)+'万円</b> → <b>'+man1(needInv*saveM)+'万円</b>）。' +
-            '運用の利回りは<b>想定値</b>で、元本割れの可能性があります。</div>' + nowNote;
-      } else {
-        $('payoffYieldOut').innerHTML =
-          '<div class="yo-cmp" style="grid-template-columns:1fr;">' + cashCard + '</div>' +
-          '<div class="yo-diff">上の<b>想定利回り</b>を選ぶと、<b>運用で貯めた場合</b>と並べて比べられます。</div>' + nowNote;
-      }
-    }
+    if($('payoffYieldOut')) $('payoffYieldOut').innerHTML =
+      yieldTableHTML(gPayoffLump, saveM, 'いまから' + ymTxt + 'で用意する場合の運用例です。') +
+      (gPayoffElapsed > 0
+        ? '<div class="yo-note yo-now">すでに <b>'+Math.floor(gPayoffElapsed/12)+'年'+(gPayoffElapsed%12)+'ヶ月</b> 返済ずみのため、積み立てられるのは<b>いまから</b>の '+ymTxt+' です</div>'
+        : '');
     renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], saveY, 'yieldPayoff');
   }
 
@@ -6387,7 +6424,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-08 00:20</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 10:30</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
