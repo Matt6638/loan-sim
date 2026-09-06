@@ -672,6 +672,19 @@
   .el-legend span{display:inline-flex;align-items:center;gap:5px;}
   .mini-svg{width:100%;height:74px;display:block;background:#fcfbf8;border:1px solid var(--border-soft);border-radius:5px;}
   .mini-wrap{position:relative;}
+  /* 「早いほど利息が減る」の◯年ボックス（左右にドラッグして期間を選べる） */
+  .elm-wrap{position:relative;}
+  .el-win{position:absolute;top:0;height:74px;box-sizing:border-box;
+    border:2px dashed #c2185b;border-radius:5px;background:rgba(194,24,91,.05);
+    cursor:grab;touch-action:none;z-index:2;}
+  .el-win:active{cursor:grabbing;background:rgba(194,24,91,.11);}
+  .el-win .ew-t{position:absolute;left:50%;top:2px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:0.56rem;font-weight:700;color:#c2185b;white-space:nowrap;
+    background:rgba(255,255,255,.9);padding:0 3px;border-radius:2px;pointer-events:none;}
+  .el-win .ew-g{position:absolute;top:50%;transform:translateY(-50%);color:#c2185b;font-size:0.7rem;
+    line-height:1;pointer-events:none;opacity:.75;}
+  .el-win .ew-gl{left:2px;} .el-win .ew-gr{right:2px;}
+  .el-drag-hint{font-size:0.66rem;color:#c2185b;font-weight:700;margin:6px 0 2px;}
   /* 繰上返済で短くなった期間を、グラフの赤い区間に ←→ で示す */
   .mini-wrap .mw-arrow{position:absolute;top:52%;height:0;border-top:2px solid #c2185b;pointer-events:none;z-index:2;}
   .mini-wrap .mw-arrow i{position:absolute;top:-4px;width:0;height:0;
@@ -1941,6 +1954,7 @@
           <button type="button" class="help-btn" id="earlyLateHelpBtn" aria-label="説明">？</button>
         </div>
         <div class="help-body" id="earlyLateHelp" style="display:none;"></div>
+        <div class="el-drag-hint" id="elDragHint"></div>
         <div class="el-bars">
           <div class="el-row">
             <div class="el-head" id="earlyHead">序盤</div>
@@ -4470,6 +4484,8 @@
   }
 
   // 早い繰上げほど利息が減る：序盤（借入2年後〜）vs 終盤（完済直前）を同じ長さ・重複なしで比較
+  var gElEarly = null, gElLate = null;    // ◯年ボックスの開始年（null＝既定の位置）
+  function clampWin(v, N, W){ return Math.max(1, Math.min(N - W + 1, Math.round(v))); }
   function renderEarlyLate(){
     var sec=$('earlyLateSection');
     if(!gLastYearly || !gLastYearly.length){ if(sec) sec.style.display='none'; return; }
@@ -4479,9 +4495,13 @@
     if(sec) sec.style.display='';
     // 窓の長さ：最大5年、かつ期間の半分まで（2区間が重ならないようにする）
     const W = Math.max(1, Math.min(5, Math.floor(N/2)));
-    const eStart = Math.max(1, Math.min(2, N - 2*W + 1)); // 通常は2年目から
+    // 既定は「2年目から」と「最後のW年」。自分で動かしたときはその位置を使う
+    const defE = Math.max(1, Math.min(2, N - 2*W + 1));
+    const defL = N - W + 1;
+    const eStart = clampWin(gElEarly != null ? gElEarly : defE, N, W);
     const eEnd = eStart + W - 1;
-    const lEnd = N, lStart = N - W + 1;
+    const lStart = clampWin(gElLate != null ? gElLate : defL, N, W);
+    const lEnd = lStart + W - 1;
     function sums(s,e){ let p=0,i=0; for(let y=s;y<=e;y++){ const rr=gLastYearly[y-1]; if(rr){p+=rr.principal;i+=rr.interest;} } return {p:p,i:i}; }
     const E=sums(eStart,eEnd), L=sums(lStart,lEnd);
     const ageR=(s,e)=> (a!=null&&!isNaN(a)) ? '（'+(a+s-1)+'〜'+(a+e-1)+'歳）' : '';
@@ -4508,9 +4528,19 @@
     // 全期間の元利均等グラフのミニ版に、対象の5年だけ色を付ける
     const miniRows = gLastYearly.map(function(r){ return {p:r.principal, i:r.interest}; });
     const miniMax = miniRows.reduce(function(mx,r){ return Math.max(mx, r.p+r.i); }, 1);
-    const cap = function(f,t){ return '<div class="mini-cap"><span>1年目</span><span>'+f+'〜'+t+'年目を色付け</span><span>'+N+'年目</span></div>'; };
-    if($('earlyMini')) $('earlyMini').innerHTML = miniAmortSVG(miniRows, miniMax, N, {from:eStart, to:eEnd}) + cap(eStart,eEnd);
-    if($('lateMini')) $('lateMini').innerHTML = miniAmortSVG(miniRows, miniMax, N, {from:lStart, to:lEnd}) + cap(lStart,lEnd);
+    const cap = function(f,t){ return '<div class="mini-cap"><span>1年目</span><span>'+f+'〜'+t+'年目</span><span>'+N+'年目</span></div>'; };
+    // 枠をドラッグして期間を選べるようにする
+    const winBox = function(key, s, e){
+      const x1 = (s-1)/N*100, w = (e-s+1)/N*100;
+      return '<div class="el-win" data-k="'+key+'" data-s="'+s+'" style="left:'+x1.toFixed(3)+'%;width:'+w.toFixed(3)+'%">' +
+               '<span class="ew-g ew-gl">‹</span><span class="ew-g ew-gr">›</span>' +
+               '<span class="ew-t">'+s+'〜'+e+'年目</span></div>';
+    };
+    if($('earlyMini')) $('earlyMini').innerHTML =
+      '<div class="elm-wrap">' + miniAmortSVG(miniRows, miniMax, N, {from:eStart, to:eEnd}) + winBox('early', eStart, eEnd) + '</div>' + cap(eStart,eEnd);
+    if($('lateMini')) $('lateMini').innerHTML =
+      '<div class="elm-wrap">' + miniAmortSVG(miniRows, miniMax, N, {from:lStart, to:lEnd}) + winBox('late', lStart, lEnd) + '</div>' + cap(lStart,lEnd);
+    if($('elDragHint')) $('elDragHint').textContent = '赤い枠を左右にドラッグすると、比べる' + W + '年間を変えられます';
     // どちらの区間も「その区間の元金」をまとめて繰上返済すれば、完済はW年早まる。
     // 違いは同時に消える利息の大きさ（序盤ほど大きい）。
     if($('elShorten')){
@@ -4531,6 +4561,39 @@
       (E.i > L.i ? '序盤のほうが <b>'+toMan(diff)+'万円</b> 多く利息を含みます。<b>繰上げ返済・完済は早い時期ほど、減らせる利息が大きくなります。</b>'
                  : '差は <b>'+toMan(diff)+'万円</b> です（返済期間が短いため差は小さくなります）。');
   }
+
+  // ◯年ボックスを左右にドラッグして、比べる期間を選ぶ
+  (function(){
+    var drag = null;
+    function down(ev){
+      var box = ev.target && ev.target.closest ? ev.target.closest('.el-win') : null;
+      if(!box) return;
+      var wrap = box.parentElement; if(!wrap) return;
+      var r = wrap.getBoundingClientRect(); if(!(r.width > 0)) return;
+      drag = {k: box.getAttribute('data-k'), s0: parseInt(box.getAttribute('data-s'), 10) || 1, x0: ev.clientX, w: r.width};
+      ev.preventDefault();
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+      document.addEventListener('pointercancel', up);
+    }
+    function move(ev){
+      if(!drag || !gLastYearly || !gLastYearly.length) return;
+      var N = gLastYearly.length;
+      var dy = Math.round((ev.clientX - drag.x0) / drag.w * N);   // 動かしたぶんを「年」に直す
+      var s = drag.s0 + dy;
+      if(drag.k === 'early'){ if(gElEarly === s) return; gElEarly = s; }
+      else { if(gElLate === s) return; gElLate = s; }
+      renderEarlyLate();
+      ev.preventDefault();
+    }
+    function up(){
+      drag = null;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      document.removeEventListener('pointercancel', up);
+    }
+    document.addEventListener('pointerdown', down);
+  })();
 
   // 既存「借入条件」から年次スケジュール（元金・利息・返済額・年末残高）を再構築
   function computeBaseYearly(){
@@ -5778,6 +5841,7 @@
     if($('borrowerAge')) $('borrowerAge').value = 40;
     if($('focusYear')) $('focusYear').value = 10;
     gFocusTouched = false;
+    gElEarly = null; gElLate = null;
     document.querySelector('input[name=method][value=equalPayment]').checked = true;
     document.querySelector('input[name=bonusMode][value=ratio]').checked = true;
     $('bonusRatio').value = 0; $('bonusAmount').value = 0;
@@ -5849,7 +5913,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 12:28</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 13:05</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
