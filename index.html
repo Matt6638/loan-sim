@@ -551,6 +551,13 @@
   }
 
   /* パターン比較 */
+  /* 足りない入力欄を目立たせる */
+  .qb-field.need-box, .field-input.need-box{border-color:var(--rose);background:#fff6f4;
+    box-shadow:0 0 0 2px rgba(155,59,59,.14);}
+  .qb-field.need-box .qb-k, .field-input.need-box .unit{color:var(--rose);}
+  input.need-fill::placeholder{color:#d99a94;}
+  .ni-hint{font-weight:400;font-size:0.72rem;margin-left:6px;}
+  .income-need{color:var(--rose);font-weight:700;}
   .need-input-msg{font-size:0.82rem;color:var(--gold-soft);background:#faf8f2;border:1px dashed var(--gold-soft);border-radius:7px;padding:8px 12px;margin-top:8px;line-height:1.6;}
   .need-input-msg b{color:var(--rose);}
   .cmp-add-btn:disabled{opacity:.35;cursor:not-allowed;}
@@ -2248,6 +2255,7 @@
       <!-- RESULT: 顧客向け結果パネル -->
       <div class="panel">
         <div class="diag-bar">
+          <span class="diag-rate income-need" id="incomeNeed" style="display:none;">上の<b>年収</b>を入れると診断できます</span>
           <span class="diag-toggle" style="cursor:default;">返済負担率
             <input type="text" inputmode="decimal" id="burdenRatioR" class="inline-num" placeholder="35">
             <span class="diag-rate">%</span>
@@ -2741,7 +2749,7 @@
     var el;
     if((el=$('monthlyPayment'))) el.innerHTML = '<span class="need-input">—</span>';
     if((el=$('monthlySub'))) el.textContent = '';
-    if((el=$('needInput'))) el.innerHTML = '<b>' + miss.join('・') + '</b> を入力すると試算できます';
+    if((el=$('needInput'))) el.innerHTML = '<b>' + miss.join('・') + '</b> を入力すると試算できます<span class="ni-hint">（足りない欄に色が付いています）</span>';
     if((el=$('needInput'))) el.style.display = '';
     ['totalPayment','totalPrincipal','totalInterest','payoffLump','stressCurrent','creditTotal','maxLoan'].forEach(function(id){
       var e=$(id); if(e) e.innerHTML='—';
@@ -2760,6 +2768,26 @@
   function hideNeedInput(){
     var el=$('needInput'); if(el) el.style.display='none';
     var b=$('cmpAdd'); if(b) b.style.display='';
+  }
+
+  // 足りない入力欄に色を付ける（クイックバーと入力パネルの両方）
+  var NEED_PAIR = {principal:'qPrincipal', borrowerAge:'qAge', rate:'qRate', years:'qYears', income:'qIncome'};
+  function markMissing(){
+    var miss = missingInputs();
+    // 年収は「借入可能額」「住宅ローン控除」でだけ必要
+    var needIncome = !(iv('income') > 0) && (gActiveMod === 'm21' || gActiveMod === 'm25');
+    Object.keys(NEED_PAIR).forEach(function(id){
+      var on = (id === 'income') ? needIncome : (miss.indexOf(id) >= 0);
+      [$(id), $(NEED_PAIR[id])].forEach(function(el){
+        if(!el) return;
+        el.classList.toggle('need-fill', on);
+        var box = el.closest ? el.closest('.qb-field, .field-input') : null;
+        if(box) box.classList.toggle('need-box', on);
+      });
+    });
+    // 借入可能額・住宅ローン控除で年収が要るときは、その旨も出す
+    var im = $('incomeNeed');
+    if(im) im.style.display = needIncome ? '' : 'none';
   }
 
   // 共通：ミニ元利均等グラフ。rows=[{p,i,rent}] を1年1本の積み上げ棒で描く。
@@ -4928,7 +4956,7 @@
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
   function recalcAll(){ calculate(); payoffSim(); waitSim(); variableSim(); stressTest(); renderCredit(); keepPhrases();
-    if(window.gPPCalc) window.gPPCalc(); }
+    if(window.gPPCalc) window.gPPCalc(); markMissing(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
@@ -5246,7 +5274,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 15:08</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 15:14</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -5310,6 +5338,7 @@
       var dt = document.getElementById('drawerTitle'); if(dt) dt.textContent = TITLES[key] || '入力';
       document.querySelectorAll('.tab').forEach(function(t){ t.setAttribute('aria-pressed', String(t.dataset.mod===key)); });
       gActiveMod = key; renderPatterns(); // 比較パネルの表示状態を復元（0件やタブ外では隠す）
+      if(typeof markMissing === 'function') markMissing();
       // 表示に切り替わって初めて棒の幅が測れるので、はみ出す金額をここで棒の外へ逃がす
       if(typeof refitAllBars === 'function') refitAllBars();
       if(typeof keepPhrases === 'function') keepPhrases();
@@ -5476,6 +5505,7 @@
   setupRateFormats();
   setupEnterToNext();
   setupZenToHan();
+  markMissing();
   // タブ（画面上部に固定）の高さを測り、表の見出しがその真下に貼り付くようにする
   (function(){
     function setNavH(){
