@@ -999,6 +999,23 @@
   .rp-apply:disabled{background:#cfc7b6;border-color:#cfc7b6;cursor:default;}
   .rp-note{font-size:0.68rem;color:var(--principal-ink);font-weight:700;line-height:1.6;flex:1 1 240px;}
   .rp-note b{color:var(--text);}
+  /* 繰上返済 vs 運用 */
+  .pp-panel{background:#f2f5fa;}
+  .pp-out{margin-top:12px;}
+  .pp-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .pp-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+  .pp-card.win{border-color:var(--principal);box-shadow:0 0 0 2px rgba(29,111,214,.14);}
+  .pp-ttl{font-size:0.72rem;font-weight:700;color:var(--gold-soft);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+  .pp-ttl .pp-badge{font-size:0.6rem;color:#fff;background:var(--principal);border-radius:4px;padding:1px 6px;}
+  .pp-big{font-family:var(--mono);font-size:1.24rem;font-weight:600;color:var(--principal-ink);}
+  .pp-big small{font-size:0.64rem;color:var(--text-dim);margin-left:2px;}
+  .pp-li{font-size:0.68rem;color:var(--text-dim);line-height:1.75;margin-top:5px;}
+  .pp-li b{font-family:var(--mono);color:var(--text);}
+  .pp-diff{margin-top:9px;background:#fff;border:1px solid var(--border);border-left:3px solid var(--gold);
+    border-radius:8px;padding:9px 12px;font-size:0.76rem;line-height:1.75;}
+  .pp-diff b{font-family:var(--mono);font-size:1.02rem;color:var(--gold);}
+  .pp-note{font-size:0.66rem;color:var(--text-dim);line-height:1.65;margin-top:7px;}
+  @media (max-width:560px){ .pp-cards{grid-template-columns:1fr;} }
   @media (max-width:560px){
     .repay-panel{padding:0 8px 12px;}
     .rp-f{padding:4px 7px;gap:3px;}
@@ -1570,7 +1587,24 @@
           <input type="checkbox" id="inRepay">
           <span>すでに返済中</span>
         </label>
+        <button type="button" class="sel-btn" id="ppToggle">繰上返済 vs 運用</button>
         <span class="diag-rate repay-note">いまの返済予定表の数字を入れると、残りの返済を試算できます</span>
+      </div>
+      <div class="repay-panel pp-panel" id="ppPanel" style="display:none;">
+        <div class="rp-head">
+          <span class="rp-hint"><b>手元の資金を繰上返済に使う</b>か、<b>運用に回してローンはそのまま払う</b>か。
+            同じ時点（元の完済時期）でどちらの資産が多いかを比べます。金利が上がる想定も入れられます。</span>
+        </div>
+        <div class="rp-grid">
+          <label class="rp-f"><span class="rp-k">手元の資金</span>
+            <input type="text" inputmode="numeric" id="ppCash" placeholder="300"><span class="rp-u">万円</span></label>
+          <label class="rp-f"><span class="rp-k">想定利回り</span>
+            <input type="text" inputmode="decimal" id="ppYield" placeholder="3.00"><span class="rp-u">%</span></label>
+          <label class="rp-f"><span class="rp-k">金利上昇</span>
+            <input type="text" inputmode="numeric" id="ppRiseY" placeholder="5"><span class="rp-u">年後に＋</span>
+            <input type="text" inputmode="decimal" id="ppRiseUp" placeholder="0.00"><span class="rp-u">%</span></label>
+        </div>
+        <div class="pp-out" id="ppOut"></div>
       </div>
       <div class="repay-panel" id="repayPanel" style="display:none;">
         <div class="rp-head">
@@ -4462,6 +4496,94 @@
     show(); calc();
   }
   function num(v){ var n = parseFloat(zen2han(String(v==null?'':v)).replace(/[^0-9.\-]/g,'')); return isFinite(n) ? n : NaN; }
+
+  // ===== 繰上返済 vs 運用 =====
+  // 毎月の返済額は変えず、金利が上がったら返済期間が延びる前提（期間短縮型の繰上返済）。
+  // 同じ時点（＝繰上返済しなかった場合の完済時期）で、どちらの資産が多いかで比べる。
+  function ppRun(bal, r0Pct, upPct, riseMonth, pay){
+    var b = bal, m = 0, interest = 0;
+    while(b > 1 && m < 1200){
+      var r = ((m >= riseMonth ? r0Pct + upPct : r0Pct) / 100) / 12;
+      var it = b * r, pr = pay - it;
+      if(pr <= 0) return null;             // 毎月返済額が利息を下回る＝返し切れない
+      if(pr > b) pr = b;
+      interest += it; b -= pr; m++;
+    }
+    return {months:m, interest:interest};
+  }
+  function fvMonthly(pay, yieldPct, months){      // 毎月 pay を months ヶ月積み立てた評価額（期末・月複利）
+    var i = (yieldPct/100)/12;
+    if(months <= 0) return 0;
+    return i <= 0 ? pay*months : pay*((Math.pow(1+i,months)-1)/i);
+  }
+  function setupPrepayVsInvest(){
+    var btn = $('ppToggle'), panel = $('ppPanel');
+    if(!btn || !panel) return;
+    btn.addEventListener('click', function(){
+      var on = panel.style.display === 'none';
+      panel.style.display = on ? '' : 'none';
+      btn.classList.toggle('on', on);
+      if(on) calc();
+    });
+    ['ppCash','ppYield','ppRiseY','ppRiseUp'].forEach(function(id){
+      var el = $(id); if(!el) return;
+      ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
+      el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
+    });
+    window.gPPCalc = calc;
+    function calc(){
+      var out = $('ppOut'); if(!out || panel.style.display === 'none') return;
+      var P = (iv('principal')||0) * 10000;
+      var r0 = iv('rate')||0;
+      var years = Math.round(iv('years')||0);
+      var X = (num($('ppCash').value)||0) * 10000;
+      var y = num($('ppYield').value); if(!isFinite(y)) y = 3;
+      var riseY = num($('ppRiseY').value); if(!isFinite(riseY)) riseY = 5;
+      var up = num($('ppRiseUp').value); if(!isFinite(up)) up = 0;
+      if(!(P > 0) || !(years > 0)){ out.innerHTML = '<div class="pp-note">先に借入条件を入力してください。</div>'; return; }
+      if(!(X > 0)){ out.innerHTML = '<div class="pp-note">手元の資金を入れると比較できます。</div>'; return; }
+      if(X >= P){ out.innerHTML = '<div class="pp-note">手元の資金が残債以上です。全額返済できるため比較の対象外です。</div>'; return; }
+      var n = years * 12;
+      var pay = annuityPayment(P, (r0/100)/12, n);          // 毎月返済額（当初金利で算出）
+      var riseM = Math.max(0, Math.round(riseY * 12));
+      var base = ppRun(P, r0, up, riseM, pay);
+      var pre  = ppRun(P - X, r0, up, riseM, pay);
+      if(!base || !pre){ out.innerHTML = '<div class="pp-note">金利の上げ幅が大きく、いまの毎月返済額では返し切れません（未払利息が発生します）。上げ幅を小さくしてご確認ください。</div>'; return; }
+      var T = base.months;                                   // 比較する時点＝繰上げしない場合の完済
+      var d = T - pre.months;                                // 短縮できた月数
+      var wealthA = fvMonthly(pay, y, d);                    // 繰上げ：完済後に毎月返済額を積み立てる
+      var wealthB = X * Math.pow(1 + (y/100)/12, T);         // 運用：手元資金をそのまま運用
+      var saved = base.interest - pre.interest;              // 減らせた利息
+      var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+      var aWin = wealthA >= wealthB;
+      var diff = Math.abs(wealthA - wealthB);
+      out.innerHTML =
+        '<div class="pp-cards">' +
+          '<div class="pp-card' + (aWin ? ' win' : '') + '">' +
+            '<div class="pp-ttl">繰上返済する' + (aWin ? '<span class="pp-badge">有利</span>' : '') + '</div>' +
+            '<div class="pp-big">' + man(wealthA) + '<small> 万円</small></div>' +
+            '<div class="pp-li">減らせる利息 <b>' + man(saved) + '</b>万円<br>' +
+              '完済が <b>' + Math.floor(d/12) + '</b>年<b>' + (d%12) + '</b>ヶ月 早まる<br>' +
+              'そのあと毎月 <b>' + yen(Math.round(pay)) + '</b>円を積立</div>' +
+          '</div>' +
+          '<div class="pp-card' + (aWin ? '' : ' win') + '">' +
+            '<div class="pp-ttl">運用に回す' + (aWin ? '' : '<span class="pp-badge">有利</span>') + '</div>' +
+            '<div class="pp-big">' + man(wealthB) + '<small> 万円</small></div>' +
+            '<div class="pp-li">元本 <b>' + man(X) + '</b>万円を年 <b>' + y + '</b>%で運用<br>' +
+              '<b>' + Math.floor(T/12) + '</b>年<b>' + (T%12) + '</b>ヶ月 運用<br>' +
+              'ローンは最後まで返済</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="pp-diff">' + (aWin ? '<b>繰上返済</b>のほうが ' : '<b>運用</b>のほうが ') +
+          '<b>' + man(diff) + '万円</b> 多く残る試算です' +
+          (up > 0 ? '（' + riseY + '年後に金利が ' + r0 + '％→' + (Math.round((r0+up)*100)/100) + '％ に上がる前提）'
+                  : '（金利は ' + r0 + '％のまま）') + '</div>' +
+        '<div class="pp-note">前提：毎月の返済額は変えず、繰上返済は<b>期間短縮型</b>。金利が上がった場合も毎月返済額は据え置き、そのぶん返済期間が延びるものとして計算しています。' +
+          '比較する時点は「繰上返済しなかった場合の完済時期」にそろえ、繰上返済側は完済後に毎月返済額を同じ利回りで積み立てる前提です。' +
+          '運用の利回りは<b>想定値</b>で、実際の成果を保証するものではありません（元本割れの可能性があります）。手数料・税金（運用益への約20%）は含めていません。</div>';
+    }
+    calc();
+  }
   var NOW = new Date(), NOW_YEAR = NOW.getFullYear(), NOW_MONTH = NOW.getMonth() + 1;
   document.querySelectorAll('input[name=method]').forEach(el=>{ el.addEventListener('change', payoffSim); });
 
@@ -4526,7 +4648,8 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); waitSim(); variableSim(); stressTest(); renderCredit(); keepPhrases(); }
+  function recalcAll(){ calculate(); payoffSim(); waitSim(); variableSim(); stressTest(); renderCredit(); keepPhrases();
+    if(window.gPPCalc) window.gPPCalc(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
   function bonusIsAmount(){ var m=document.querySelector('input[name=bonusMode]:checked'); return !!m && m.value==='amount'; }
@@ -5069,6 +5192,7 @@
   setupTableSelect();
   setupCreditBar();
   setupRepay();
+  setupPrepayVsInvest();
   setupRateFormats();
   setupEnterToNext();
   // タブ（画面上部に固定）の高さを測り、表の見出しがその真下に貼り付くようにする
