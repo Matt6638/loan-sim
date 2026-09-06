@@ -697,6 +697,10 @@
   .el-win .ew-gl{left:2px;} .el-win .ew-gr{right:2px;}
   .el-drag-hint{font-size:0.66rem;color:#c2185b;font-weight:700;margin:6px 0 2px;}
   .wait-bar .wb-4{color:var(--gold);font-weight:700;}
+  .wshow-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:8px 0 2px;}
+  .wshow-row .wshow-k{font-size:0.7rem;color:var(--text-dim);font-weight:700;}
+  #waitShow button{opacity:.45;}
+  #waitShow button.on{opacity:1;}
   .auto-chip{font-family:var(--gothic);font-size:0.6rem;font-weight:700;color:#fff;background:var(--gold-soft);
     border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:1px;}
   input.auto-val{color:var(--gold-soft);}
@@ -1114,7 +1118,34 @@
     border-radius:8px;padding:9px 12px;font-size:0.76rem;line-height:1.75;}
   .pp-diff b{font-family:var(--mono);font-size:1.02rem;color:var(--gold);}
   .pp-note{font-size:0.66rem;color:var(--text-dim);line-height:1.65;margin-top:7px;}
-  .pp-plot{position:relative;}
+  .pp-plot{position:relative;touch-action:pan-y;}
+  .pp-pinch{font-size:0.64rem;color:var(--text-dim);margin-top:3px;}
+  /* 金利が上がったあとのグラフ */
+  .rg-title{font-size:0.72rem;font-weight:700;color:var(--gold-soft);margin:12px 0 4px;}
+  .rg-plot{position:relative;}
+  .rg-svg{width:100%;display:block;background:#fff;border:1px solid var(--border-soft);border-radius:6px;}
+  .rg-svg.h1{height:104px;} .rg-svg.h2{height:132px;}
+  .rg-plot .rgl{position:absolute;left:5px;transform:translateY(-50%);font-family:var(--mono);font-size:0.58rem;
+    color:var(--text-dim);background:rgba(255,255,255,.85);padding:0 3px;border-radius:2px;pointer-events:none;}
+  .rg-plot .rgu{position:absolute;right:6px;top:3px;font-size:0.56rem;color:var(--text-dim);
+    background:rgba(255,255,255,.85);padding:0 3px;pointer-events:none;}
+  .rg-plot .rgm{position:absolute;top:3px;font-size:0.58rem;font-weight:700;color:var(--rose);white-space:nowrap;
+    background:rgba(255,255,255,.9);padding:0 3px;border-radius:2px;pointer-events:none;}
+  .rg-plot .rge{position:absolute;font-size:0.6rem;font-weight:700;white-space:nowrap;
+    background:rgba(255,255,255,.9);padding:0 3px;border-radius:2px;pointer-events:none;}
+  .rg-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);margin-top:2px;}
+  .rg-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:0.66rem;color:var(--text-dim);margin-top:6px;}
+  .rg-legend i{width:11px;height:11px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px;}
+  .rg-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+  .rg-card{background:#fff;border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px;min-width:0;}
+  .rg-card.rg-b{border-color:var(--rose);box-shadow:0 0 0 2px rgba(155,59,59,.10);}
+  .rg-card .rg-k{font-size:0.72rem;font-weight:700;color:var(--gold-soft);margin-bottom:3px;}
+  .rg-card .rg-v{font-family:var(--mono);font-size:1.2rem;font-weight:600;color:var(--text);}
+  .rg-card .rg-v small{font-size:0.8rem;color:var(--text-dim);font-weight:400;margin-left:2px;}
+  .rg-card .rg-n{font-size:0.68rem;color:var(--text-dim);margin-top:4px;line-height:1.6;}
+  .rg-card.rg-b .rg-hi{color:var(--rose);font-weight:700;}
+  .rg-note{font-size:0.68rem;color:var(--text-dim);margin-top:9px;line-height:1.7;}
+  @media (max-width:560px){ .rg-cards{grid-template-columns:1fr;} }
   .pp-svg{width:100%;height:180px;display:block;background:#fff;border:1px solid var(--border-soft);border-radius:6px;}
   .pp-plot .pyl{position:absolute;left:5px;transform:translateY(-50%);font-family:var(--mono);font-size:0.6rem;
     color:var(--text-dim);background:rgba(255,255,255,.82);padding:0 3px;border-radius:2px;pointer-events:none;}
@@ -1243,7 +1274,7 @@
   .section-body{max-width:1080px;margin:20px auto 0;padding:0;}
 
   /* 返済ページ内のサブセクション見出し（タブは分けない） */
-  .sub-heading{margin:44px 0 7px;display:flex;align-items:baseline;gap:12px;}
+  .sub-heading{margin:44px 0 16px;display:flex;align-items:baseline;gap:12px;}
   .sub-heading .num{
     font-family:var(--mincho);color:var(--gold);font-size:0.74rem;letter-spacing:0.14em;
     border:1px solid var(--gold-soft);border-radius:var(--radius);padding:2px 8px;white-space:nowrap;
@@ -2093,6 +2124,27 @@
         </div>
       </div>
 
+      <!-- 金利が上がったあと：返済額を見直す／据え置く -->
+      <div class="strip-section">
+        <div class="strip-title">金利が上がったあと ― 返済額を<b>見直す</b>か<b>据え置く</b>か</div>
+        <div class="strip-sub">見直せば当初どおり完済できますが毎月が増えます。据え置けば毎月は変わりませんが、元金の減りが遅くなり<b>最後に残債が残ります</b>。</div>
+        <div class="rp-grid">
+          <div class="rp-f rp-pick"><span class="rp-k">上がる時期</span>
+            <span class="br-chips" id="riseWhenChips">
+              <button type="button" data-v="0">いま</button><button type="button" data-v="3">3年後</button><button type="button" class="on" data-v="5">5年後</button><button type="button" data-v="10">10年後</button><button type="button" data-v="15">15年後</button>
+            </span>
+            <input type="hidden" id="riseWhen" value="5">
+          </div>
+          <div class="rp-f rp-pick"><span class="rp-k">上げ幅</span>
+            <span class="br-chips" id="riseUpChips">
+              <button type="button" data-v="s1" id="riseUpS1">シナリオ①</button><button type="button" class="on" data-v="s2" id="riseUpS2">シナリオ②</button>
+            </span>
+            <input type="hidden" id="riseUpPick" value="s2">
+          </div>
+        </div>
+        <div id="riseOut"></div>
+      </div>
+
       <!-- 運用して積み立てる場合（想定利回りを選択） -->
       <div class="strip-section">
         <div class="strip-title">運用して積み立てる場合</div>
@@ -2201,6 +2253,12 @@
             <button type="button" class="help-btn" id="waitHelpBtn" aria-label="説明">？</button>
           </div>
           <div class="help-body" id="waitHelp" style="display:none;"></div>
+          <div class="wshow-row">
+            <span class="wshow-k">表示するパターン</span>
+            <span class="br-chips" id="waitShow">
+              <button type="button" class="on" data-p="1">1 今すぐ</button><button type="button" class="on" data-p="2">2 待つ</button><button type="button" class="on" data-p="3">3 待つ＋金利</button><button type="button" class="on" data-p="4">4 繰上返済</button>
+            </span>
+          </div>
           <div class="el-bars" id="waitBars"></div>
           <div class="el-legend">
             <span><i class="tp-sw" style="background:var(--rentc)"></i>家賃</span>
@@ -3008,6 +3066,52 @@
     }
     return Math.max(0, b);
   }
+  // 繰上返済 vs 運用のグラフを指でつまむと、比べる期間を伸び縮みできる
+  var gPPTermM = 0;      // いま描いている期間（月）
+  (function(){
+    var pts = {}, base = 0, baseY = 0, gBase = 0;
+    function inPlot(t){ return t && t.closest ? t.closest('#ppOut .pp-plot') : null; }
+    function curYears(){ return Math.max(1, Math.round((gPPTermM || 12) / 12)); }
+    function setYears(v){
+      var y = Math.max(1, Math.min(60, Math.round(v)));
+      if($('ppTermY') && String($('ppTermY').value) === String(y)) return;
+      if($('ppTermY')) $('ppTermY').value = y;
+      if($('ppTermChips')) Array.prototype.forEach.call($('ppTermChips').querySelectorAll('button'), function(b){
+        b.classList.toggle('on', b.getAttribute('data-t') === String(y));
+      });
+      if(window.gPPCalc) window.gPPCalc();
+    }
+    // Safari（iPad）のピンチ
+    document.addEventListener('gesturestart', function(ev){
+      if(!inPlot(ev.target)) return;
+      ev.preventDefault(); gBase = curYears();
+    }, {passive:false});
+    document.addEventListener('gesturechange', function(ev){
+      if(!inPlot(ev.target) || !gBase) return;
+      ev.preventDefault();
+      setYears(gBase / Math.max(0.2, ev.scale));      // 広げる＝期間を短く、つまむ＝長く
+    }, {passive:false});
+    document.addEventListener('gestureend', function(ev){ if(inPlot(ev.target)) gBase = 0; });
+    // 指2本（Safari以外・マウス環境）
+    document.addEventListener('pointerdown', function(ev){
+      if(!inPlot(ev.target)) return;
+      pts[ev.pointerId] = ev.clientX;
+      var ids = Object.keys(pts);
+      if(ids.length === 2){ base = Math.abs(pts[ids[0]] - pts[ids[1]]) || 1; baseY = curYears(); }
+    });
+    document.addEventListener('pointermove', function(ev){
+      if(!(ev.pointerId in pts)) return;
+      pts[ev.pointerId] = ev.clientX;
+      var ids = Object.keys(pts);
+      if(ids.length !== 2 || !base) return;
+      var d = Math.abs(pts[ids[0]] - pts[ids[1]]) || 1;
+      setYears(baseY * base / d);
+    });
+    ['pointerup','pointercancel'].forEach(function(t){
+      document.addEventListener(t, function(ev){ delete pts[ev.pointerId]; if(Object.keys(pts).length < 2) base = 0; });
+    });
+  })();
+
   // グラフに重ねた見出しが左右にはみ出したら、内側に押し戻す
   function fitOverlays(root){
     if(!root) return;
@@ -3147,6 +3251,12 @@
   }
 
   // 「全クリア」でここも空にする。結果画面のパネルは設定ドロワーの外にあるので個別に消す
+  // 全クリアのとき、比較に追加したプランも消す
+  function resetPatterns(){
+    if(typeof gPatterns !== 'undefined'){ gPatterns.length = 0; }
+    var p = $('cmpPanel'); if(p){ p.dataset.open = '0'; p.style.display = 'none'; }
+    if(typeof renderPatterns === 'function'){ try{ renderPatterns(); }catch(_){ } }
+  }
   function resetRepayPanels(){
     ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge','rpPaidCount','rpFullY',
      'elapsedY','elapsedM','ppCash','ppYield'].forEach(function(id){ var e=$(id); if(e) e.value=''; });
@@ -4092,6 +4202,140 @@
       '<b>直近は株式市場が大きく上昇した局面であり、この利回りが今後も続く前提ではありません。</b>税金（NISA枠外 約20.315%）・売買手数料・為替変動・積立時期の分散効果は考慮していません。定期預金は実績ではなく保守ケースの参考値です。想定利回りは営業側で自由に変更できます。';
   }
 
+
+  // ===== 金利が上がったあと：返済額を見直す／据え置く =====
+  function renderRiseGraph(){
+    var out = $('riseOut'); if(!out) return;
+    var P = (iv('principal')||0)*10000, r0 = iv('rate')||0, Y = Math.round(iv('years')||0);
+    if(!(P > 0) || !(Y > 0)){ out.innerHTML = ''; return; }
+    var pick = (($('riseUpPick')||{}).value) || 's2';
+    var up = (pick === 's1') ? (iv('scenario1')||0) : (iv('scenario2')||0);
+    if($('riseUpS1')) $('riseUpS1').textContent = '＋' + (Math.round((iv('scenario1')||0)*100)/100) + '%';
+    if($('riseUpS2')) $('riseUpS2').textContent = '＋' + (Math.round((iv('scenario2')||0)*100)/100) + '%';
+    if(!(up > 0)){ out.innerHTML = '<div class="rg-note">上昇シナリオに0より大きい上げ幅を入れると、グラフが出ます。</div>'; return; }
+
+    var n = Y*12;
+    var when = Math.max(0, Math.round(num(($('riseWhen')||{}).value) || 0));
+    var m0 = Math.max(0, Math.min(n-1, when*12));
+    var i0 = (r0/100)/12, i1 = ((r0+up)/100)/12;
+    var A0 = annuityPayment(P, i0, n);
+    // 上昇時点の残債
+    var b = P;
+    for(var m = 0; m < m0; m++){ b = b + b*i0 - A0; }
+    var bRise = Math.max(0, b);
+    var rest = n - m0;
+    var A1 = rest > 0 ? annuityPayment(bRise, i1, rest) : A0;   // 見直したあとの毎月
+
+    // 2案の毎月返済額と残債を、同じループで作る
+    var ms = [], payA = [], payB = [], balA = [], balB = [];
+    var ba = P, bb = P, maxPay = Math.max(A0, A1), maxBal = P, grew = false;
+    for(var mm = 0; mm <= n; mm++){
+      if(mm % 12 === 0 || mm === n){
+        ms.push(mm);
+        payA.push(mm < m0 ? A0 : A1); payB.push(A0);
+        balA.push(ba); balB.push(bb);
+      }
+      if(mm === n) break;
+      var rr = (mm >= m0) ? i1 : i0;
+      var pa = (mm < m0) ? A0 : A1;
+      ba = Math.max(0, ba + ba*rr - pa);
+      var nb = bb + bb*rr - A0;                 // 据え置き：利息が返済額を上回れば増える
+      if(nb > bb) grew = true;
+      bb = Math.max(0, nb);
+      if(bb > maxBal) maxBal = bb;
+    }
+    var leftover = bb;                           // 当初の完済時期に残る額
+    // 据え置きのまま払い続けると、あと何ヶ月かかるか
+    var extra = 0, bx = leftover, over = false;
+    while(bx > 1 && extra < 720){
+      var it = bx*i1, pr = A0 - it;
+      if(pr <= 0){ over = true; break; }
+      if(pr > bx) pr = bx;
+      bx -= pr; extra++;
+    }
+
+    // ---- 描画 ----
+    var W = 720, padL = 6, padR = 6, padT = 12, padB = 8;
+    var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+    var niceStep = function(v){
+      if(!(v > 0)) return 1;
+      var e = Math.pow(10, Math.floor(Math.log10(v))), f = v/e;
+      return (f<=1?1:(f<=2?2:(f<=2.5?2.5:(f<=5?5:10)))) * e;
+    };
+    function chart(cls, H, series, top, unit, fmt){
+      var plotW = W-padL-padR, plotH = H-padT-padB;
+      var xAt = function(mo){ return padL + plotW*(mo/n); };
+      var yAt = function(v){ return padT + plotH*(1 - v/top); };
+      var path = function(arr){ return arr.map(function(v,k){ return (k?'L':'M') + xAt(ms[k]).toFixed(1) + ' ' + yAt(v).toFixed(1); }).join(' '); };
+      var step = niceStep(top/3), grid = '', ylab = '<span class="rgu">'+unit+'</span>';
+      for(var g = 1; g*step <= top + 1e-6; g++){
+        var gy = padT + plotH*(1 - (g*step)/top);
+        grid += '<line x1="'+padL+'" y1="'+gy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+gy.toFixed(1)+
+                '" stroke="var(--border)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+        ylab += '<span class="rgl" style="top:'+(gy/H*100).toFixed(2)+'%">'+fmt(g*step)+'</span>';
+      }
+      var rx = xAt(m0);
+      var rise = '<line x1="'+rx.toFixed(1)+'" y1="'+padT+'" x2="'+rx.toFixed(1)+'" y2="'+(padT+plotH)+
+                 '" stroke="var(--rose)" stroke-width="1.6" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>';
+      var lines = series.map(function(sr){
+        return '<path d="'+path(sr.v)+'" fill="none" stroke="'+sr.c+'" stroke-width="'+(sr.w||2.4)+'"'+
+               (sr.d ? ' stroke-dasharray="'+sr.d+'"' : '') + ' vector-effect="non-scaling-stroke"/>';
+      }).join('');
+      var mpos = rx/W*100;
+      var mst = 'left:'+mpos.toFixed(1)+'%;' + (mpos > 78 ? 'transform:translateX(-100%);' : (mpos < 10 ? '' : 'transform:translateX(-50%);'));
+      return '<div class="rg-plot '+cls+'">' +
+        '<svg class="rg-svg '+cls+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' +
+          grid + lines + rise + '</svg>' + ylab +
+        '<span class="rgm" style="'+mst+'">' + (when > 0 ? when+'年後に＋'+ (Math.round(up*100)/100) +'%' : 'いま＋'+(Math.round(up*100)/100)+'%') + '</span>' +
+      '</div>';
+    }
+    var topPay = Math.ceil(maxPay*1.15/10000)*10000;
+    var topBal = Math.ceil(maxBal*1.05/1000000)*1000000;
+    var c1 = chart('h1', 104, [{v:payB, c:'var(--rentc)', d:'6 4', w:2}, {v:payA, c:'var(--interest)'}],
+                   topPay, '円', function(v){ return Math.round(v/1000)+'千'; });
+    var c2 = chart('h2', 132, [{v:balB, c:'var(--rentc)', d:'6 4', w:2}, {v:balA, c:'var(--principal)'}],
+                   topBal, '万円', function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); });
+    var age = iv('borrowerAge');
+    var ageTxt = function(k){ return (isFinite(age) && age > 0) ? '（'+(Math.round(age)+k)+'歳）' : ''; };
+    var axis = '<div class="rg-axis"><span>1年目'+ageTxt(0)+'</span><span>'+Y+'年目'+ageTxt(Y-1)+'</span></div>';
+
+    out.innerHTML =
+      '<div class="rg-title">毎月の返済額</div>' + c1 + axis +
+      '<div class="rg-legend">' +
+        '<span><i style="background:var(--interest)"></i>見直す（当初どおり完済）</span>' +
+        '<span><i style="background:var(--rentc)"></i>据え置く（毎月そのまま）</span>' +
+        '<span style="color:var(--rose);font-weight:700;">縦の点線＝金利が上がる時点</span>' +
+      '</div>' +
+      '<div class="rg-title">ローン残債</div>' + c2 + axis +
+      '<div class="rg-legend">' +
+        '<span><i style="background:var(--principal)"></i>見直す</span>' +
+        '<span><i style="background:var(--rentc)"></i>据え置く</span>' +
+      '</div>' +
+      '<div class="rg-cards">' +
+        '<div class="rg-card">' +
+          '<div class="rg-k">返済額を見直す</div>' +
+          '<div class="rg-v">'+yen(Math.round(A1))+'<small> 円 / 月</small></div>' +
+          '<div class="rg-n">いまの '+yen(Math.round(A0))+'円 から <b>'+yen(Math.round(A1-A0))+'円</b> 増えます。<br>' +
+            '完済は当初どおり <b>'+Y+'年</b>。<br>増える総額は <b>'+man((A1-A0)*rest)+'万円</b>（残り'+Math.floor(rest/12)+'年ぶん）</div>' +
+        '</div>' +
+        '<div class="rg-card rg-b">' +
+          '<div class="rg-k">返済額を据え置く</div>' +
+          '<div class="rg-v">'+yen(Math.round(A0))+'<small> 円 / 月（変わらず）</small></div>' +
+          '<div class="rg-n">'+ (leftover > 0
+            ? '毎月は変わりませんが元金の減りが遅くなり、<b>'+Y+'年後に <span class="rg-hi">'+man(leftover)+'万円</span> 残ります</b>。<br>' +
+              (over ? '<span class="rg-hi">この返済額では利息が上回り、残債が減りません。</span>'
+                    : 'そのまま払い続けると完済は <b class="rg-hi">'+Math.floor(extra/12)+'年'+(extra%12)+'ヶ月</b> 延びます' +
+                      ((isFinite(age)&&age>0) ? '（'+(Math.round(age)+Y-1)+'歳→'+(Math.round(age)+Y-1+Math.ceil(extra/12))+'歳）' : '') + '。') +
+              (grew ? '<br><span class="rg-hi">※ 途中で利息が返済額を上回り、残債が増える時期があります（未払利息）。</span>' : '')
+            : '毎月そのままでも、当初どおり <b>'+Y+'年</b>で完済できます。') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="rg-note">前提：'+(when>0?when+'年後':'いま')+'に金利が <b>'+r0+'%→'+(Math.round((r0+up)*100)/100)+'%</b> に上がり、その後は変わらないものとした<b>概算</b>です。' +
+        '「見直す」は、その時点の残債と残りの期間で毎月返済額を計算し直す前提（当初の完済時期を守る）。' +
+        '「据え置く」は、毎月返済額を変えずに払い続けた場合で、実際の変動金利にある<b>5年ルール・125%ルール</b>の細かな扱い（見直しの時期や上限）は反映していません。' +
+        'ボーナス返済は含めていません。</div>';
+  }
+
   // 金利上昇：増額を打ち消す積立を「想定利回り」で試算（シナリオ①②を両方表示）
   var gStressScenarios=[], gStressSaveYears=0;
   function stressYieldUpdate(){
@@ -4459,6 +4703,7 @@
         {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay',
         pay1('毎月の返済', Anow) + (saveM4 > 0 ? pay1('＋積立（'+wy+'年）', saveM4) + pay1('＝毎月', Anow + saveM4) : '') +
         pay1('繰上返済のあとも 毎月', Anow));
+    applyWaitShow();                // 隠したパターンを反映してから幅を測る
     elFitBars($('waitBars'));
     fitMiniLabels($('waitBars'));   // 「◯年短縮」がグラフからはみ出さないように寄せる
 
@@ -5023,6 +5268,43 @@
 
   // 今買う vs 待つ（設定側と結果側の入力を双方向同期）
   var gSave4Manual = false;    // ④の積立額を自分で入れたかどうか
+  // 商談で見せたいパターンだけ残せるようにする（全部並ぶと見づらいため）
+  var gWaitShow = {1:true, 2:true, 3:true, 4:true};
+  function applyWaitShow(){
+    var wrap = $('waitBars'); if(!wrap) return;
+    Array.prototype.forEach.call(wrap.querySelectorAll('.el-row'), function(r, i){
+      r.style.display = (gWaitShow[i+1] === false) ? 'none' : '';
+    });
+  }
+  // 金利上昇グラフのボタン
+  [['riseWhenChips','riseWhen'],['riseUpChips','riseUpPick']].forEach(function(c){
+    var w = $(c[0]); if(!w) return;
+    Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){
+        if($(c[1])) $(c[1]).value = b.getAttribute('data-v');
+        Array.prototype.forEach.call(w.querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
+        renderRiseGraph();
+      });
+    });
+  });
+  ['scenario1','scenario2'].forEach(function(id){
+    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, renderRiseGraph); });
+  });
+  if($('waitShow')){
+    Array.prototype.forEach.call($('waitShow').querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){
+        var k = parseInt(b.getAttribute('data-p'), 10);
+        var on = !(gWaitShow[k] === false);
+        // 最後の1つは消せないようにする
+        var left = [1,2,3,4].filter(function(x){ return gWaitShow[x] !== false; }).length;
+        if(on && left <= 1) return;
+        gWaitShow[k] = !on;
+        b.classList.toggle('on', !on);
+        applyWaitShow();
+        elFitBars($('waitBars')); fitMiniLabels($('waitBars'));
+      });
+    });
+  }
   var WAIT_PAIRS = [['waitRent','waitRentR'],['waitSave','waitSaveR'],['waitYears','waitYearsR'],['waitRateUp','waitRateUpR'],['waitSave4','waitSave4R']];
   function syncWaitInputs(fromR){
     WAIT_PAIRS.forEach(function(pr){
@@ -5476,6 +5758,7 @@
         return arr.map(function(v,k){ return (k? 'L':'M') + xAtM(ptsM[k]).toFixed(1) + ' ' + yAt(v).toFixed(1); }).join(' ');
       };
       var area = function(arr){ return path(arr) + ' L ' + xAtM(T).toFixed(1) + ' ' + (padT+plotH) + ' L ' + xAtM(0).toFixed(1) + ' ' + (padT+plotH) + ' Z'; };
+      gPPTermM = T;                     // ピンチで伸び縮みさせるときの基準
       var payoffX = xAtM(Math.min(pre.months, T));
       var baseX   = xAtM(Math.min(payoffM, T));
       // 目盛り：今から何年後かを、西暦と年齢で表す
@@ -5595,6 +5878,7 @@
           '<span><i style="background:var(--interest)"></i>運用に回す</span>' +
           '<span><i style="background:var(--rentc)"></i>ローン残債（このまま返す場合）</span>' +
           '<span class="pp-mark">縦の点線＝完済の時点</span>' +
+          '<span>グラフを指でつまむと期間を変えられます</span>' +
           (cr ? '<span class="pp-mark">赤い帯＝' + cr.name + '（点線＝暴落がなかった場合）</span>' : '') +
         '</div>' +
         (cr ? '<div class="pp-crash-note">' + cr.name + '（' + cr.idx + '・' + cr.span + '）と同じことが <b>' +
@@ -5707,7 +5991,7 @@
   });
 
   // 借入条件は全シミュレーションで共有。1か所変えたら関連する全モジュールを再計算（2-1診断は独立）
-  function recalcAll(){ calculate(); payoffSim(); waitSim(); variableSim(); stressTest(); renderCredit(); keepPhrases();
+  function recalcAll(){ calculate(); payoffSim(); waitSim(); variableSim(); stressTest(); renderRiseGraph(); renderCredit(); keepPhrases();
     if(window.gPPCalc) window.gPPCalc(); markMissing(); }
 
   // ===== 結果画面のクイックバー（借入・金利・ボーナス）⇄ ドロワー入力欄の双方向連動 =====
@@ -6037,7 +6321,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 16:35</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:10</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -6204,7 +6488,7 @@
       var o = getCustomers(); delete o[name]; setCustomers(o); refreshCustList(); note('「'+name+'」を削除しました');
     });
     function doResetAll(msg){
-      resetRepayPanels();
+      resetRepayPanels(); resetPatterns();
       applyState(INITIAL_STATE); setPristineAll(true); $('custName').value = ''; $('custList').value = '';
       gLabelY = 0.62; renderStatement();
       syncQuickBar();
