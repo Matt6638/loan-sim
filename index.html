@@ -2808,7 +2808,11 @@
   // 「すでに返済中」がONのとき、上のこの4つは下のパネルから自動で入る。
   // 上下の両方が赤くなると「どちらに入れるのか」が分からなくなるので、上は赤くしない。
   var FROM_REPAY = ['principal','rate','years','borrowerAge'];
-  function repayOn(){ var c = $('inRepay'); return !!(c && c.checked); }
+  function repayOn(){
+    var c = $('inRepay');
+    // 「当初条件＋経過」モードは上の欄に当初条件を入れてもらうので、上の赤はそのまま出す
+    return !!(c && c.checked) && window.gRepayMode !== 'elapsed';
+  }
   function markMissing(){
     var miss = missingInputs();
     var rOn = repayOn();
@@ -4619,6 +4623,7 @@
       $('rpHint').textContent = (mode === 'bal')
         ? '繰上返済や金利の見直しがあっても、いまの残債を入れれば正しく試算できます'
         : '当初の借入条件がわかる場合はこちら';
+      window.gRepayMode = mode;
       if(!chk.checked || mode !== 'bal') rpNeed([]);   // 閉じているときは色を消す
     }
     chk.addEventListener('change', function(){ show(); calc(); recalcAll(); diagnose(); });
@@ -5456,7 +5461,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:22</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:32</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
