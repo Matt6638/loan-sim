@@ -990,7 +990,9 @@
     background:transparent;border:none;outline:none;padding:1px 0;}
   .rp-f input.rp-yr{width:78px;text-align:left;}
   .rp-f input.rp-mo{width:34px;}
-  .rp-wareki{font-size:0.64rem;color:var(--principal-ink);font-weight:700;white-space:nowrap;margin-left:2px;}
+  .rp-wareki{font-size:0.64rem;color:var(--principal-ink);font-weight:700;white-space:nowrap;margin-left:4px;}
+  .rp-f.rp-wide{flex:1 1 100%;}
+  .rp-f.rp-wide input.rp-yr{width:96px;}
   .rp-out{margin-top:10px;font-size:0.74rem;color:var(--text);line-height:1.8;}
   .rp-out b{font-family:var(--mono);font-size:0.92rem;}
   .rp-out .ng{color:var(--rose);}
@@ -4512,6 +4514,15 @@
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
       el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
     });
+    // 金額は離れたときに3桁区切りにする
+    ['rpBalance','rpPay'].forEach(function(id){
+      var el = $(id); if(!el) return;
+      el.addEventListener('blur', function(){
+        var n = num(this.value);
+        if(isFinite(n) && n > 0) this.value = Math.round(n).toLocaleString('en-US');
+      });
+    });
+    if($('rpRate')) attachRateFormat($('rpRate'));
     // 「経過年数から」側
     ['elapsedY','elapsedM'].forEach(function(id){
       var el = $(id); if(!el) return;
