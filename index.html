@@ -3097,7 +3097,7 @@
   // Safariの gesture イベントは、途中でグラフを描き直すと対象の要素が消えて止まってしまう。
   // document 上の pointer イベントだけで処理し、描き直しは1フレームに1回にまとめる。
   (function(){
-    var pts = {}, base = 0, baseW = 0, pending = null, raf = 0;
+    var pts = {}, base = 0, baseW = 0, pending = null, timer = 0;
     function inWrap(t){ return t && t.closest ? t.closest('#earlyLateSection .elm-wrap') : null; }
     function curW(){
       var N = gLastYearly ? gLastYearly.length : 0;
@@ -3105,7 +3105,7 @@
       return (gElW != null) ? gElW : Math.max(1, Math.min(5, Math.floor(N/2)));
     }
     function flush(){
-      raf = 0;
+      if(timer){ clearTimeout(timer); timer = 0; }
       if(pending == null) return;
       var w = pending; pending = null;
       if(gElW === w) return;
@@ -3113,8 +3113,10 @@
     }
     function setW(v){
       var N = gLastYearly ? gLastYearly.length : 0; if(!N) return;
-      pending = Math.max(1, Math.min(Math.max(1, Math.floor(N/2)), Math.round(v)));
-      if(!raf) raf = requestAnimationFrame(flush);
+      var w = Math.max(1, Math.min(Math.max(1, Math.floor(N/2)), Math.round(v)));
+      if(w === gElW && pending == null) return;
+      pending = w;
+      if(!timer) timer = setTimeout(flush, 24);      // 連続で動かしても描き直しは間引く
     }
     document.addEventListener('pointerdown', function(ev){
       if(!inWrap(ev.target)) return;
@@ -6364,7 +6366,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 21:48</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 22:00</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
