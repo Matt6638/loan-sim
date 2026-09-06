@@ -3184,17 +3184,36 @@
 
   // 入力欄でリターンを押したら、次の入力欄へ移動する
   // 入力中に全角数字などを半角へ自動変換する（1文字ずつ置き換えるのでカーソル位置は変わらない）
+  // 日本語入力（かな漢字変換）の最中は触らず、確定したタイミングで変換する
   function setupZenToHan(){
-    document.addEventListener('input', function(ev){
-      var el = ev.target;
-      if(!el || el.tagName !== 'INPUT') return;
-      if(el.type === 'checkbox' || el.type === 'radio') return;
+    function conv(el){
+      if(!el || el.tagName !== 'INPUT') return false;
+      if(el.type === 'checkbox' || el.type === 'radio') return false;
       var v = String(el.value);
-      if(!/[０-９．，、－ー−―‐–—]/.test(v)) return;   // 全角が含まれるときだけ触る
+      if(!/[０-９．，、－ー−―‐–—]/.test(v)) return false;   // 全角が含まれるときだけ触る
       var pos = null;
       try{ pos = el.selectionStart; }catch(_){ pos = null; }
       el.value = zen2han(v);
       if(pos != null){ try{ el.setSelectionRange(pos, pos); }catch(_){} }
+      return true;
+    }
+    document.addEventListener('input', function(ev){
+      if(ev.isComposing) return;               // 変換中は触らない（IMEに戻されるため）
+      conv(ev.target);
+    }, true);
+    // 確定時。確定直後は input が来ないブラウザがあるので、ここでも変換して再計算を促す
+    document.addEventListener('compositionend', function(ev){
+      var el = ev.target;
+      setTimeout(function(){
+        if(conv(el)) el.dispatchEvent(new Event('input', {bubbles:true}));
+      }, 0);
+    }, true);
+    // 貼り付けにも対応
+    document.addEventListener('paste', function(ev){
+      var el = ev.target;
+      setTimeout(function(){
+        if(conv(el)) el.dispatchEvent(new Event('input', {bubbles:true}));
+      }, 0);
     }, true);
   }
 
