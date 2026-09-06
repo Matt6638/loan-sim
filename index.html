@@ -861,6 +861,22 @@
   .yield-out .yo-amt small{font-size:0.9rem;color:var(--text-dim);font-weight:400;margin-left:3px;}
   .yield-out .yo-note{display:block;font-size:0.68rem;color:var(--text-dim);margin-top:5px;}
   .yield-out .yo-block + .yo-block{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+  /* 現金で貯める → 運用で貯める の並べ比べ */
+  .yo-cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch;}
+  .yo-card{background:#fff;border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px;min-width:0;}
+  .yo-card.yo-inv{border-color:var(--principal);box-shadow:0 0 0 2px rgba(29,111,214,.12);}
+  .yo-card .yo-k{font-size:0.72rem;font-weight:700;color:var(--gold-soft);margin-bottom:3px;}
+  .yo-card .yo-k span{font-weight:400;color:var(--text-dim);font-size:0.66rem;margin-left:3px;}
+  .yo-card .yo-amt{font-size:1.24rem;}
+  .yo-card.yo-cash .yo-amt{color:var(--text-dim);}
+  .yo-arrow{align-self:center;font-size:1.15rem;color:var(--principal);font-weight:700;line-height:1;}
+  .yo-diff{margin-top:9px;font-size:0.78rem;color:var(--text);line-height:1.6;}
+  .yo-diff b{font-family:var(--mono);color:var(--principal-ink);}
+  @media (max-width:560px){
+    .yo-cmp{grid-template-columns:1fr;gap:6px;}
+    .yo-arrow{justify-self:center;transform:rotate(90deg);font-size:1rem;}
+    .yo-card .yo-amt{font-size:1.12rem;}
+  }
   .yo-goal{color:var(--gold-soft);font-weight:700;white-space:nowrap;}
   .yo-lead{white-space:normal;}
   .yo-arrow{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:auto auto;align-items:center;gap:2px 12px;margin:8px 0 4px;}
@@ -4512,13 +4528,42 @@
     }
     const saveY = saveM/12;
     const y=iv('yieldPayoff'); const yieldPct=isFinite(y)?Math.max(0,y):0;
-    const need=Math.round(neededMonthly(gPayoffLump, yieldPct, saveY));
     const ymTxt = (Math.floor(saveM/12) ? Math.floor(saveM/12)+'年' : '') + (saveM%12 ? (saveM%12)+'ヶ月' : '');
+    const needCash = Math.round(gPayoffLump / saveM);                        // 現金で貯める（利回り0%）
+    const needInv  = Math.round(neededMonthly(gPayoffLump, yieldPct, saveY)); // 運用で貯める
+    const man1 = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+    const nowNote = (gPayoffElapsed > 0)
+      ? '<div class="yo-note yo-now">すでに <b>'+Math.floor(gPayoffElapsed/12)+'年'+(gPayoffElapsed%12)+'ヶ月</b> 返済ずみのため、積み立てられるのは<b>いまから</b>の '+ymTxt+' です</div>'
+      : '';
+    const cashCard =
+      '<div class="yo-card yo-cash">' +
+        '<div class="yo-k">現金で貯める<span>（利回り0%）</span></div>' +
+        '<div class="yo-amt">'+yen(needCash)+'<small> 円 / 月</small></div>' +
+        '<div class="yo-note">'+ymTxt+'で '+man1(needCash*saveM)+'万円 を用意（全額が自己資金）</div>' +
+      '</div>';
     if($('payoffYieldSub')) $('payoffYieldSub').innerHTML='';
-    if($('payoffYieldOut')) $('payoffYieldOut').innerHTML=
-      '<div class="yo-amt">'+yen(need)+'<small> 円 / 月</small></div>'+
-      '<div class="yo-note">'+ymTxt+'の積立元本 合計 '+Math.round(need*saveM/10000).toLocaleString('ja-JP')+' 万円'+(yieldPct>0 ? '（差額は運用益で補う概算）' : '（利回り0%のため全額を自己資金で積む前提）')+'</div>'+
-      (gPayoffElapsed > 0 ? '<div class="yo-note yo-now">すでに <b>'+Math.floor(gPayoffElapsed/12)+'年'+(gPayoffElapsed%12)+'ヶ月</b> 返済ずみのため、積み立てられるのは<b>いまから</b>の '+ymTxt+' です</div>' : '');
+    if($('payoffYieldOut')){
+      if(yieldPct > 0){
+        const gain = Math.max(0, gPayoffLump - needInv*saveM);   // 運用益でまかなう分
+        $('payoffYieldOut').innerHTML =
+          '<div class="yo-cmp">' + cashCard +
+            '<div class="yo-arrow">→</div>' +
+            '<div class="yo-card yo-inv">' +
+              '<div class="yo-k">運用で貯める<span>（年'+yieldPct+'%）</span></div>' +
+              '<div class="yo-amt">'+yen(needInv)+'<small> 円 / 月</small></div>' +
+              '<div class="yo-note">'+ymTxt+'の積立元本 合計 '+man1(needInv*saveM)+'万円' +
+                (gain > 0 ? '（差額 '+man1(gain)+'万円は運用益で補う概算）' : '') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="yo-diff">運用で貯めると毎月 <b>'+yen(Math.max(0,needCash-needInv))+'円</b> 少なくて済む試算です' +
+            '（自分で出すお金は <b>'+man1(needCash*saveM)+'万円</b> → <b>'+man1(needInv*saveM)+'万円</b>）。' +
+            '運用の利回りは<b>想定値</b>で、元本割れの可能性があります。</div>' + nowNote;
+      } else {
+        $('payoffYieldOut').innerHTML =
+          '<div class="yo-cmp" style="grid-template-columns:1fr;">' + cashCard + '</div>' +
+          '<div class="yo-diff">上の<b>想定利回り</b>を選ぶと、<b>運用で貯めた場合</b>と並べて比べられます。</div>' + nowNote;
+      }
+    }
     renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], saveY, 'yieldPayoff');
   }
 
@@ -5965,7 +6010,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 14:40</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 15:20</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
