@@ -391,6 +391,7 @@
   .nb-cell .v{font-family:var(--mono);font-size:0.96rem;font-weight:600;white-space:nowrap;}
   .nb-cell .v small{font-size:0.62rem;color:var(--text-dim);margin-left:1px;}
   .nb-cell .v.pcol{color:var(--principal-ink);} .nb-cell .v.icol{color:var(--interest-ink);}
+  .nb-note{font-size:0.64rem;color:var(--text-dim);line-height:1.6;margin-top:7px;}
   @media (max-width:560px){
     .nb-grid{grid-template-columns:repeat(2,1fr);}
     .nb-cell .v{font-size:0.88rem;}
@@ -1600,6 +1601,9 @@
             <input type="text" inputmode="numeric" id="ppCash" placeholder="300"><span class="rp-u">万円</span></label>
           <label class="rp-f"><span class="rp-k">想定利回り</span>
             <input type="text" inputmode="decimal" id="ppYield" placeholder="3.00"><span class="rp-u">%</span></label>
+          <span class="br-chips" id="ppYieldChips">
+            <button type="button" data-y="0.3">0.3</button><button type="button" data-y="3">3</button><button type="button" data-y="6">6</button><button type="button" data-y="10">10</button><button type="button" data-y="20">20</button>
+          </span>
           <label class="rp-f"><span class="rp-k">金利上昇</span>
             <input type="text" inputmode="numeric" id="ppRiseY" placeholder="5"><span class="rp-u">年後に＋</span>
             <input type="text" inputmode="decimal" id="ppRiseUp" placeholder="0.00"><span class="rp-u">%</span></label>
@@ -1640,7 +1644,6 @@
 
         <div class="rp-out" id="rpOut"></div>
         <div class="rp-actions">
-          <button type="button" class="rp-apply" id="rpApply">この残債で試算する</button>
           <span class="rp-note" id="rpNote"></span>
         </div>
       </div>
@@ -1781,7 +1784,7 @@
           <span class="yp-label">想定利回り（年率）</span>
           <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldPayoff" value="0"><span class="unit">%</span></div>
           <div class="chip-row yp-chips" data-target="yieldPayoff">
-            <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
+            <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
           </div>
           
         </div>
@@ -1917,7 +1920,7 @@
           <span class="yp-label">想定利回り（年率）</span>
           <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldStress" value="0"><span class="unit">%</span></div>
           <div class="chip-row yp-chips" data-target="yieldStress">
-            <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
+            <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
           </div>
           
         </div>
@@ -2119,7 +2122,7 @@
             <span class="yp-label">想定利回り（年率）</span>
             <div class="field-input yp-input"><input type="text" inputmode="decimal" id="yieldVar" value="0"><span class="unit">%</span></div>
             <div class="chip-row yp-chips" data-target="yieldVar">
-              <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
+              <button type="button" class="chip">0</button><button type="button" class="chip">0.3</button><button type="button" class="chip">3</button><button type="button" class="chip">6</button><button type="button" class="chip">10</button><button type="button" class="chip">20</button>
             </div>
             
           </div>
@@ -2888,6 +2891,7 @@
     return Math.max(0, Math.min(n - 1, y * 12 + m));
   }
 
+  var gActualBalance = null, gActualRate = null;   // 残債から入力した場合の実額
   var gTableUnit = 'man'; // 年間返済予定表の単位（既定＝万円 / 'yen' で円）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
@@ -3070,6 +3074,12 @@
       var balNow = (monthlySchedule[em-1] ? monthlySchedule[em-1].balance : 0) +
                    (bonusPrincipal>0 && bonusSchedule[bm-1] ? bonusSchedule[bm-1].balance : (bonusPrincipal>0 ? bonusPrincipal : 0));
       if(bonusPrincipal>0 && bm===0) balNow = (monthlySchedule[em-1]?monthlySchedule[em-1].balance:0) + bonusPrincipal;
+      // 残債を直接入力している場合は、その実額を優先する（繰上返済・金利見直しの反映）
+      var theoretical = balNow;
+      var useActual = (gActualBalance != null && $('inRepay') && $('inRepay').checked &&
+                       document.querySelector('#rpMode .qb-seg-btn.on') &&
+                       document.querySelector('#rpMode .qb-seg-btn.on').getAttribute('data-m') === 'bal');
+      if(useActual){ balNow = gActualBalance; }
       var restM = years*12 - em;
       var restI = totalInterest - paidI;
       var man2 = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
@@ -3080,11 +3090,14 @@
           '<span class="nw">' + Math.floor(em/12) + '年' + (em%12 ? (em%12)+'ヶ月' : '') + '返済ずみ</span>' +
           (ageNow!=null ? '<span class="nw nb-age">（現在 ' + ageNow + '歳）</span>' : '') + '</div>' +
         '<div class="nb-grid">' +
-          '<div class="nb-cell"><span class="k">現在の残債</span><span class="v pcol">' + man2(balNow) + '<small> 万円</small></span></div>' +
+          '<div class="nb-cell"><span class="k">現在の残債' + (useActual ? '（入力値）' : '') + '</span><span class="v pcol">' + man2(balNow) + '<small> 万円</small></span></div>' +
           '<div class="nb-cell"><span class="k">残りの期間</span><span class="v">' + Math.floor(restM/12) + '<small>年</small>' + (restM%12 ? (restM%12)+'<small>ヶ月</small>' : '') + '</span></div>' +
           '<div class="nb-cell"><span class="k">払った利息</span><span class="v">' + man2(paidI) + '<small> 万円</small></span></div>' +
           '<div class="nb-cell"><span class="k">これから払う利息</span><span class="v icol">' + man2(restI) + '<small> 万円</small></span></div>' +
-        '</div>';
+        '</div>' +
+        (useActual && Math.abs(theoretical - gActualBalance) > 100000
+          ? '<div class="nb-note">※ 当初条件どおりなら残債は ' + man2(theoretical) + '万円ですが、繰上返済や金利の見直しがあったものとして入力値を使っています。償還表・グラフは当初条件で描いているため、経過ぶんの内訳は目安です。</div>'
+          : '');
     })();
     if($('focusYear')){ let fy=Math.round(iv('focusYear')||1); if(fy>years) $('focusYear').value=years; if(fy<1) $('focusYear').value=1; }
     renderStatement();
@@ -3162,6 +3175,21 @@
   }
 
   // 入力欄でリターンを押したら、次の入力欄へ移動する
+  // 入力中に全角数字などを半角へ自動変換する（1文字ずつ置き換えるのでカーソル位置は変わらない）
+  function setupZenToHan(){
+    document.addEventListener('input', function(ev){
+      var el = ev.target;
+      if(!el || el.tagName !== 'INPUT') return;
+      if(el.type === 'checkbox' || el.type === 'radio') return;
+      var v = String(el.value);
+      if(!/[０-９．，、－ー−―‐–—]/.test(v)) return;   // 全角が含まれるときだけ触る
+      var pos = null;
+      try{ pos = el.selectionStart; }catch(_){ pos = null; }
+      el.value = zen2han(v);
+      if(pos != null){ try{ el.setSelectionRange(pos, pos); }catch(_){} }
+    }, true);
+  }
+
   function setupEnterToNext(){
     document.addEventListener('keydown', function(ev){
       if(ev.key !== 'Enter' || ev.isComposing) return;
@@ -4430,9 +4458,9 @@
       var endY = wareki('rpEndY','rpEndWareki'), endM = Math.round(num($('rpEndM').value)||0);
       var stY = wareki('rpStartY','rpStartWareki'), stM = Math.round(num($('rpStartM').value)||0);
       var now = new Date(NOW_YEAR, NOW_MONTH - 1, 1);
-      var out = $('rpOut'), apply = $('rpApply');
-      gCalc = null;
-      if(!(bal > 0)){ out.innerHTML = '<span class="ng">現在の残債を入れてください。</span>'; apply.disabled = true; return; }
+      var out = $('rpOut');
+      gCalc = null; gActualBalance = null;
+      if(!(bal > 0)){ out.innerHTML = '<span class="ng">現在の残債を入れてください。</span>'; return; }
       var r = (rate/100)/12;
       var n = null, derivedPay = null;
       if(endY && endM >= 1 && endM <= 12){
@@ -4440,10 +4468,10 @@
       }
       if(n == null && pay > 0){
         if(r <= 0){ n = Math.ceil(bal / pay); }
-        else if(pay <= bal * r){ out.innerHTML = '<span class="ng">毎月の返済額が利息（月 ' + yen(Math.ceil(bal*r)) + ' 円）以下です。金額をご確認ください。</span>'; apply.disabled = true; return; }
+        else if(pay <= bal * r){ out.innerHTML = '<span class="ng">毎月の返済額が利息（月 ' + yen(Math.ceil(bal*r)) + ' 円）以下です。金額をご確認ください。</span>'; return; }
         else { n = Math.ceil(-Math.log(1 - bal * r / pay) / Math.log(1 + r)); }
       }
-      if(n == null || n <= 0){ out.innerHTML = '<span class="ng">「毎月の返済額」か「最終返済（完済）」のどちらかを入れてください。</span>'; apply.disabled = true; return; }
+      if(n == null || n <= 0){ out.innerHTML = '<span class="ng">「毎月の返済額」か「最終返済（完済）」のどちらかを入れてください。</span>'; return; }
       derivedPay = (r <= 0) ? (bal / n) : annuityPayment(bal, r, n);
       var usePay = pay > 0 ? pay : derivedPay;
       var totalRest = usePay * n;
@@ -4456,12 +4484,28 @@
         if(em > 0) elapsedTxt = '<br>借入から <b>' + Math.floor(em/12) + '</b>年<b>' + (em%12) + '</b>ヶ月 経過（' + toWareki(stY) + stM + '月〜）';
       }
       gCalc = {bal:bal, rate:rate, n:n, pay:usePay};
+      // 上の「返済期間」は全期間のまま。残り期間から経過を割り出して自動で入れる
+      var fullN = Math.round((iv('years')||0) * 12);
+      var elapsed = fullN - n;
+      var note = $('rpNote');
+      if(fullN <= 0){
+        if(note) note.innerHTML = '上の「期間」に<b>全期間</b>（当初の返済年数）を入れてください。';
+      } else if(elapsed < 0){
+        if(note) note.innerHTML = '<span style="color:var(--rose)">残り' + Math.floor(n/12) + '年' + (n%12) + 'ヶ月は、上の「期間」' + Math.round(fullN/12) + '年より長い試算です。全期間をご確認ください。</span>';
+      } else {
+        if($('elapsedY')) $('elapsedY').value = Math.floor(elapsed/12);
+        if($('elapsedM')) $('elapsedM').value = elapsed % 12;
+        gActualBalance = bal;                 // 実際の残債（償還表の理論値より優先して表示）
+        gActualRate = rate;
+        if(note) note.innerHTML = '全期間 <b>' + Math.round(fullN/12) + '年</b> のうち <b>' +
+          Math.floor(elapsed/12) + '年' + (elapsed%12) + 'ヶ月</b> が経過（償還表・グラフは全期間で表示し、経過ぶんを薄くしています）';
+        recalcAll();
+      }
       out.innerHTML =
         '残り <b>' + Math.floor(n/12) + '</b>年<b>' + (n%12) + '</b>ヶ月（<b>' + eY + '</b>年<b>' + eM + '</b>月 完済／' + toWareki(eY) + eM + '月）' +
         '　毎月 <b>' + yen(Math.round(usePay)) + '</b>円' + (pay > 0 ? '' : '（残債と完済時期からの逆算）') +
         '<br>これから払う利息 <b>' + Math.round(interestRest/10000).toLocaleString('ja-JP') + '</b>万円' +
         '　残りの支払総額 <b>' + Math.round(totalRest/10000).toLocaleString('ja-JP') + '</b>万円' + elapsedTxt;
-      apply.disabled = false;
     }
     ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM'].forEach(function(id){
       var el = $(id); if(!el) return;
@@ -4473,25 +4517,6 @@
       var el = $(id); if(!el) return;
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, function(){ recalcAll(); diagnose(); }); });
       attachClear(el);
-    });
-    // 残債の内容を「借入条件」に流し込んで、これからの返済として試算する
-    $('rpApply').addEventListener('click', function(){
-      if(!gCalc) return;
-      var years = Math.max(1, Math.round(gCalc.n / 12));
-      var rem = gCalc.n % 12;
-      $('principal').value = Math.round(gCalc.bal / 10000).toLocaleString('en-US');
-      $('rate').value = (Math.round(gCalc.rate*100)/100).toFixed(2);
-      $('years').value = years;
-      // 経過ぶんは「これからの返済」に含めないので、経過年数の指定は解除する
-      if($('elapsedY')) $('elapsedY').value = 0;
-      if($('elapsedM')) $('elapsedM').value = 0;
-      ['principal','rate','years'].forEach(function(id){ $(id).classList.remove('pristine'); });
-      recalcAll(); diagnose(); syncQuickBar();
-      var msg = '上の借入条件を「残債 ' + Math.round(gCalc.bal/10000).toLocaleString('ja-JP') + '万円・金利 ' +
-                (Math.round(gCalc.rate*100)/100) + '%・' + years + '年」に置き換えました。以降の表・グラフ・繰上返済・積立は' +
-                '<b>これからの返済</b>として計算されます。' +
-                (rem ? '（残り' + Math.floor(gCalc.n/12) + '年' + rem + 'ヶ月を年単位に丸めているため、毎月返済額は実際と数百円ずれます）' : '');
-      $('rpNote').innerHTML = msg;
     });
     show(); calc();
   }
@@ -4525,6 +4550,15 @@
       btn.classList.toggle('on', on);
       if(on) calc();
     });
+    if($('ppYieldChips')){
+      Array.prototype.forEach.call($('ppYieldChips').querySelectorAll('button'), function(b){
+        b.addEventListener('click', function(){
+          $('ppYield').value = b.getAttribute('data-y');
+          Array.prototype.forEach.call($('ppYieldChips').querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
+          calc();
+        });
+      });
+    }
     ['ppCash','ppYield','ppRiseY','ppRiseUp'].forEach(function(id){
       var el = $(id); if(!el) return;
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
@@ -5195,6 +5229,7 @@
   setupPrepayVsInvest();
   setupRateFormats();
   setupEnterToNext();
+  setupZenToHan();
   // タブ（画面上部に固定）の高さを測り、表の見出しがその真下に貼り付くようにする
   (function(){
     function setNavH(){
