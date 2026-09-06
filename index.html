@@ -592,6 +592,8 @@
   .print-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
   .pm-head{font-family:var(--mincho);font-size:0.98rem;font-weight:600;color:var(--gold-soft);padding:16px 18px 10px;border-bottom:1px solid var(--border-soft);}
   .pm-body{padding:10px 18px;overflow-y:auto;}
+  .pm-item.pm-deny{opacity:.5;cursor:not-allowed;}
+  .pm-item.pm-deny em{font-style:normal;font-size:0.7rem;color:var(--text-dim);margin-left:5px;}
   .pm-item.pm-must{opacity:.85;}
   .pm-item.pm-must em{font-style:normal;font-size:0.7rem;color:var(--rose);margin-left:5px;font-weight:700;}
   .pm-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px dashed var(--border-soft);font-size:0.86rem;color:var(--text);cursor:pointer;}
@@ -687,7 +689,7 @@
   .mini-svg{width:100%;height:74px;display:block;background:#fcfbf8;border:1px solid var(--border-soft);border-radius:5px;}
   .mini-wrap{position:relative;}
   /* 「早いほど利息が減る」の◯年ボックス（左右にドラッグして期間を選べる） */
-  .elm-wrap{position:relative;}
+  .elm-wrap{position:relative;touch-action:pan-y;}
   .el-win{position:absolute;top:0;height:74px;box-sizing:border-box;
     border:2px dashed #c2185b;border-radius:5px;background:rgba(194,24,91,.05);
     cursor:grab;touch-action:none;z-index:2;}
@@ -1537,6 +1539,8 @@
   .rg-cards, .yo-cmp, .pp-cards{break-inside:avoid !important;}
   /* 償還表だけは長いので分割を許す */
   .table-wrap, #tableWrap, #tableWrap table{break-inside:auto !important;}
+  /* お渡しするPDFには載せない（画面での説明用） */
+  #ppPanel, #repayPanel, #diagPanel .diag-detail{display:none !important;}
   /* 注記は必ず新しいページから */
   .notes-appendix{break-before:page !important;}
   /* 返済パネルは印刷でも2カラムにして縦を半分に */
@@ -1629,6 +1633,10 @@
     columns:2;column-gap:6mm;break-inside:auto;}
   .notes-appendix .na-title{font-size:8.6px !important;margin-bottom:1mm !important;column-span:all;}
   .notes-appendix p{margin:0 0 1.6mm !important;break-inside:avoid;}
+  /* 透かし（複製・再配布の抑止） */
+  .print-wm{position:fixed;top:44%;left:0;right:0;text-align:center;transform:rotate(-24deg);
+    font-family:var(--gothic);font-size:34px;font-weight:700;letter-spacing:.12em;
+    color:rgba(27,42,74,.075);z-index:0;pointer-events:none;}
   /* 免責 */
   .print-disc{break-inside:avoid;border:1px solid #b5623a;border-radius:3px;padding:2.2mm 3mm;margin-top:3mm;font-size:7.4px;line-height:1.55;color:#3a3a3a;}
   .print-disc .pd-title{font-weight:700;color:#b5623a;margin-bottom:1mm;font-size:8.4px;}
@@ -2153,27 +2161,6 @@
         </div>
       </div>
 
-      <!-- 金利が上がったあと：返済額を見直す／据え置く -->
-      <div class="strip-section">
-        <div class="strip-title">金利が上がったあと ― 返済額を<b>見直す</b>か<b>据え置く</b>か</div>
-        <div class="strip-sub">見直せば当初どおり完済できますが毎月が増えます。据え置けば毎月は変わりませんが、元金の減りが遅くなり<b>最後に残債が残ります</b>。</div>
-        <div class="rp-grid">
-          <div class="rp-f rp-pick"><span class="rp-k">上がる時期</span>
-            <span class="br-chips" id="riseWhenChips">
-              <button type="button" data-v="0">いま</button><button type="button" data-v="3">3年後</button><button type="button" class="on" data-v="5">5年後</button><button type="button" data-v="10">10年後</button><button type="button" data-v="15">15年後</button>
-            </span>
-            <input type="hidden" id="riseWhen" value="5">
-          </div>
-          <div class="rp-f rp-pick"><span class="rp-k">上げ幅</span>
-            <span class="br-chips" id="riseUpChips">
-              <button type="button" data-v="s1" id="riseUpS1">シナリオ①</button><button type="button" class="on" data-v="s2" id="riseUpS2">シナリオ②</button>
-            </span>
-            <input type="hidden" id="riseUpPick" value="s2">
-          </div>
-        </div>
-        <div id="riseOut"></div>
-      </div>
-
       <!-- 運用して積み立てる場合（想定利回りを選択） -->
       <div class="strip-section">
         <div class="strip-title">運用して積み立てる場合</div>
@@ -2389,6 +2376,12 @@
             <div class="stat-label">未払利息</div>
             <div class="stat-value mono" id="varUnpaid">—</div>
           </div>
+        </div>
+
+        <div class="strip-section">
+          <div class="strip-title">返済額を<b>見直す</b>か<b>据え置く</b>か ― 毎月と残債の推移</div>
+          <div class="strip-sub">見直せば当初どおり完済できますが毎月が増えます。据え置けば毎月は変わりませんが、元金の減りが遅くなり<b>最後に残債が残ります</b>。上の「◯年後に金利＋◯%」の条件で描いています。</div>
+          <div id="riseOut"></div>
         </div>
 
         <div class="strip-section">
@@ -2726,6 +2719,8 @@
   </div>
 
   <!-- 印刷（A4 PDF）専用の免責。画面では非表示 -->
+  <div class="print-only print-wm" id="printWm"></div>
+
   <div class="print-only print-disc">
     <div class="pd-title">ご確認ください（免責事項）</div>
     <p>本書は住宅ローンのご返済イメージを共有するための<strong>参考資料</strong>であり、融資の可否・条件・金額を保証するものではありません。記載の金額・年数・割合は入力条件にもとづく<strong>概算</strong>で、実際の金融機関の審査結果・返済予定表・税額とは異なります。</p>
@@ -3099,30 +3094,28 @@
   var gPPTermM = 0;      // 繰上vs運用のグラフでいま描いている期間（月）
 
   // 「早いほど利息が減る」の◯年ボックスを、指でつまんで長さを変える
+  // Safariの gesture イベントは、途中でグラフを描き直すと対象の要素が消えて止まってしまう。
+  // document 上の pointer イベントだけで処理し、描き直しは1フレームに1回にまとめる。
   (function(){
-    var pts = {}, base = 0, baseW = 0, gBase = 0;
+    var pts = {}, base = 0, baseW = 0, pending = null, raf = 0;
     function inWrap(t){ return t && t.closest ? t.closest('#earlyLateSection .elm-wrap') : null; }
     function curW(){
       var N = gLastYearly ? gLastYearly.length : 0;
       if(!N) return 5;
       return (gElW != null) ? gElW : Math.max(1, Math.min(5, Math.floor(N/2)));
     }
-    function setW(v){
-      var N = gLastYearly ? gLastYearly.length : 0; if(!N) return;
-      var w = Math.max(1, Math.min(Math.max(1, Math.floor(N/2)), Math.round(v)));
+    function flush(){
+      raf = 0;
+      if(pending == null) return;
+      var w = pending; pending = null;
       if(gElW === w) return;
       gElW = w; renderEarlyLate();
     }
-    document.addEventListener('gesturestart', function(ev){
-      if(!inWrap(ev.target)) return;
-      ev.preventDefault(); gBase = curW();
-    }, {passive:false});
-    document.addEventListener('gesturechange', function(ev){
-      if(!inWrap(ev.target) || !gBase) return;
-      ev.preventDefault();
-      setW(gBase * Math.max(0.2, ev.scale));      // 広げる＝期間を長く
-    }, {passive:false});
-    document.addEventListener('gestureend', function(ev){ if(inWrap(ev.target)) gBase = 0; });
+    function setW(v){
+      var N = gLastYearly ? gLastYearly.length : 0; if(!N) return;
+      pending = Math.max(1, Math.min(Math.max(1, Math.floor(N/2)), Math.round(v)));
+      if(!raf) raf = requestAnimationFrame(flush);
+    }
     document.addEventListener('pointerdown', function(ev){
       if(!inWrap(ev.target)) return;
       pts[ev.pointerId] = ev.clientX;
@@ -3133,10 +3126,11 @@
       if(!(ev.pointerId in pts)) return;
       pts[ev.pointerId] = ev.clientX;
       var ids = Object.keys(pts);
-      if(ids.length !== 2 || !base || gBase) return;
+      if(ids.length !== 2 || !base) return;
+      ev.preventDefault();
       var d = Math.abs(pts[ids[0]] - pts[ids[1]]) || 1;
       setW(baseW * d / base);
-    });
+    }, {passive:false});
     ['pointerup','pointercancel'].forEach(function(t){
       document.addEventListener(t, function(ev){ delete pts[ev.pointerId]; if(Object.keys(pts).length < 2) base = 0; });
     });
@@ -4238,14 +4232,11 @@
     var out = $('riseOut'); if(!out) return;
     var P = (iv('principal')||0)*10000, r0 = iv('rate')||0, Y = Math.round(iv('years')||0);
     if(!(P > 0) || !(Y > 0)){ out.innerHTML = ''; return; }
-    var pick = (($('riseUpPick')||{}).value) || 's2';
-    var up = (pick === 's1') ? (iv('scenario1')||0) : (iv('scenario2')||0);
-    if($('riseUpS1')) $('riseUpS1').textContent = '＋' + (Math.round((iv('scenario1')||0)*100)/100) + '%';
-    if($('riseUpS2')) $('riseUpS2').textContent = '＋' + (Math.round((iv('scenario2')||0)*100)/100) + '%';
-    if(!(up > 0)){ out.innerHTML = '<div class="rg-note">上昇シナリオに0より大きい上げ幅を入れると、グラフが出ます。</div>'; return; }
+    var up = iv('varRiseUp') || 0;
+    if(!(up > 0)){ out.innerHTML = '<div class="rg-note">上の「上昇幅」に0より大きい数字を入れると、グラフが出ます。</div>'; return; }
 
     var n = Y*12;
-    var when = Math.max(0, Math.round(num(($('riseWhen')||{}).value) || 0));
+    var when = Math.max(0, Math.round(iv('varRiseYear') || 0));
     var m0 = Math.max(0, Math.min(n-1, when*12));
     var i0 = (r0/100)/12, i1 = ((r0+up)/100)/12;
     var A0 = annuityPayment(P, i0, n);
@@ -5309,19 +5300,8 @@
       r.style.display = (gWaitShow[i+1] === false) ? 'none' : '';
     });
   }
-  // 金利上昇グラフのボタン
-  [['riseWhenChips','riseWhen'],['riseUpChips','riseUpPick']].forEach(function(c){
-    var w = $(c[0]); if(!w) return;
-    Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
-      b.addEventListener('click', function(){
-        if($(c[1])) $(c[1]).value = b.getAttribute('data-v');
-        Array.prototype.forEach.call(w.querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
-        renderRiseGraph();
-      });
-    });
-  });
-  ['scenario1','scenario2'].forEach(function(id){
-    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, renderRiseGraph); });
+  ['varRiseYear','varRiseUp','varRiseYearR','varRiseUpR'].forEach(function(id){
+    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, function(){ setTimeout(renderRiseGraph, 0); }); });
   });
   if($('waitShow')){
     Array.prototype.forEach.call($('waitShow').querySelectorAll('button'), function(b){
@@ -6186,6 +6166,9 @@
     }
     if(secLabel) push('sec'+list.length, secLabel, secNodes);
     list.push({key:'notes', label:'注記（計算方法・前提・出典）', nodes:[document.getElementById('notesAppendix')].filter(Boolean)});
+    // お客様にお渡しするPDFには載せない項目（画面での説明用）
+    var DENY = ['年収から借入可能額を診断'];
+    list.forEach(function(b){ if(DENY.indexOf(b.label) >= 0) b.deny = true; });
     return list;
   }
   var gPrintList=null;
@@ -6198,6 +6181,12 @@
       var visible = b.table ? true : (b.nodes.length ? b.nodes[0].style.display !== 'none' : true);
       var id='pmChk'+i;
       var must = (b.key === 'notes');
+      if(b.deny){
+        box.innerHTML += '<label class="pm-item pm-deny">' +
+          '<input type="checkbox" data-idx="'+i+'" disabled>' +
+          '<span>'+b.label+'<em>（画面のみ・PDF不可）</em></span></label>';
+        return;
+      }
       box.innerHTML += '<label class="pm-item'+(must?' pm-must':'')+'" for="'+id+'">' +
         '<input type="checkbox" id="'+id+'" data-idx="'+i+'"'+((visible||must)?' checked':'')+(must?' disabled':'')+'>' +
         '<span>'+b.label+(must?'<em>（必ず付きます）</em>':'')+'</span></label>';
@@ -6210,6 +6199,7 @@
     var d = new Date();
     var ymd = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
     if($('printCond')) $('printCond').textContent = (name ? name+'　' : '') + (($('pieCond')||{}).textContent||'');
+    if($('printWm')) $('printWm').textContent = (name ? name + '　' : '') + '複製・再配布禁止';
     var org = ($('printOrg') && $('printOrg').value.trim()) ? $('printOrg').value.trim() : '';
     if($('printMeta')) $('printMeta').textContent =
       (org ? '作成：'+org+'　／　' : '') + '作成日：'+ymd+
@@ -6220,7 +6210,10 @@
     Array.prototype.forEach.call($('printPicks').querySelectorAll('input'), function(chk){
       picked[chk.getAttribute('data-idx')] = chk.checked;
     });
-    gPrintList.forEach(function(b,i){ if(b.key === 'notes') picked[i] = true; });   // 注記は必ず載せる
+    gPrintList.forEach(function(b,i){
+      if(b.key === 'notes') picked[i] = true;   // 注記は必ず載せる
+      if(b.deny) picked[i] = false;             // お渡し不可の項目は必ず外す
+    });
     var touched=[], firstShown=false;
     gPrintList.forEach(function(b,i){
       if(b.table){ wantTable = !!picked[i]; return; }
@@ -6368,7 +6361,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 20:35</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 21:30</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
