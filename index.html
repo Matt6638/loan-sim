@@ -4525,8 +4525,11 @@
         elapsed = (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM);
         if(elapsed < 0) elapsed = 0;
         fullN = elapsed + n;
-        $('years').value = Math.round(fullN / 12);
-        filled.push('期間 ' + Math.round(fullN/12) + '年');
+        var fullY = Math.max(1, Math.round(fullN / 12));
+        fullN = fullY * 12;                      // 上の欄は年単位なので、全期間も年に丸めてそろえる
+        elapsed = Math.max(0, fullN - n);
+        $('years').value = fullY;
+        filled.push('期間 ' + fullY + '年');
         // 当初の借入額＝毎月返済額を全期間ぶん割り引いた現在価値
         var rM = (rate/100)/12;
         var p0 = (rM <= 0) ? usePay * fullN : usePay * (1 - Math.pow(1+rM, -fullN)) / rM;
