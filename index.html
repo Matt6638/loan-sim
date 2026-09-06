@@ -2856,13 +2856,23 @@
       });
     });
     if($('ppYieldChips')) Array.prototype.forEach.call($('ppYieldChips').querySelectorAll('button'), function(b){ b.classList.remove('on'); });
+    // 期間ボタンの西暦表示も消す（前の条件の年が残らないように）
+    if($('ppTermChips')) Array.prototype.forEach.call($('ppTermChips').querySelectorAll('button'), function(b){
+      var t = b.getAttribute('data-t');
+      b.textContent = t ? (t + '年') : '完済';
+    });
     // パネルを閉じる
     if($('ppPanel')){ $('ppPanel').style.display = 'none'; if($('ppToggle')) $('ppToggle').classList.remove('on'); }
     var chk = $('inRepay');
     if(chk){
       chk.checked = false;
       if($('repayPanel')) $('repayPanel').style.display = 'none';
-      if(window.gRepayCalc){ try{ window.gRepayCalc(); }catch(_){ } }   // 赤い枠も消える
+      if(window.gRepayCalc){ try{ window.gRepayCalc(); }catch(_){ } }
+      // 閉じた状態なので、案内文と赤い枠も消しておく
+      ['rpOut','rpNote'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; });
+      var rp = $('repayPanel');
+      if(rp) Array.prototype.forEach.call(rp.querySelectorAll('.need-box'), function(e){ e.classList.remove('need-box'); });
+      if(rp) Array.prototype.forEach.call(rp.querySelectorAll('.need-fill'), function(e){ e.classList.remove('need-fill'); });
     }
   }
 
@@ -5446,7 +5456,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:10</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:22</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
