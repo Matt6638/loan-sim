@@ -1243,7 +1243,7 @@
   .section-body{max-width:1080px;margin:20px auto 0;padding:0;}
 
   /* 返済ページ内のサブセクション見出し（タブは分けない） */
-  .sub-heading{margin:44px 0 0;display:flex;align-items:baseline;gap:12px;}
+  .sub-heading{margin:44px 0 7px;display:flex;align-items:baseline;gap:12px;}
   .sub-heading .num{
     font-family:var(--mincho);color:var(--gold);font-size:0.74rem;letter-spacing:0.14em;
     border:1px solid var(--gold-soft);border-radius:var(--radius);padding:2px 8px;white-space:nowrap;
@@ -5055,6 +5055,7 @@
   ['waitSave4','waitSave4R'].forEach(function(id){
     var el=$(id); if(!el) return;
     el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
+    el.addEventListener('blur', function(){ if(!gSave4Manual) waitSim(); });   // 自動の額を入れ直す
   });
   if($('waitHelpBtn')) $('waitHelpBtn').addEventListener('click', function(){
     var b=$('waitHelp'); if(!b) return; var open=b.style.display!=='none';
@@ -6036,7 +6037,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 16:18</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 16:35</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
