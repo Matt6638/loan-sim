@@ -2923,6 +2923,20 @@
     }
     return Math.max(0, b);
   }
+  // グラフに重ねた見出しが左右にはみ出したら、内側に押し戻す
+  function fitOverlays(root){
+    if(!root) return;
+    var plot = root.querySelector('.pp-plot'); if(!plot) return;
+    var pr = plot.getBoundingClientRect();
+    if(!(pr.width > 0)) return;
+    Array.prototype.forEach.call(plot.querySelectorAll('.pcb-t, .pcl'), function(e){
+      e.style.marginLeft = '';
+      var r = e.getBoundingClientRect(), dx = 0;
+      if(r.right > pr.right - 2) dx = (pr.right - 2) - r.right;
+      if(r.left + dx < pr.left + 2) dx = (pr.left + 2) - r.left;
+      if(dx) e.style.marginLeft = Math.round(dx) + 'px';
+    });
+  }
   function fileNote(html){
     var e = $('fileNote'); if(e) e.innerHTML = html || '';
     flash(html);
@@ -5271,7 +5285,7 @@
                        '<i class="pcb-l"></i><i class="pcb-r' + (cut ? ' cut' : '') + '"></i></span>' +
                      '<i class="pcb-tick k-' + key + '" style="left:' + ((x1+x2)/2).toFixed(1) + '%"></i>' +
                      '<em class="pcb-t t-' + key + '" style="' + clamp((x1+x2)/2) + '">' + label +
-                       (cut ? '（グラフの先まで続く）' : '') + '</em>';
+                       (cut ? '（この先も続く）' : '') + '</em>';
             };
             var l1 = xPct(Math.min(crS,T)), l2 = xPct(Math.min(crEnd,T));
             return '<span class="pcl" style="' + clamp((l1+l2)/2) + '">' + cr.name +
@@ -5361,6 +5375,7 @@
           (T === payoffM ? '（＝繰上返済しなかった場合の完済時期）' : '（グラフの期間で指定）') +
           'です。どちらの案も、ローンを返し終わったあとは同じ返済額を同じ利回りで積み立てる前提でそろえています。' +
           '運用の利回りは<b>想定値</b>で、実際の成果を保証するものではありません（元本割れの可能性があります）。手数料・税金（運用益への約20%）は含めていません。</div>';
+      fitOverlays(out);          // 描いたあとに、はみ出した見出しを内側へ寄せる
     }
     calc();
   }
@@ -5753,7 +5768,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 09:34</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 09:52</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
