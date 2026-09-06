@@ -1642,6 +1642,8 @@
             <input type="text" inputmode="text" id="rpEndY" class="rp-yr" placeholder="R31 / 2049"><span class="rp-u">年</span>
             <input type="text" inputmode="numeric" id="rpEndM" class="rp-mo" placeholder="3"><span class="rp-u">月</span>
             <span class="rp-wareki" id="rpEndWareki"></span></label>
+          <label class="rp-f"><span class="rp-k">現在の年齢<span class="rp-opt">（任意）</span></span>
+            <input type="text" inputmode="numeric" id="rpNowAge" placeholder="52"><span class="rp-u">歳</span></label>
           <label class="rp-f rp-wide"><span class="rp-k">借入した時期<span class="rp-opt">（任意）</span></span>
             <input type="text" inputmode="text" id="rpStartY" class="rp-yr" placeholder="H26 / 2014"><span class="rp-u">年</span>
             <input type="text" inputmode="numeric" id="rpStartM" class="rp-mo" placeholder="4"><span class="rp-u">月</span>
@@ -4559,6 +4561,14 @@
       } else {
         if($('elapsedY')) $('elapsedY').value = Math.floor(elapsed/12);
         if($('elapsedM')) $('elapsedM').value = elapsed % 12;
+        // 現在の年齢がわかれば、上の「年齢」（＝返済開始時の年齢）を逆算して入れる
+        var nowAge = num(($('rpNowAge')||{}).value);
+        if(isFinite(nowAge) && nowAge > 0){
+          var startAge = Math.max(0, Math.round(nowAge - Math.floor(elapsed/12)));
+          $('borrowerAge').value = startAge;
+          $('borrowerAge').classList.remove('pristine');
+          filled.push('返済開始 ' + startAge + '歳（現在 ' + Math.round(nowAge) + '歳）');
+        }
         if(note) note.innerHTML = '上の入力欄に反映しました（<b>' + filled.join('・') + '</b>）。' +
           '全期間 <b>' + Math.round(fullN/12) + '年</b> のうち <b>' + Math.floor(elapsed/12) + '年' + (elapsed%12) + 'ヶ月</b> が経過。' +
           '償還表・グラフは全期間で表示し、経過ぶんを薄くしています。';
@@ -4570,7 +4580,7 @@
         '<br>これから払う利息 <b>' + Math.round(interestRest/10000).toLocaleString('ja-JP') + '</b>万円' +
         '　残りの支払総額 <b>' + Math.round(totalRest/10000).toLocaleString('ja-JP') + '</b>万円' + elapsedTxt;
     }
-    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM'].forEach(function(id){
+    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge'].forEach(function(id){
       var el = $(id); if(!el) return;
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
       el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
@@ -4730,7 +4740,8 @@
           '<span><i style="background:var(--interest)"></i>運用に回す</span>' +
           '<span class="pp-mark">｜繰上げなら ' + Math.floor(pre.months/12) + '年' + (pre.months%12) + 'ヶ月で完済</span>' +
         '</div>' +
-        '<div class="mini-cap"><span>いま</span><span>' + Math.floor(T/12) + '年後（元の完済時期）で比較</span></div>';
+        '<div class="mini-cap"><span>いま</span><span>' + Math.floor(T/12) + '年' + (T%12 ? (T%12)+'ヶ月' : '') +
+        '後（' + (em>0 ? '残りの返済期間の終わり' : '完済時期') + '）で比較</span></div>';
 
       out.innerHTML = chart +
         '<div class="pp-cards">' +
@@ -4745,7 +4756,7 @@
             '<div class="pp-ttl">運用に回す' + (aWin ? '' : '<span class="pp-badge">有利</span>') + '</div>' +
             '<div class="pp-big">' + man(wealthB) + '<small> 万円</small></div>' +
             '<div class="pp-li">元本 <b>' + man(X) + '</b>万円を年 <b>' + y + '</b>%で運用<br>' +
-              '<b>' + Math.floor(T/12) + '</b>年<b>' + (T%12) + '</b>ヶ月 運用<br>' +
+              '<b>' + Math.floor(T/12) + '</b>年<b>' + (T%12) + '</b>ヶ月 運用（残りの返済期間）<br>' +
               'ローンは最後まで返済</div>' +
           '</div>' +
         '</div>' +
@@ -4753,8 +4764,9 @@
           '<b>' + man(diff) + '万円</b> 多く残る試算です' +
           (up > 0 ? '（' + riseY + '年後に金利が ' + r0 + '％→' + (Math.round((r0+up)*100)/100) + '％ に上がる前提）'
                   : '（金利は ' + r0 + '％のまま）') + '</div>' +
-        '<div class="pp-note">前提：毎月の返済額は変えず、繰上返済は<b>期間短縮型</b>。金利が上がった場合も毎月返済額は据え置き、そのぶん返済期間が延びるものとして計算しています。' +
-          '比較する時点は「繰上返済しなかった場合の完済時期」にそろえ、繰上返済側は完済後に毎月返済額を同じ利回りで積み立てる前提です。' +
+        '<div class="pp-note">前提：繰上返済は<b>期間短縮型</b>。金利が上がったときは、その時点で<b>毎月返済額を見直して当初の完済時期を守る</b>前提です（実際の変動金利の見直しに近い扱い）。' +
+          '毎月の支払いは両案とも同じなので、差は<b>手元資金の使い道だけ</b>になります。' +
+          '比較する時点は「繰上返済しなかった場合の完済時期＝残りの返済期間の終わり」にそろえ、繰上返済側は完済後に同じ額を同じ利回りで積み立てる前提です。' +
           '運用の利回りは<b>想定値</b>で、実際の成果を保証するものではありません（元本割れの可能性があります）。手数料・税金（運用益への約20%）は含めていません。</div>';
     }
     calc();
