@@ -1643,7 +1643,7 @@
           <div class="qb-seg" id="rpMode">
             <button type="button" class="qb-seg-btn on" data-m="bal">残債から入れる</button><button type="button" class="qb-seg-btn" data-m="elapsed">当初条件＋経過</button>
           </div>
-          <span class="rp-hint" id="rpHint">返済予定表の<b>残高</b>と<b>払込回数</b>（または借入時期）を入れれば、当初の借入額・全期間まで逆算します</span>
+          <span class="rp-hint" id="rpHint">返済予定表の<b>残高</b>と<b>払込回数</b>（または借入時期）を入れれば、当初の借入額・全期間まで逆算します。年は<b>和暦でも西暦でも</b>入力できます（R31・令和31・H26・2049 など）</span>
         </div>
 
         <div class="rp-grid" id="rpBalWrap">
@@ -1654,7 +1654,7 @@
           <label class="rp-f"><span class="rp-k">毎月の返済額</span>
             <input type="text" inputmode="numeric" id="rpPay" placeholder="122,474"><span class="rp-u">円</span></label>
           <label class="rp-f rp-wide"><span class="rp-k">最終返済（完済）</span>
-            <input type="text" inputmode="text" id="rpEndY" class="rp-yr" placeholder="R31 / 2049"><span class="rp-u">年</span>
+            <input type="text" inputmode="text" id="rpEndY" class="rp-yr" placeholder="R31"><span class="rp-u">年</span>
             <input type="text" inputmode="numeric" id="rpEndM" class="rp-mo" placeholder="3"><span class="rp-u">月</span>
             <span class="rp-wareki" id="rpEndWareki"></span></label>
           <label class="rp-f"><span class="rp-k">払込回数<span class="rp-opt">（任意）</span></span>
@@ -1662,7 +1662,7 @@
           <label class="rp-f"><span class="rp-k">現在の年齢<span class="rp-opt">（任意）</span></span>
             <input type="text" inputmode="numeric" id="rpNowAge" placeholder="52"><span class="rp-u">歳</span></label>
           <label class="rp-f rp-wide"><span class="rp-k">借入した時期<span class="rp-opt">（任意）</span></span>
-            <input type="text" inputmode="text" id="rpStartY" class="rp-yr" placeholder="H26 / 2014"><span class="rp-u">年</span>
+            <input type="text" inputmode="text" id="rpStartY" class="rp-yr" placeholder="H26"><span class="rp-u">年</span>
             <input type="text" inputmode="numeric" id="rpStartM" class="rp-mo" placeholder="4"><span class="rp-u">月</span>
             <span class="rp-wareki" id="rpStartWareki"></span></label>
         </div>
