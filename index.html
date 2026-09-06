@@ -233,6 +233,8 @@
     box-shadow:0 8px 26px rgba(20,25,35,.22);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;}
   .flash-msg.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;cursor:pointer;}
   .flash-msg b{color:var(--rose);}
+  .yo-note.yo-ng{color:var(--rose);font-weight:700;}
+  .yo-note.yo-now{color:var(--rose);}
   .file-note{color:var(--text-dim);}
   .file-note b{color:var(--rose);}
 
@@ -1073,8 +1075,10 @@
   .pp-plot .pcb-t{position:absolute;font-size:0.55rem;font-weight:700;font-style:normal;color:var(--rose);
     white-space:nowrap;background:rgba(255,255,255,.85);padding:0 3px;border-radius:2px;pointer-events:none;}
   /* 見出しは矢印の真上に置き、細い縦線でつなぐ */
-  .pp-plot .t-drop{top:24px;}  .pp-plot .k-drop{top:34px;}  .pp-plot .r-drop{top:40px;}
-  .pp-plot .t-rec{top:50px;}   .pp-plot .k-rec{top:60px;}   .pp-plot .r-rec{top:66px;}
+  .pp-plot .t-all{top:20px;}   .pp-plot .k-all{top:32px;}   .pp-plot .r-all{top:38px;}
+  .pp-plot .t-drop{top:44px;}  .pp-plot .k-drop{top:56px;}  .pp-plot .r-drop{top:62px;}
+  .pp-plot .t-rec{top:68px;}   .pp-plot .k-rec{top:80px;}   .pp-plot .r-rec{top:86px;}
+  .pp-plot .r-all{border-top-width:2px;}
   /* 完済の位置を示す▲。グラフの目盛り（年度）の真上に来るように置く */
   .pp-plot .pmk{position:absolute;top:95%;transform:translate(-50%,-32%);font-size:0.6rem;line-height:1;pointer-events:none;}
   .pp-plot .pmk-pre{color:#c2185b;} .pp-plot .pmk-base{color:var(--interest-ink);}
@@ -4007,7 +4011,7 @@
   }
 
   // ============ ◯歳で完済（繰上げ完済）＋早い繰上げほど利息が減る ============
-  var gPayoffLump=0, gPayoffYears=0;
+  var gPayoffLump=0, gPayoffYears=0, gPayoffSaveM=0, gPayoffElapsed=0;
   // ============ 変動金利：5年ルール・125%ルール・未払利息 ============
   // 月ごとに返済をシミュレートする。
   //  rule5  : 返済額は5年（60回）ごとの見直しまで変えない
@@ -4340,7 +4344,7 @@
     const ageMode = (startAge!=null);
 
     if(!(mp>0) || n<=0 || years<2){
-      gPayoffLump=0; gPayoffYears=0;
+      gPayoffLump=0; gPayoffYears=0; gPayoffSaveM=0; gPayoffElapsed=0;
       if($('payoffLump')) $('payoffLump').textContent='—';
       if($('payoffSub')) $('payoffSub').textContent='借入条件を入力すると計算します。';
       if($('payoffYieldSub')) $('payoffYieldSub').textContent='';
@@ -4365,6 +4369,9 @@
     }
     py = Math.max(1, Math.min(years-1, py));
     gPayoffYears = py;
+    // 積み立てられるのは「いまから」その年齢まで。返済中なら経過ぶんを引く
+    gPayoffElapsed = elapsedMonths();
+    gPayoffSaveM = py*12 - gPayoffElapsed;
 
     const A=annuityPayment(mp,r,n); let bal=mp; const M=py*12;
     for(let k=0;k<M;k++){ const it=bal*r; let pr=A-it; if(pr>bal)pr=bal; bal=Math.max(0,bal-pr); }
@@ -4381,13 +4388,23 @@
 
   function payoffYieldUpdate(){
     if(!(gPayoffLump>0) || !(gPayoffYears>0)){ if($('payoffYieldOut'))$('payoffYieldOut').innerHTML=''; if($('fundRefPayoff'))$('fundRefPayoff').innerHTML=''; return; }
+    const saveM = gPayoffSaveM;                       // いまから完済したい時点までの月数
+    if(!(saveM > 0)){
+      if($('payoffYieldOut')) $('payoffYieldOut').innerHTML =
+        '<div class="yo-note yo-ng">その時期はすでに過ぎています。完済したい年齢を、いまの年齢より先にしてください。</div>';
+      if($('fundRefPayoff')) $('fundRefPayoff').innerHTML='';
+      return;
+    }
+    const saveY = saveM/12;
     const y=iv('yieldPayoff'); const yieldPct=isFinite(y)?Math.max(0,y):0;
-    const need=Math.round(neededMonthly(gPayoffLump, yieldPct, gPayoffYears));
+    const need=Math.round(neededMonthly(gPayoffLump, yieldPct, saveY));
+    const ymTxt = (Math.floor(saveM/12) ? Math.floor(saveM/12)+'年' : '') + (saveM%12 ? (saveM%12)+'ヶ月' : '');
     if($('payoffYieldSub')) $('payoffYieldSub').innerHTML='';
     if($('payoffYieldOut')) $('payoffYieldOut').innerHTML=
       '<div class="yo-amt">'+yen(need)+'<small> 円 / 月</small></div>'+
-      '<div class="yo-note">'+gPayoffYears+'年間の積立元本 合計 '+Math.round(need*gPayoffYears*12/10000).toLocaleString('ja-JP')+' 万円'+(yieldPct>0 ? '（差額は運用益で補う概算）' : '（利回り0%のため全額を自己資金で積む前提）')+'</div>';
-    renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], gPayoffYears, 'yieldPayoff');
+      '<div class="yo-note">'+ymTxt+'の積立元本 合計 '+Math.round(need*saveM/10000).toLocaleString('ja-JP')+' 万円'+(yieldPct>0 ? '（差額は運用益で補う概算）' : '（利回り0%のため全額を自己資金で積む前提）')+'</div>'+
+      (gPayoffElapsed > 0 ? '<div class="yo-note yo-now">すでに <b>'+Math.floor(gPayoffElapsed/12)+'年'+(gPayoffElapsed%12)+'ヶ月</b> 返済ずみのため、積み立てられるのは<b>いまから</b>の '+ymTxt+' です</div>' : '');
+    renderFundRef('fundRefPayoff', [{label:'毎月の必要積立額', target:gPayoffLump}], saveY, 'yieldPayoff');
   }
 
   // 早い繰上げほど利息が減る：序盤（借入2年後〜）vs 終盤（完済直前）を同じ長さ・重複なしで比較
@@ -5290,8 +5307,9 @@
             var l1 = xPct(Math.min(crS,T)), l2 = xPct(Math.min(crEnd,T));
             return '<span class="pcl" style="' + clamp((l1+l2)/2) + '">' + cr.name +
                      '<small>▼' + Math.round(cr.drop*-100) + '％</small></span>' +
-                   bar('drop', crS, crS + cr.dropM, '↔ 下落 ' + ym(cr.dropM)) +
-                   bar('rec',  crS + cr.dropM, crEnd, '↔ 回復 ' + ym(cr.recM));
+                   bar('all',  crS, crEnd, '下落から回復まで ' + ym(cr.dropM + cr.recM)) +
+                   bar('drop', crS, crS + cr.dropM, '下落 ' + ym(cr.dropM)) +
+                   bar('rec',  crS + cr.dropM, crEnd, '回復 ' + ym(cr.recM));
           })() +
           '<span class="pmk pmk-pre" style="left:' + xPct(Math.min(pre.months,T)).toFixed(1) + '%">▲</span>' +
           '<span class="pmk pmk-base" style="left:' + xPct(Math.min(payoffM,T)).toFixed(1) + '%">▲</span>' +
@@ -5768,7 +5786,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 09:52</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 10:40</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
