@@ -1069,11 +1069,12 @@
   .pp-plot .pcb .pcb-l{left:-1px;border-right:5px solid var(--rose);}
   .pp-plot .pcb .pcb-r{right:-1px;border-left:5px solid var(--rose);}
   .pp-plot .pcb .pcb-r.cut{border-left-color:transparent;border-right:5px solid var(--rose);right:-6px;}
-  .pp-plot .pcb-tick{position:absolute;width:0;height:5px;border-left:1px solid var(--rose);opacity:.7;pointer-events:none;}
+  .pp-plot .pcb-tick{position:absolute;width:0;height:6px;border-left:1px solid var(--rose);opacity:.65;pointer-events:none;}
   .pp-plot .pcb-t{position:absolute;font-size:0.55rem;font-weight:700;font-style:normal;color:var(--rose);
     white-space:nowrap;background:rgba(255,255,255,.85);padding:0 3px;border-radius:2px;pointer-events:none;}
-  .pp-plot .r-drop{top:30px;}  .pp-plot .t-drop{top:34px;}  .pp-plot .k-drop{top:30px;}
-  .pp-plot .r-rec{top:54px;}   .pp-plot .t-rec{top:58px;}   .pp-plot .k-rec{top:54px;}
+  /* 見出しは矢印の真上に置き、細い縦線でつなぐ */
+  .pp-plot .t-drop{top:24px;}  .pp-plot .k-drop{top:34px;}  .pp-plot .r-drop{top:40px;}
+  .pp-plot .t-rec{top:50px;}   .pp-plot .k-rec{top:60px;}   .pp-plot .r-rec{top:66px;}
   /* 完済の位置を示す▲。グラフの目盛り（年度）の真上に来るように置く */
   .pp-plot .pmk{position:absolute;top:95%;transform:translate(-50%,-32%);font-size:0.6rem;line-height:1;pointer-events:none;}
   .pp-plot .pmk-pre{color:#c2185b;} .pp-plot .pmk-base{color:var(--interest-ink);}
@@ -5752,7 +5753,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 09:20</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 09:34</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
