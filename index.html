@@ -972,11 +972,38 @@
   .cr-bar{gap:8px 10px;}
   /* すでに返済中：チェックを入れたときだけ経過年数を出す */
   .repay-bar{gap:8px 12px;}
-  .repay-bar .repay-el{display:none;}
-  .repay-bar.on .repay-el{display:inline-flex;}
-  .repay-bar.on .repay-note{display:none;}
   .repay-bar .repay-note{font-size:0.66rem;}
-  .res-panel > .repay-bar{grid-column:1 / -1;}
+  .res-panel > .repay-bar, .res-panel > .repay-panel{grid-column:1 / -1;}
+  /* すでに返済中：いまの返済予定表の数字から残りを割り出す */
+  .repay-panel{background:#f4f1e8;border-bottom:1px solid var(--border);padding:0 16px 14px;}
+  .rp-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:2px 0 10px;}
+  .rp-hint{font-size:0.66rem;color:var(--text-dim);line-height:1.5;}
+  .rp-grid{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;}
+  .rp-f{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--border);
+    border-radius:7px;padding:5px 9px;cursor:text;}
+  .rp-f:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
+  .rp-k{font-size:0.68rem;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
+  .rp-opt{font-weight:400;color:var(--text-dim);}
+  .rp-u{font-size:0.64rem;color:var(--text-dim);white-space:nowrap;}
+  .rp-f input{width:74px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);
+    background:transparent;border:none;outline:none;padding:1px 0;}
+  .rp-f input.rp-yr{width:78px;text-align:left;}
+  .rp-f input.rp-mo{width:34px;}
+  .rp-wareki{font-size:0.64rem;color:var(--principal-ink);font-weight:700;white-space:nowrap;margin-left:2px;}
+  .rp-out{margin-top:10px;font-size:0.74rem;color:var(--text);line-height:1.8;}
+  .rp-out b{font-family:var(--mono);font-size:0.92rem;}
+  .rp-out .ng{color:var(--rose);}
+  .rp-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .rp-apply{font-family:var(--gothic);font-size:0.78rem;font-weight:700;color:#fff;background:var(--gold);
+    border:1px solid var(--gold-soft);border-radius:7px;padding:8px 14px;cursor:pointer;}
+  .rp-apply:disabled{background:#cfc7b6;border-color:#cfc7b6;cursor:default;}
+  .rp-note{font-size:0.68rem;color:var(--principal-ink);font-weight:700;}
+  @media (max-width:560px){
+    .repay-panel{padding:0 8px 12px;}
+    .rp-f{padding:4px 7px;gap:3px;}
+    .rp-f input{width:64px;} .rp-f input.rp-yr{width:70px;} .rp-f input.rp-mo{width:30px;}
+    .rp-k{font-size:0.62rem;} .rp-u{font-size:0.6rem;}
+  }
   .inline-num{width:58px;font-family:var(--mono);font-size:16px;text-align:right;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 7px;margin:0 4px;}
   .inline-num:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(154,123,79,.16);}
 
@@ -1542,13 +1569,45 @@
           <input type="checkbox" id="inRepay">
           <span>すでに返済中</span>
         </label>
-        <span class="diag-toggle repay-el" style="cursor:default;">
-          <input type="text" inputmode="numeric" id="elapsedY" class="inline-num" placeholder="0">
-          <span class="diag-rate">年</span>
-          <input type="text" inputmode="numeric" id="elapsedM" class="inline-num" placeholder="0">
-          <span class="diag-rate">ヶ月 返済ずみ</span>
-        </span>
-        <span class="diag-rate repay-note">上の「借入・金利・期間」は<b>当初の条件</b>を入れてください</span>
+        <span class="diag-rate repay-note">いまの返済予定表の数字を入れると、残りの返済を試算できます</span>
+      </div>
+      <div class="repay-panel" id="repayPanel" style="display:none;">
+        <div class="rp-head">
+          <div class="qb-seg" id="rpMode">
+            <button type="button" class="qb-seg-btn on" data-m="bal">残債から入れる</button><button type="button" class="qb-seg-btn" data-m="elapsed">当初条件＋経過</button>
+          </div>
+          <span class="rp-hint" id="rpHint">繰上返済や金利の見直しがあっても、いまの残債を入れれば正しく試算できます</span>
+        </div>
+
+        <div class="rp-grid" id="rpBalWrap">
+          <label class="rp-f"><span class="rp-k">現在の残債</span>
+            <input type="text" inputmode="numeric" id="rpBalance" placeholder="2,800"><span class="rp-u">万円</span></label>
+          <label class="rp-f"><span class="rp-k">いまの金利</span>
+            <input type="text" inputmode="decimal" id="rpRate" placeholder="1.50"><span class="rp-u">%</span></label>
+          <label class="rp-f"><span class="rp-k">毎月の返済額</span>
+            <input type="text" inputmode="numeric" id="rpPay" placeholder="122,474"><span class="rp-u">円</span></label>
+          <label class="rp-f rp-wide"><span class="rp-k">最終返済（完済）</span>
+            <input type="text" inputmode="text" id="rpEndY" class="rp-yr" placeholder="R31 / 2049"><span class="rp-u">年</span>
+            <input type="text" inputmode="numeric" id="rpEndM" class="rp-mo" placeholder="3"><span class="rp-u">月</span>
+            <span class="rp-wareki" id="rpEndWareki"></span></label>
+          <label class="rp-f rp-wide"><span class="rp-k">借入した時期<span class="rp-opt">（任意）</span></span>
+            <input type="text" inputmode="text" id="rpStartY" class="rp-yr" placeholder="H26 / 2014"><span class="rp-u">年</span>
+            <input type="text" inputmode="numeric" id="rpStartM" class="rp-mo" placeholder="4"><span class="rp-u">月</span>
+            <span class="rp-wareki" id="rpStartWareki"></span></label>
+        </div>
+
+        <div class="rp-grid" id="rpElapsedWrap" style="display:none;">
+          <label class="rp-f"><span class="rp-k">返済ずみ</span>
+            <input type="text" inputmode="numeric" id="elapsedY" placeholder="0"><span class="rp-u">年</span>
+            <input type="text" inputmode="numeric" id="elapsedM" placeholder="0"><span class="rp-u">ヶ月</span></label>
+          <span class="rp-hint">上の「借入・金利・期間」に<b>当初の条件</b>を入れてください</span>
+        </div>
+
+        <div class="rp-out" id="rpOut"></div>
+        <div class="rp-actions">
+          <button type="button" class="rp-apply" id="rpApply">この残債で試算する</button>
+          <span class="rp-note" id="rpNote"></span>
+        </div>
       </div>
 
       <div class="headline-figure hf-with-btn">
@@ -4264,15 +4323,142 @@
   ['principal','rate','years','bonusRatio','borrowerAge'].forEach(id=>{
     if($(id)) $(id).addEventListener('change', payoffSim);
   });
-  ['inRepay','elapsedY','elapsedM'].forEach(function(id){
-    if($(id)) ['input','change'].forEach(function(ev){ $(id).addEventListener(ev, function(){
-      var bar=document.querySelector('.repay-bar');
-      if(bar) bar.classList.toggle('on', $('inRepay').checked);
-      recalcAll(); diagnose();
-    }); });
-  });
-  if($('elapsedY')) attachClear($('elapsedY'));
-  if($('elapsedM')) attachClear($('elapsedM'));
+  // ===== すでに返済中：いまの返済予定表の数字から残りを割り出す =====
+  // 和暦⇄西暦（元年＝その元号の1年目）。金融機関の案内が和暦のため、入力時に両方見えるようにする
+  var ERAS = [
+    {k:'令和', a:['令和','れいわ','R','r'], base:2018, from:2019},
+    {k:'平成', a:['平成','へいせい','H','h'], base:1988, from:1989},
+    {k:'昭和', a:['昭和','しょうわ','S','s'], base:1925, from:1926}
+  ];
+  function toSeireki(txt){
+    if(txt == null) return null;
+    var t = zen2han(String(txt)).trim();
+    if(t === '') return null;
+    for(var i=0;i<ERAS.length;i++){
+      var e = ERAS[i];
+      for(var j=0;j<e.a.length;j++){
+        var pre = e.a[j];
+        if(t.indexOf(pre) === 0){
+          var rest = t.slice(pre.length).replace(/[^0-9元]/g,'');
+          var n = (rest === '元') ? 1 : parseInt(rest,10);
+          if(!isFinite(n) || n < 1) return null;
+          return e.base + n;
+        }
+      }
+    }
+    var y = parseInt(t.replace(/[^0-9]/g,''),10);
+    if(!isFinite(y)) return null;
+    if(y >= 1900 && y <= 2100) return y;
+    return null;
+  }
+  function toWareki(y){
+    if(!y) return '';
+    for(var i=0;i<ERAS.length;i++){
+      var e = ERAS[i];
+      if(y >= e.from){ var n = y - e.base; return e.k + (n===1 ? '元' : n) + '年'; }
+    }
+    return '';
+  }
+  function setupRepay(){
+    var chk = $('inRepay'), panel = $('repayPanel');
+    if(!chk || !panel) return;
+    var mode = 'bal';
+    function show(){
+      panel.style.display = chk.checked ? '' : 'none';
+      $('rpBalWrap').style.display = (mode === 'bal') ? '' : 'none';
+      $('rpElapsedWrap').style.display = (mode === 'elapsed') ? '' : 'none';
+      $('rpHint').textContent = (mode === 'bal')
+        ? '繰上返済や金利の見直しがあっても、いまの残債を入れれば正しく試算できます'
+        : '当初の借入条件がわかる場合はこちら';
+    }
+    chk.addEventListener('change', function(){ show(); calc(); recalcAll(); diagnose(); });
+    Array.prototype.forEach.call($('rpMode').querySelectorAll('.qb-seg-btn'), function(b){
+      b.addEventListener('click', function(){
+        mode = b.getAttribute('data-m');
+        Array.prototype.forEach.call($('rpMode').querySelectorAll('.qb-seg-btn'), function(x){ x.classList.toggle('on', x===b); });
+        show(); calc();
+      });
+    });
+    // 和暦の表示を更新
+    function wareki(inId, outId){
+      var y = toSeireki(($(inId)||{}).value);
+      var el = $(outId); if(!el) return y;
+      el.textContent = y ? ('＝' + toWareki(y) + '（' + y + '年）') : '';
+      return y;
+    }
+    var gCalc = null;
+    function calc(){
+      var bal = (num($('rpBalance').value) || 0) * 10000;         // 円
+      var rate = num($('rpRate').value);
+      if(!isFinite(rate)) rate = iv('rate') || 0;
+      var pay = num($('rpPay').value) || 0;                        // 円/月
+      var endY = wareki('rpEndY','rpEndWareki'), endM = Math.round(num($('rpEndM').value)||0);
+      var stY = wareki('rpStartY','rpStartWareki'), stM = Math.round(num($('rpStartM').value)||0);
+      var now = new Date(NOW_YEAR, NOW_MONTH - 1, 1);
+      var out = $('rpOut'), apply = $('rpApply');
+      gCalc = null;
+      if(!(bal > 0)){ out.innerHTML = '<span class="ng">現在の残債を入れてください。</span>'; apply.disabled = true; return; }
+      var r = (rate/100)/12;
+      var n = null, derivedPay = null;
+      if(endY && endM >= 1 && endM <= 12){
+        n = (endY - NOW_YEAR) * 12 + (endM - NOW_MONTH);
+      }
+      if(n == null && pay > 0){
+        if(r <= 0){ n = Math.ceil(bal / pay); }
+        else if(pay <= bal * r){ out.innerHTML = '<span class="ng">毎月の返済額が利息（月 ' + yen(Math.ceil(bal*r)) + ' 円）以下です。金額をご確認ください。</span>'; apply.disabled = true; return; }
+        else { n = Math.ceil(-Math.log(1 - bal * r / pay) / Math.log(1 + r)); }
+      }
+      if(n == null || n <= 0){ out.innerHTML = '<span class="ng">「毎月の返済額」か「最終返済（完済）」のどちらかを入れてください。</span>'; apply.disabled = true; return; }
+      derivedPay = (r <= 0) ? (bal / n) : annuityPayment(bal, r, n);
+      var usePay = pay > 0 ? pay : derivedPay;
+      var totalRest = usePay * n;
+      var interestRest = Math.max(0, totalRest - bal);
+      var eY = NOW_YEAR + Math.floor((NOW_MONTH - 1 + n) / 12);
+      var eM = ((NOW_MONTH - 1 + n) % 12) + 1;
+      var elapsedTxt = '';
+      if(stY && stM >= 1 && stM <= 12){
+        var em = (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM);
+        if(em > 0) elapsedTxt = '<br>借入から <b>' + Math.floor(em/12) + '</b>年<b>' + (em%12) + '</b>ヶ月 経過（' + toWareki(stY) + stM + '月〜）';
+      }
+      gCalc = {bal:bal, rate:rate, n:n, pay:usePay};
+      out.innerHTML =
+        '残り <b>' + Math.floor(n/12) + '</b>年<b>' + (n%12) + '</b>ヶ月（<b>' + eY + '</b>年<b>' + eM + '</b>月 完済／' + toWareki(eY) + eM + '月）' +
+        '　毎月 <b>' + yen(Math.round(usePay)) + '</b>円' + (pay > 0 ? '' : '（残債と完済時期からの逆算）') +
+        '<br>これから払う利息 <b>' + Math.round(interestRest/10000).toLocaleString('ja-JP') + '</b>万円' +
+        '　残りの支払総額 <b>' + Math.round(totalRest/10000).toLocaleString('ja-JP') + '</b>万円' + elapsedTxt;
+      apply.disabled = false;
+    }
+    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM'].forEach(function(id){
+      var el = $(id); if(!el) return;
+      ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
+      el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
+    });
+    // 「経過年数から」側
+    ['elapsedY','elapsedM'].forEach(function(id){
+      var el = $(id); if(!el) return;
+      ['input','change'].forEach(function(ev){ el.addEventListener(ev, function(){ recalcAll(); diagnose(); }); });
+      attachClear(el);
+    });
+    // 残債の内容を「借入条件」に流し込んで、これからの返済として試算する
+    $('rpApply').addEventListener('click', function(){
+      if(!gCalc) return;
+      var years = Math.max(1, Math.round(gCalc.n / 12));
+      $('principal').value = Math.round(gCalc.bal / 10000).toLocaleString('en-US');
+      $('rate').value = (Math.round(gCalc.rate*100)/100).toFixed(2);
+      $('years').value = years;
+      // 経過ぶんは「これからの返済」に含めないので、経過年数の指定は解除する
+      if($('elapsedY')) $('elapsedY').value = 0;
+      if($('elapsedM')) $('elapsedM').value = 0;
+      ['principal','rate','years'].forEach(function(id){ $(id).classList.remove('pristine'); });
+      recalcAll(); diagnose(); syncQuickBar();
+      var msg = '残債 ' + Math.round(gCalc.bal/10000).toLocaleString('ja-JP') + '万円・金利 ' + gCalc.rate + '%・残り ' + years + '年 で試算しました';
+      $('rpNote').textContent = msg;
+      setTimeout(function(){ if($('rpNote').textContent === msg) $('rpNote').textContent=''; }, 5000);
+    });
+    show(); calc();
+  }
+  function num(v){ var n = parseFloat(zen2han(String(v==null?'':v)).replace(/[^0-9.\-]/g,'')); return isFinite(n) ? n : NaN; }
+  var NOW = new Date(), NOW_YEAR = NOW.getFullYear(), NOW_MONTH = NOW.getMonth() + 1;
   document.querySelectorAll('input[name=method]').forEach(el=>{ el.addEventListener('change', payoffSim); });
 
   // グラフをタップ／左右ドラッグで「経過年」を動かす
@@ -4878,6 +5064,7 @@
   setupKeypadDone();
   setupTableSelect();
   setupCreditBar();
+  setupRepay();
   setupRateFormats();
   setupEnterToNext();
   // タブ（画面上部に固定）の高さを測り、表の見出しがその真下に貼り付くようにする
