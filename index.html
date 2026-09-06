@@ -217,6 +217,7 @@
   .drawer-tools[open] .dt-summary::before{content:'▾';}
   .dt-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:8px;}
   .dt-row{display:flex;gap:8px;align-items:center;}
+  .drawer-tools #printOrg{flex:1 1 auto;min-width:0;font-family:var(--gothic);font-size:16px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
   .drawer-tools #custName, .drawer-tools #custList{flex:1 1 auto;min-width:0;font-family:var(--gothic);font-size:16px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
   .dt-btn{flex:0 0 auto;font-family:var(--gothic);font-size:0.82rem;font-weight:600;color:var(--text-dim);background:#f0ece0;border:1px solid var(--border);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
   .dt-btn:hover{border-color:var(--gold-soft);color:var(--text);}
@@ -2730,6 +2731,7 @@
     <p>本書は住宅ローンのご返済イメージを共有するための<strong>参考資料</strong>であり、融資の可否・条件・金額を保証するものではありません。記載の金額・年数・割合は入力条件にもとづく<strong>概算</strong>で、実際の金融機関の審査結果・返済予定表・税額とは異なります。</p>
     <p>金利は入力時点の想定値であり、変動金利の場合の将来の金利変動、繰上返済手数料、保証料、火災保険料、団体信用生命保険料、諸費用、登記費用等は含まれていません。税制・審査基準は改正されるため、住宅ローン控除等の適用可否・金額は最新の国税庁情報および税務署・税理士等の専門家にご確認ください。</p>
     <p>投資信託等の利回りは過去の実績または想定値であり、将来の運用成果を保証・示唆するものではありません。元本割れの可能性があります。本書は特定の金融商品の売買を推奨・勧誘するものではありません。</p>
+    <p>本書は<strong>上記の作成日・入力条件にもとづき、特定のお客様向けに作成した個別の試算</strong>です。前提（借入額・金利・期間・年齢・年収・入居時期等）が異なる方には当てはまりません。<strong>転載・再配布・営業目的での二次利用はご遠慮ください。</strong></p>
     <p><strong>本書の内容にもとづく判断・行動の結果について、作成者および提供者は一切の責任を負いません。</strong>ご契約にあたっては必ず金融機関の正式な書面をご確認ください。</p>
   </div>
 
@@ -6208,7 +6210,10 @@
     var d = new Date();
     var ymd = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
     if($('printCond')) $('printCond').textContent = (name ? name+'　' : '') + (($('pieCond')||{}).textContent||'');
-    if($('printMeta')) $('printMeta').textContent = '作成日：'+ymd+'　／　本資料は概算・目安であり、融資条件を保証するものではありません（詳細は末尾の免責事項をご確認ください）';
+    var org = ($('printOrg') && $('printOrg').value.trim()) ? $('printOrg').value.trim() : '';
+    if($('printMeta')) $('printMeta').textContent =
+      (org ? '作成：'+org+'　／　' : '') + '作成日：'+ymd+
+      '　／　本資料は概算・目安であり、融資条件を保証するものではありません（詳細は末尾の免責事項をご確認ください）';
 
     // 選択に応じて print-skip / print-force を付ける
     var picked={}, wantTable=false;
@@ -6353,6 +6358,9 @@
             '<button type="button" class="dt-btn" id="defClear">既定値を出荷時に戻す</button>' +
           '</div>' +
           '<div class="dt-row">' +
+            '<input type="text" id="printOrg" placeholder="会社名・担当者名（PDFに載ります）">' +
+          '</div>' +
+          '<div class="dt-row">' +
             '<button type="button" class="dt-btn dt-save" id="fileSave">ファイルに保存（日付つき）</button>' +
             '<button type="button" class="dt-btn" id="fileLoadBtn">ファイルから読込</button>' +
             '<input type="file" id="fileLoad" accept=".json,application/json" style="display:none">' +
@@ -6360,7 +6368,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 20:10</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 20:35</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -6548,6 +6556,14 @@
     // 結果画面のクイックバーにある「全クリア」も同じ全リセットを実行
     if($('qReset')) $('qReset').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
     // ファイルに保存／ファイルから読込
+    // 会社名・担当者名は端末に覚えておく（PDFの作成者欄に使う）
+    var ORG_KEY = 'loanSimOrg';
+    if($('printOrg')){
+      try{ $('printOrg').value = localStorage.getItem(ORG_KEY) || ''; }catch(e){}
+      $('printOrg').addEventListener('change', function(){
+        try{ localStorage.setItem(ORG_KEY, this.value.trim()); }catch(e){}
+      });
+    }
     if($('fileSave')) $('fileSave').addEventListener('click', saveToFile);
     if($('qFileSave')) $('qFileSave').addEventListener('click', saveToFile);
     if($('fileLoadBtn')) $('fileLoadBtn').addEventListener('click', function(){ $('fileLoad').click(); });
