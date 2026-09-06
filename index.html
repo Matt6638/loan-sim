@@ -619,6 +619,17 @@
     color:#fff;background:var(--gold);font-family:var(--gothic);font-size:0.9rem;font-weight:700;
     line-height:24px;text-align:center;padding:0;box-shadow:0 1px 3px rgba(154,123,79,.35);}
   #waitBars .el-nm{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;}
+  /* パターンごとの毎月の支払い */
+  #waitBars .el-pay{font-size:0.74rem;color:var(--text-dim);line-height:1.6;margin:-3px 0 7px;
+    display:flex;flex-wrap:wrap;gap:2px 12px;}
+  #waitBars .el-pay .ep-i{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;}
+  #waitBars .el-pay .ep-k{font-size:0.7rem;color:var(--gold-soft);font-weight:700;}
+  #waitBars .el-pay b{font-family:var(--mono);font-size:0.86rem;color:var(--text);font-weight:700;}
+  @media (max-width:560px){
+    #waitBars .el-pay{font-size:0.68rem;gap:1px 9px;}
+    #waitBars .el-pay b{font-size:0.78rem;}
+    #waitBars .el-pay .ep-k{font-size:0.64rem;}
+  }
   #waitBars .el-tot{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-weight:700;color:var(--gold-soft);}
   @media (max-width:560px){
     #waitBars .el-head{font-size:0.78rem;gap:5px;}
@@ -4343,7 +4354,9 @@
       return '<span class="el-no">'+no+'</span><span class="el-nm">'+name+'</span>' +
              '<span class="el-tot">合計 '+man(total)+'万円</span>';
     };
-    function row(head, segs, kind){
+    // 「区分：金額」を1つ並べる
+    const pay1 = function(k, v){ return '<span class="ep-i"><span class="ep-k">'+k+'</span><b>'+yen(Math.round(v))+'</b>円</span>'; };
+    function row(head, segs, kind, payTxt){
       let inner='';
       segs.forEach(function(x){
         if(x.v<=0) return;
@@ -4376,20 +4389,29 @@
         '<div class="mini-cap"><span>1年目</span><span>' +
           (mk ? '' : '完済まで '+rws.length+'年') +
         '</span><span>'+maxYears+'年目</span></div>' : '';
-      return '<div class="el-row"><div class="el-head">'+head+'</div><div class="el-bar">'+inner+'</div>'+
+      return '<div class="el-row"><div class="el-head">'+head+'</div>'+
+             (payTxt ? '<div class="el-pay">'+payTxt+'</div>' : '')+
+             '<div class="el-bar">'+inner+'</div>'+
              '<div class="el-outs"></div>'+mini+'</div>';
     }
     $('waitBars').innerHTML =
       row(hd('1', '今すぐ買う', nowTotal), [
-        {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}], 'now') +
+        {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}], 'now',
+        pay1('毎月の返済', now.pay)) +
       row(hd('2', wy+'年後・金利そのまま', flatTotal), [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}], 'waitFlat') +
+        {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}], 'waitFlat',
+        pay1('待つ'+wy+'年は 家賃', rentM) + pay1('＋頭金の積立', saveM) +
+        pay1('＝毎月', rentM + saveM) + pay1('買ったあと 毎月の返済', flat.pay)) +
       row(hd('3', wy+'年後・金利＋'+(Math.round(upPct*100)/100)+'%', laterTotal), [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
-        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}], 'waitUp') +
+        {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}], 'waitUp',
+        pay1('待つ'+wy+'年は 家賃', rentM) + pay1('＋頭金の積立', saveM) +
+        pay1('＝毎月', rentM + saveM) + pay1('買ったあと 毎月の返済', later.pay)) +
       row(hd('4', '今すぐ買って繰上返済', prepayTotal), [
-        {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay');
+        {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay',
+        pay1('毎月の返済', Anow) + (saveM > 0 ? pay1('＋積立（'+wy+'年）', saveM) + pay1('＝毎月', Anow + saveM) : '') +
+        pay1('繰上返済のあとも 毎月', Anow));
     elFitBars($('waitBars'));
     fitMiniLabels($('waitBars'));   // 「◯年短縮」がグラフからはみ出さないように寄せる
 
@@ -5916,7 +5938,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 13:18</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 14:05</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
