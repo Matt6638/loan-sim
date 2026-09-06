@@ -997,7 +997,8 @@
   .rp-apply{font-family:var(--gothic);font-size:0.78rem;font-weight:700;color:#fff;background:var(--gold);
     border:1px solid var(--gold-soft);border-radius:7px;padding:8px 14px;cursor:pointer;}
   .rp-apply:disabled{background:#cfc7b6;border-color:#cfc7b6;cursor:default;}
-  .rp-note{font-size:0.68rem;color:var(--principal-ink);font-weight:700;}
+  .rp-note{font-size:0.68rem;color:var(--principal-ink);font-weight:700;line-height:1.6;flex:1 1 240px;}
+  .rp-note b{color:var(--text);}
   @media (max-width:560px){
     .repay-panel{padding:0 8px 12px;}
     .rp-f{padding:4px 7px;gap:3px;}
@@ -4443,6 +4444,7 @@
     $('rpApply').addEventListener('click', function(){
       if(!gCalc) return;
       var years = Math.max(1, Math.round(gCalc.n / 12));
+      var rem = gCalc.n % 12;
       $('principal').value = Math.round(gCalc.bal / 10000).toLocaleString('en-US');
       $('rate').value = (Math.round(gCalc.rate*100)/100).toFixed(2);
       $('years').value = years;
@@ -4451,9 +4453,11 @@
       if($('elapsedM')) $('elapsedM').value = 0;
       ['principal','rate','years'].forEach(function(id){ $(id).classList.remove('pristine'); });
       recalcAll(); diagnose(); syncQuickBar();
-      var msg = '残債 ' + Math.round(gCalc.bal/10000).toLocaleString('ja-JP') + '万円・金利 ' + gCalc.rate + '%・残り ' + years + '年 で試算しました';
-      $('rpNote').textContent = msg;
-      setTimeout(function(){ if($('rpNote').textContent === msg) $('rpNote').textContent=''; }, 5000);
+      var msg = '上の借入条件を「残債 ' + Math.round(gCalc.bal/10000).toLocaleString('ja-JP') + '万円・金利 ' +
+                (Math.round(gCalc.rate*100)/100) + '%・' + years + '年」に置き換えました。以降の表・グラフ・繰上返済・積立は' +
+                '<b>これからの返済</b>として計算されます。' +
+                (rem ? '（残り' + Math.floor(gCalc.n/12) + '年' + rem + 'ヶ月を年単位に丸めているため、毎月返済額は実際と数百円ずれます）' : '');
+      $('rpNote').innerHTML = msg;
     });
     show(); calc();
   }
