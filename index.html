@@ -4631,7 +4631,7 @@
       b.addEventListener('click', function(){
         mode = b.getAttribute('data-m');
         Array.prototype.forEach.call($('rpMode').querySelectorAll('.qb-seg-btn'), function(x){ x.classList.toggle('on', x===b); });
-        show(); calc();
+        show(); calc(); recalcAll(); diagnose();   // モードで赤くする場所が変わるので描き直す
       });
     });
     // 和暦の表示を更新
@@ -5463,7 +5463,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:40</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 20:48</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
