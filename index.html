@@ -1660,6 +1660,8 @@
             <input type="text" inputmode="text" id="rpEndY" class="rp-yr" placeholder="R31"><span class="rp-u">年</span>
             <input type="text" inputmode="numeric" id="rpEndM" class="rp-mo" placeholder="3"><span class="rp-u">月</span>
             <span class="rp-wareki" id="rpEndWareki"></span></label>
+          <label class="rp-f"><span class="rp-k">当初の返済期間</span>
+            <input type="text" inputmode="numeric" id="rpFullY" placeholder="35"><span class="rp-u">年</span></label>
           <label class="rp-f"><span class="rp-k">払込回数<span class="rp-opt">（任意）</span></span>
             <input type="text" inputmode="numeric" id="rpPaidCount" placeholder="150"><span class="rp-u">回</span></label>
           <label class="rp-f"><span class="rp-k">現在の年齢<span class="rp-opt">（任意）</span></span>
@@ -4558,9 +4560,20 @@
       if(isFinite(paidCount) && paidCount > 0) elapsed0 = Math.round(paidCount);
       else if(stY && stM >= 1 && stM <= 12) elapsed0 = Math.max(0, (NOW_YEAR - stY) * 12 + (NOW_MONTH - stM));
 
-      // 全期間は上の「期間」を正とする（勝手に書き換えない）。空のときだけ計算値を入れる
+      // 全期間：パネルの「当初の返済期間」が最優先。次に上の「期間」。
+      // 推測（払込回数＋残り）は提案としてだけ出し、勝手には書き換えない
+      var fullYInput = num(($('rpFullY')||{}).value);
       var curY = Math.round(iv('years') || 0);
-      var suggestY = (elapsed0 != null) ? Math.max(1, Math.round((elapsed0 + n) / 12)) : 0;
+      if(isFinite(fullYInput) && fullYInput > 0){
+        curY = Math.round(fullYInput);
+        if(Math.round(iv('years')||0) !== curY){
+          $('years').value = curY;
+          $('years').classList.remove('pristine');
+        }
+        filled.push('期間 ' + curY + '年');
+      }
+      // 経過が1ヶ月以上あるときだけ全期間を推測できる（0だと残り期間だけの年数になってしまう）
+      var suggestY = (elapsed0 != null && elapsed0 > 0) ? Math.max(1, Math.round((elapsed0 + n) / 12)) : 0;
       if(curY <= 0 && suggestY > 0){
         curY = suggestY; $('years').value = suggestY;
         filled.push('期間 ' + suggestY + '年');
@@ -4581,7 +4594,7 @@
       ['principal','rate','years'].forEach(function(id){ if($(id)) $(id).classList.remove('pristine'); });
 
       if(!(fullN > 0)){
-        if(note) note.innerHTML = '上の「期間」に<b>全期間</b>（当初の返済年数）を入れてください。';
+        if(note) note.innerHTML = '<b>当初の返済期間</b>（例：35年）を入れてください。上の「期間」に入れても同じです。';
       } else if(elapsed < 0){
         if(note) note.innerHTML = '<span style="color:var(--rose)">残り' + Math.floor(n/12) + '年' + (n%12) + 'ヶ月は、上の「期間」' + Math.round(fullN/12) + '年より長い試算です。全期間か完済時期をご確認ください。</span>';
       } else {
@@ -4603,6 +4616,7 @@
         if(gSuggestYears){
           var sb = $('rpSetY');
           if(sb) sb.addEventListener('click', function(){
+            if($('rpFullY')) $('rpFullY').value = gSuggestYears;
             $('years').value = gSuggestYears; $('years').classList.remove('pristine');
             recalcAll(); syncQuickBar(); calc();
           });
@@ -4620,7 +4634,7 @@
             Math.abs(nFromEnd - nFromPay) + 'ヶ月ちがいます（いまは完済年月を採用）。残債か金利をご確認ください。</span>'
           : '');
     }
-    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge','rpPaidCount'].forEach(function(id){
+    ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpStartY','rpStartM','rpNowAge','rpPaidCount','rpFullY'].forEach(function(id){
       var el = $(id); if(!el) return;
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
       el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
