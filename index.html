@@ -1001,6 +1001,15 @@
   .rp-f input.rp-mo{width:34px;}
   .rp-wareki{font-size:0.64rem;color:var(--principal-ink);font-weight:700;white-space:nowrap;margin-left:4px;}
   /* 年月の欄は横に伸ばさず、和暦は下段に小さく出す */
+  .rp-f.rp-narrow input{width:52px;}
+  .rp-f.rp-pick{flex-wrap:wrap;gap:5px;}
+  .br-chips.ch-2line button{line-height:1.15;padding-top:2px;padding-bottom:2px;}
+  .br-chips button i{display:block;font-style:normal;font-size:0.54rem;font-weight:600;opacity:.72;}
+  /* 返済中パネルの不足欄 */
+  .rp-f.need-box{border:2px solid var(--rose) !important;background:#ffecea !important;
+    box-shadow:0 0 0 3px rgba(155,59,59,.18);}
+  .rp-f.need-box .rp-k, .rp-f.need-box .rp-u{color:var(--rose) !important;font-weight:700;}
+  .rp-f.need-box input{background:transparent;}
   .rp-f.rp-wide{flex:0 1 auto;flex-wrap:wrap;}
   .rp-f.rp-wide input.rp-yr{width:64px;}
   .rp-f.rp-wide .rp-wareki{flex:1 1 100%;margin-left:0;text-align:right;padding-top:1px;font-size:0.6rem;}
@@ -1644,19 +1653,28 @@
         <div class="rp-grid">
           <label class="rp-f"><span class="rp-k">手元の資金</span>
             <input type="text" inputmode="numeric" id="ppCash" placeholder="300"><span class="rp-u">万円</span></label>
-          <label class="rp-f"><span class="rp-k">想定利回り</span>
+          <span class="br-chips"><button type="button" class="br-auto" id="ppCashAll">全額返済</button></span>
+          <label class="rp-f rp-narrow"><span class="rp-k">想定利回り</span>
             <input type="text" inputmode="decimal" id="ppYield" placeholder="3.00"><span class="rp-u">%</span></label>
           <span class="br-chips" id="ppYieldChips">
             <button type="button" data-y="0.3">0.3</button><button type="button" data-y="3">3</button><button type="button" data-y="6">6</button><button type="button" data-y="10">10</button><button type="button" data-y="20">20</button>
           </span>
-          <label class="rp-f"><span class="rp-k">金利上昇</span>
-            <input type="text" inputmode="numeric" id="ppRiseY" placeholder="5"><span class="rp-u">年後に＋</span>
-            <input type="text" inputmode="decimal" id="ppRiseUp" placeholder="0.00"><span class="rp-u">%</span></label>
-          <label class="rp-f"><span class="rp-k">グラフの期間</span>
-            <input type="text" inputmode="numeric" id="ppTermY" placeholder="残り"><span class="rp-u">年まで</span></label>
-          <span class="br-chips" id="ppTermChips">
-            <button type="button" class="on" data-t="">残り</button><button type="button" data-t="10">10年</button><button type="button" data-t="20">20年</button><button type="button" data-t="30">30年</button><button type="button" data-t="40">40年</button>
-          </span>
+          <div class="rp-f rp-pick"><span class="rp-k">金利上昇</span>
+            <span class="br-chips" id="ppRiseYChips">
+              <button type="button" data-v="3">3年後</button><button type="button" class="on" data-v="5">5年後</button><button type="button" data-v="10">10年後</button><button type="button" data-v="15">15年後</button>
+            </span>
+            <span class="rp-u">に＋</span>
+            <span class="br-chips" id="ppRiseUpChips">
+              <button type="button" class="on" data-v="0">なし</button><button type="button" data-v="0.5">0.5%</button><button type="button" data-v="1">1%</button><button type="button" data-v="1.5">1.5%</button><button type="button" data-v="2">2%</button>
+            </span>
+            <input type="hidden" id="ppRiseY" value="5"><input type="hidden" id="ppRiseUp" value="0">
+          </div>
+          <div class="rp-f rp-pick"><span class="rp-k">グラフの期間</span>
+            <span class="br-chips ch-2line" id="ppTermChips">
+              <button type="button" class="on" data-t="">完済</button><button type="button" data-t="10">10年</button><button type="button" data-t="20">20年</button><button type="button" data-t="30">30年</button><button type="button" data-t="40">40年</button>
+            </span>
+            <input type="hidden" id="ppTermY" value="">
+          </div>
         </div>
         <div class="pp-out" id="ppOut"></div>
       </div>
@@ -2981,6 +2999,7 @@
 
   var gActualBalance = null, gActualRate = null;   // 残債から入力した場合の実額
   var gSuggestYears = 0, gSuggestFrom = '';        // 払込回数などから計算した全期間の候補
+  var gPPBal = 0;                                  // 繰上vs運用で使う「いまの残債」
   var gTableUnit = 'man'; // 年間返済予定表の単位（既定＝万円 / 'yen' で円）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
@@ -4546,6 +4565,7 @@
       $('rpHint').textContent = (mode === 'bal')
         ? '繰上返済や金利の見直しがあっても、いまの残債を入れれば正しく試算できます'
         : '当初の借入条件がわかる場合はこちら';
+      if(!chk.checked || mode !== 'bal') rpNeed([]);   // 閉じているときは色を消す
     }
     chk.addEventListener('change', function(){ show(); calc(); recalcAll(); diagnose(); });
     Array.prototype.forEach.call($('rpMode').querySelectorAll('.qb-seg-btn'), function(b){
@@ -4563,6 +4583,20 @@
       return y;
     }
     var gCalc = null;
+    // 足りない欄を赤くする（この panel だけ）
+    var RP_FIELDS = ['rpBalance','rpRate','rpPay','rpEndY','rpEndM','rpFullY'];
+    function rpNeed(ids){
+      RP_FIELDS.forEach(function(id){
+        var el = $(id); if(!el) return;
+        el.classList.remove('need-fill');
+        var b = el.closest ? el.closest('.rp-f') : null; if(b) b.classList.remove('need-box');
+      });
+      (ids||[]).forEach(function(id){
+        var el = $(id); if(!el) return;
+        el.classList.add('need-fill');
+        var b = el.closest ? el.closest('.rp-f') : null; if(b) b.classList.add('need-box');
+      });
+    }
     function calc(){
       var bal = (num($('rpBalance').value) || 0) * 10000;         // 円
       var rate = num($('rpRate').value);
@@ -4573,7 +4607,10 @@
       var now = new Date(NOW_YEAR, NOW_MONTH - 1, 1);
       var out = $('rpOut');
       gCalc = null; gActualBalance = null;
-      if(!(bal > 0)){ out.innerHTML = '<span class="ng">現在の残債を入れてください。</span>'; return; }
+      // 金利は上の入力欄からも拾えるので、どちらも無いときだけ足りない扱い
+      var needRate = !(num($('rpRate').value) > 0) && !(iv('rate') > 0);
+      if(!(bal > 0)){ rpNeed(['rpBalance'].concat(needRate ? ['rpRate'] : []));
+        out.innerHTML = '<span class="ng">現在の残債を入れてください。</span>'; return; }
       var r = (rate/100)/12;
       var n = null, derivedPay = null, nFromEnd = null, nFromPay = null;
       if(endY && endM >= 1 && endM <= 12){
@@ -4581,11 +4618,13 @@
       }
       if(pay > 0){
         if(r <= 0){ nFromPay = Math.ceil(bal / pay); }
-        else if(pay <= bal * r){ out.innerHTML = '<span class="ng">毎月の返済額が利息（月 ' + yen(Math.ceil(bal*r)) + ' 円）以下です。金額をご確認ください。</span>'; return; }
+        else if(pay <= bal * r){ rpNeed(['rpPay','rpRate']);
+          out.innerHTML = '<span class="ng">毎月の返済額が利息（月 ' + yen(Math.ceil(bal*r)) + ' 円）以下です。金額をご確認ください。</span>'; return; }
         else { nFromPay = Math.ceil(-Math.log(1 - bal * r / pay) / Math.log(1 + r)); }
       }
       n = (nFromEnd != null && nFromEnd > 0) ? nFromEnd : nFromPay;
-      if(n == null || n <= 0){ out.innerHTML = '<span class="ng">「毎月の返済額」か「最終返済（完済）」のどちらかを入れてください。</span>'; return; }
+      if(n == null || n <= 0){ rpNeed(['rpPay','rpEndY','rpEndM'].concat(needRate ? ['rpRate'] : []));
+        out.innerHTML = '<span class="ng">「毎月の返済額」か「最終返済（完済）」のどちらかを入れてください。</span>'; return; }
       derivedPay = (r <= 0) ? (bal / n) : annuityPayment(bal, r, n);
       var usePay = pay > 0 ? pay : derivedPay;
       var totalRest = usePay * n;
@@ -4641,6 +4680,7 @@
       filled.push('金利 ' + (Math.round(rate*100)/100).toFixed(2) + '%');
       ['principal','rate','years'].forEach(function(id){ if($(id)) $(id).classList.remove('pristine'); });
 
+      rpNeed((fullN > 0 ? [] : ['rpFullY']).concat(needRate ? ['rpRate'] : []));
       if(!(fullN > 0)){
         // 期間が決まらなくても、金利と年齢だけは先に入れておく
         var na0 = num(($('rpNowAge')||{}).value);
@@ -4763,16 +4803,28 @@
         });
       });
     }
-    if($('ppTermChips')){
-      Array.prototype.forEach.call($('ppTermChips').querySelectorAll('button'), function(b){
+    // 選択式のチップ（グラフの期間・金利上昇）
+    function wireChips(wrapId, hiddenId, attr){
+      var w = $(wrapId); if(!w) return;
+      Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
         b.addEventListener('click', function(){
-          $('ppTermY').value = b.getAttribute('data-t');
-          Array.prototype.forEach.call($('ppTermChips').querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
+          if($(hiddenId)) $(hiddenId).value = b.getAttribute(attr);
+          Array.prototype.forEach.call(w.querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
           calc();
         });
       });
     }
-    ['ppCash','ppYield','ppRiseY','ppRiseUp','ppTermY'].forEach(function(id){
+    wireChips('ppTermChips','ppTermY','data-t');
+    wireChips('ppRiseYChips','ppRiseY','data-v');
+    wireChips('ppRiseUpChips','ppRiseUp','data-v');
+    if($('ppCashAll')){
+      $('ppCashAll').addEventListener('click', function(){
+        if(!(gPPBal > 0)) return;
+        $('ppCash').value = Math.round(gPPBal/10000).toLocaleString('en-US');
+        calc();
+      });
+    }
+    ['ppCash','ppYield'].forEach(function(id){
       var el = $(id); if(!el) return;
       ['input','change'].forEach(function(ev){ el.addEventListener(ev, calc); });
       el.addEventListener('focus', function(){ var self=this; setTimeout(function(){ try{ self.select(); }catch(_){} },0); });
@@ -4795,6 +4847,8 @@
       var y = num($('ppYield').value); if(!isFinite(y)) y = 3;
       var riseY = num($('ppRiseY').value); if(!isFinite(riseY)) riseY = 5;
       var up = num($('ppRiseUp').value); if(!isFinite(up)) up = 0;
+      gPPBal = P;                                            // 「全額返済」ボタン用
+      if($('ppCashAll')) $('ppCashAll').textContent = (P > 0) ? ('全額返済 ' + Math.round(P/10000).toLocaleString('ja-JP') + '万円') : '全額返済';
       if(!(P > 0) || !(n > 0)){ out.innerHTML = '<div class="pp-note">先に借入条件を入力してください。</div>'; return; }
       if(!(X > 0)){ out.innerHTML = '<div class="pp-note">手元の資金を入れると比較できます。</div>'; return; }
       var riseM = Math.max(0, Math.round(riseY * 12));
@@ -4869,6 +4923,16 @@
         ylab += '<span class="pyl" style="top:'+(gy/H*100).toFixed(2)+'%">'+
                 (gv >= 1 ? Math.round(gv).toLocaleString('ja-JP') : gv)+'</span>';
       }
+      // 期間のボタンに、その時点の西暦を出す
+      (function(){
+        var w = $('ppTermChips'); if(!w) return;
+        Array.prototype.forEach.call(w.querySelectorAll('button'), function(b){
+          var t = b.getAttribute('data-t');
+          var mo = t ? Math.round(num(t))*12 : payoffM;
+          var yy = NOW_YEAR + Math.floor((NOW_MONTH - 1 + mo) / 12);
+          b.innerHTML = (t ? (t + '年') : '完済') + '<i>' + yy + '年</i>';
+        });
+      })();
       var chart =
         '<div class="pp-plot">' +
         '<svg class="pp-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -5335,7 +5399,7 @@
           '</div>' +
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 18:22</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 19:05</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
