@@ -3179,6 +3179,19 @@
   // 借入条件から年ごとの元金・利息をつくる（元利均等／元金均等どちらも）
   // 棒の中に金額が収まりきらない場合は、その金額を棒の外（下の行）へ逃がす。
   // 幅の割合だけの判定では「利息 1,144」のような長い文字列が切れてしまうため、描画後に実測する。
+  // グラフに重ねた「◯年短縮」を、はみ出したぶんだけ内側へ寄せる
+  function fitMiniLabels(root){
+    if(!root) return;
+    [].forEach.call(root.querySelectorAll('.mw-lab'), function(e){
+      var w = e.closest ? e.closest('.mini-wrap') : null; if(!w) return;
+      var pr = w.getBoundingClientRect(); if(!(pr.width > 0)) return;
+      e.style.marginLeft = '';
+      var r = e.getBoundingClientRect(), dx = 0;
+      if(r.right > pr.right - 2) dx = (pr.right - 2) - r.right;
+      if(r.left + dx < pr.left + 2) dx = (pr.left + 2) - r.left;
+      if(dx) e.style.marginLeft = Math.round(dx) + 'px';
+    });
+  }
   function elFitBars(root){
     if(!root) return;
     [].forEach.call(root.querySelectorAll('.el-bar'), function(bar){
@@ -4340,8 +4353,7 @@
       let cutArrow = '';
       if(cut){
         const ax1 = cut.from / maxYears * 100, ax2 = cut.to / maxYears * 100, amid = (ax1 + ax2) / 2;
-        const ast = 'left:' + amid.toFixed(1) + '%;' +
-          (amid > 82 ? 'transform:translateX(-100%);' : (amid < 12 ? '' : 'transform:translateX(-50%);'));
+        const ast = 'left:' + amid.toFixed(1) + '%;transform:translateX(-50%);';
         cutArrow = '<span class="mw-arrow" style="left:' + ax1.toFixed(1) + '%;width:' + Math.max(0.5, ax2-ax1).toFixed(1) + '%">' +
                      '<i class="mw-l"></i><i class="mw-r"></i></span>' +
                    '<em class="mw-lab" style="' + ast + '">' + cutLabel(savedMonths) + ' 短縮</em>';
@@ -4365,6 +4377,7 @@
       row(hd('4', '今すぐ買って繰上返済', prepayTotal), [
         {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay');
     elFitBars($('waitBars'));
+    fitMiniLabels($('waitBars'));   // 「◯年短縮」がグラフからはみ出さないように寄せる
 
     $('waitDetail').innerHTML =
       '<b>今すぐ買う</b>：借入 ' + man(price) + '万円／金利 ' + rate + '％／' + years + '年　→　毎月 ' + yen(now.pay) + '円、利息 ' + man(now.i) + '万円<br>' +
@@ -5836,7 +5849,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 12:15</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 12:28</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
