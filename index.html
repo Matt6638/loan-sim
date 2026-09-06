@@ -991,8 +991,14 @@
   .rp-f input.rp-yr{width:78px;text-align:left;}
   .rp-f input.rp-mo{width:34px;}
   .rp-wareki{font-size:0.64rem;color:var(--principal-ink);font-weight:700;white-space:nowrap;margin-left:4px;}
-  .rp-f.rp-wide{flex:1 1 100%;}
+  .rp-f.rp-wide{flex:1 1 100%;flex-wrap:wrap;}
   .rp-f.rp-wide input.rp-yr{width:96px;}
+  /* 和暦の表示は入りきらなければ次の行に落として、切れないようにする */
+  .rp-f.rp-wide .rp-wareki{margin-left:auto;}
+  @media (max-width:560px){
+    .rp-f.rp-wide .rp-wareki{flex:1 1 100%;margin-left:0;text-align:right;padding-top:2px;}
+    .rp-f.rp-wide input.rp-yr{width:82px;}
+  }
   .rp-out{margin-top:10px;font-size:0.74rem;color:var(--text);line-height:1.8;}
   .rp-out b{font-family:var(--mono);font-size:0.92rem;}
   .rp-out .ng{color:var(--rose);}
