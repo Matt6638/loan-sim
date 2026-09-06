@@ -5133,6 +5133,8 @@
       var pay = sc.pay0;
       var saved = base.interest - pre.interest;              // 減らせた利息
       var man = function(v){ return Math.round(v/10000).toLocaleString('ja-JP'); };
+      var ym = function(m){ var a = Math.floor(m/12), b = m%12;
+        return (a ? a + '年' : '') + (b || !a ? b + 'ヶ月' : ''); };
       var aWin = wealthA >= wealthB;
       var diff = Math.abs(wealthA - wealthB);
 
@@ -5246,10 +5248,10 @@
           (cr ? '<span class="pp-mark">赤い帯＝' + cr.name + '（点線＝暴落がなかった場合）</span>' : '') +
         '</div>' +
         (cr ? '<div class="pp-crash-note">' + cr.name + '（' + cr.idx + '・' + cr.span + '）と同じことが <b>' +
-              Math.round(crS/12) + '年後</b>に起きた前提。' +
-              '<b>' + Math.round(cr.drop*-100) + '%</b> 下がるのに <b>' + Math.floor(cr.dropM/12) + '年' + (cr.dropM%12) + 'ヶ月</b>、' +
-              '元の水準に戻るまで さらに <b>' + Math.floor(cr.recM/12) + '年' + (cr.recM%12) + 'ヶ月</b>' +
-              '（合計 <b>' + Math.round((cr.dropM+cr.recM)/12) + '年</b>）。この間の利回りは想定値ではなく実際の値動きに置き換えています。' +
+              (crS > 0 ? Math.round(crS/12) + '年後' : 'いま') + '</b>に起きた前提。' +
+              '<b>' + Math.round(cr.drop*-100) + '%</b> 下がるのに <b>' + ym(cr.dropM) + '</b>、' +
+              '元の水準に戻るまで さらに <b>' + ym(cr.recM) + '</b>' +
+              '（合計 <b>' + ym(cr.dropM + cr.recM) + '</b>）。この間の利回りは想定値ではなく実際の値動きに置き換えています。' +
               (crEnd > T ? '　※グラフの期間内には回復しきりません。' : '') + '</div>' : '');
 
       out.innerHTML = chart +
@@ -5679,7 +5681,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 22:05</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 22:18</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
