@@ -1058,10 +1058,22 @@
   .pp-plot .pyl{position:absolute;left:5px;transform:translateY(-50%);font-family:var(--mono);font-size:0.6rem;
     color:var(--text-dim);background:rgba(255,255,255,.82);padding:0 3px;border-radius:2px;pointer-events:none;}
   .pp-crash-note{font-size:0.66rem;color:var(--rose);font-weight:700;margin-top:4px;line-height:1.5;}
-  .pp-plot .pcl{position:absolute;top:5px;font-size:0.58rem;font-weight:700;color:var(--rose);
-    line-height:1.35;text-align:center;white-space:nowrap;pointer-events:none;
-    background:rgba(255,255,255,.8);padding:1px 4px;border-radius:3px;}
-  .pp-plot .pcl small{display:block;font-size:0.55rem;font-weight:600;opacity:.85;}
+  .pp-plot .pcl{position:absolute;top:5px;font-size:0.6rem;font-weight:700;color:var(--rose);
+    line-height:1.35;white-space:nowrap;pointer-events:none;
+    background:rgba(255,255,255,.85);padding:1px 5px;border-radius:3px;}
+  .pp-plot .pcl small{font-size:0.56rem;font-weight:700;opacity:.9;margin-left:3px;}
+  /* 下落・回復の期間を ←→ で示すバーと、その下の見出し */
+  .pp-plot .pcb{position:absolute;height:0;border-top:1.5px solid var(--rose);pointer-events:none;}
+  .pp-plot .pcb i{position:absolute;width:0;height:0;top:-4px;
+    border-top:4px solid transparent;border-bottom:4px solid transparent;}
+  .pp-plot .pcb .pcb-l{left:-1px;border-right:5px solid var(--rose);}
+  .pp-plot .pcb .pcb-r{right:-1px;border-left:5px solid var(--rose);}
+  .pp-plot .pcb .pcb-r.cut{border-left-color:transparent;border-right:5px solid var(--rose);right:-6px;}
+  .pp-plot .pcb-tick{position:absolute;width:0;height:5px;border-left:1px solid var(--rose);opacity:.7;pointer-events:none;}
+  .pp-plot .pcb-t{position:absolute;font-size:0.55rem;font-weight:700;font-style:normal;color:var(--rose);
+    white-space:nowrap;background:rgba(255,255,255,.85);padding:0 3px;border-radius:2px;pointer-events:none;}
+  .pp-plot .r-drop{top:30px;}  .pp-plot .t-drop{top:34px;}  .pp-plot .k-drop{top:30px;}
+  .pp-plot .r-rec{top:54px;}   .pp-plot .t-rec{top:58px;}   .pp-plot .k-rec{top:54px;}
   /* 完済の位置を示す▲。グラフの目盛り（年度）の真上に来るように置く */
   .pp-plot .pmk{position:absolute;top:95%;transform:translate(-50%,-32%);font-size:0.6rem;line-height:1;pointer-events:none;}
   .pp-plot .pmk-pre{color:#c2185b;} .pp-plot .pmk-base{color:var(--interest-ink);}
@@ -5243,13 +5255,28 @@
             '" stroke="var(--interest-ink)" stroke-width="1.6" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>' +
         '</svg>' + ylab +
           (function(){
-            // 暴落の帯に「下げ率」と「回復期間」を書き込む
+            // 暴落の題名と、下落・回復それぞれの期間を ←→ で示す
             if(!cr || crS >= T) return '';
-            var l1 = xPct(Math.min(crS,T)), l2 = xPct(Math.min(crEnd,T)), mid = (l1+l2)/2;
-            var st = 'left:' + mid.toFixed(1) + '%;' +
-              (mid > 78 ? 'transform:translateX(-100%);' : (mid < 14 ? '' : 'transform:translateX(-50%);'));
-            return '<span class="pcl" style="' + st + '">▼' + Math.round(cr.drop*-100) + '％ 下落' +
-                   '<small>回復まで ' + ym(cr.dropM + cr.recM) + '</small></span>';
+            var clamp = function(mid){
+              return 'left:' + mid.toFixed(1) + '%;' +
+                (mid > 80 ? 'transform:translateX(-100%);' : (mid < 12 ? '' : 'transform:translateX(-50%);'));
+            };
+            // 期間のバー1本ぶん。m2 がグラフの外なら、右端で切って▶を出す
+            var bar = function(key, m1, m2, label){
+              var a = Math.min(m1, T), b = Math.min(m2, T);
+              if(a >= T) return '';
+              var x1 = xPct(a), x2 = xPct(b), cut = (m2 > T);
+              return '<span class="pcb r-' + key + '" style="left:' + x1.toFixed(1) + '%;width:' + Math.max(0.4, x2-x1).toFixed(1) + '%">' +
+                       '<i class="pcb-l"></i><i class="pcb-r' + (cut ? ' cut' : '') + '"></i></span>' +
+                     '<i class="pcb-tick k-' + key + '" style="left:' + ((x1+x2)/2).toFixed(1) + '%"></i>' +
+                     '<em class="pcb-t t-' + key + '" style="' + clamp((x1+x2)/2) + '">' + label +
+                       (cut ? '（グラフの先まで続く）' : '') + '</em>';
+            };
+            var l1 = xPct(Math.min(crS,T)), l2 = xPct(Math.min(crEnd,T));
+            return '<span class="pcl" style="' + clamp((l1+l2)/2) + '">' + cr.name +
+                     '<small>▼' + Math.round(cr.drop*-100) + '％</small></span>' +
+                   bar('drop', crS, crS + cr.dropM, '↔ 下落 ' + ym(cr.dropM)) +
+                   bar('rec',  crS + cr.dropM, crEnd, '↔ 回復 ' + ym(cr.recM));
           })() +
           '<span class="pmk pmk-pre" style="left:' + xPct(Math.min(pre.months,T)).toFixed(1) + '%">▲</span>' +
           '<span class="pmk pmk-base" style="left:' + xPct(Math.min(payoffM,T)).toFixed(1) + '%">▲</span>' +
@@ -5725,7 +5752,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 23:22</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 09:20</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
