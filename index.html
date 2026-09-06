@@ -3132,7 +3132,10 @@
       setW(baseW * d / base);
     }, {passive:false});
     ['pointerup','pointercancel'].forEach(function(t){
-      document.addEventListener(t, function(ev){ delete pts[ev.pointerId]; if(Object.keys(pts).length < 2) base = 0; });
+      document.addEventListener(t, function(ev){
+        delete pts[ev.pointerId];
+        if(Object.keys(pts).length < 2){ base = 0; if(pending != null) flush(); }   // 指を離したら必ず反映
+      });
     });
   })();
 
@@ -6361,7 +6364,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 21:30</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 21:48</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
