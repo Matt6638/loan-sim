@@ -5180,6 +5180,7 @@
       var W = 720, H = 200, padL = 6, padR = 6, padT = 12, padB = 10;
       var plotW = W - padL - padR, plotH = H - padT - padB;
       var xAtM = function(mo){ return padL + plotW * (mo / Math.max(1, T)); };
+      var xPct = function(mo){ return xAtM(mo) / W * 100; };   // HTMLで重ねる目印もSVGと同じ位置に
       var yAt  = function(v){ return padT + plotH * (1 - v / scaleMax); };
       var path = function(arr){
         return arr.map(function(v,k){ return (k? 'L':'M') + xAtM(ptsM[k]).toFixed(1) + ' ' + yAt(v).toFixed(1); }).join(' ');
@@ -5244,21 +5245,21 @@
           (function(){
             // 暴落の帯に「下げ率」と「回復期間」を書き込む
             if(!cr || crS >= T) return '';
-            var l1 = Math.min(crS,T)/T*100, l2 = Math.min(crEnd,T)/T*100, mid = (l1+l2)/2;
+            var l1 = xPct(Math.min(crS,T)), l2 = xPct(Math.min(crEnd,T)), mid = (l1+l2)/2;
             var st = 'left:' + mid.toFixed(1) + '%;' +
               (mid > 78 ? 'transform:translateX(-100%);' : (mid < 14 ? '' : 'transform:translateX(-50%);'));
             return '<span class="pcl" style="' + st + '">▼' + Math.round(cr.drop*-100) + '％ 下落' +
                    '<small>回復まで ' + ym(cr.dropM + cr.recM) + '</small></span>';
           })() +
-          '<span class="pmk pmk-pre" style="left:' + (Math.min(pre.months,T)/T*100).toFixed(1) + '%">▲</span>' +
-          '<span class="pmk pmk-base" style="left:' + (Math.min(payoffM,T)/T*100).toFixed(1) + '%">▲</span>' +
+          '<span class="pmk pmk-pre" style="left:' + xPct(Math.min(pre.months,T)).toFixed(1) + '%">▲</span>' +
+          '<span class="pmk pmk-base" style="left:' + xPct(Math.min(payoffM,T)).toFixed(1) + '%">▲</span>' +
         '</div>' +
         '<div class="pp-axis">' +
           (function(){
             var out = '', ticks = [0, 0.25, 0.5, 0.75, 1];
             ticks.forEach(function(f){
               var mo = Math.round(T * f);
-              var pos = (f*100).toFixed(1);
+              var pos = xPct(mo).toFixed(1);
               var cls = f===0 ? ' pa-first' : (f===1 ? ' pa-last' : '');
               out += '<span class="pa-t' + cls + '" style="left:' + pos + '%">' + tickAt(mo) + '</span>';
             });
@@ -5267,7 +5268,7 @@
         '</div>' +
         '<div class="pp-marks">' +
           (function(){
-            var pp = Math.min(pre.months,T)/T*100;
+            var pp = xPct(Math.min(pre.months,T));
             return '<span class="pm-pre" style="left:' + pp.toFixed(1) + '%;' +
               (pp > 70 ? 'transform:translateX(-100%);' : (pp < 12 ? 'transform:none;' : 'transform:translateX(-50%);')) +
               '"><i class="pm-sw" style="background:#c2185b"></i>';
@@ -5276,7 +5277,7 @@
             (startAge!=null ? '（' + (startAge + Math.floor(pre.months/12)) + '歳・' +
               (NOW_YEAR + Math.floor((NOW_MONTH-1+pre.months)/12)) + '年）' : '') + '</span>' +
           (function(){
-            var bp = Math.min(payoffM,T)/T*100;
+            var bp = xPct(Math.min(payoffM,T));
             var st = 'left:' + bp.toFixed(1) + '%;' + (bp > 70 ? 'transform:translateX(-100%);' : (bp < 12 ? '' : 'transform:translateX(-50%);'));
             return '<span class="pm-base" style="' + st + '"><i class="pm-sw" style="background:var(--interest-ink)"></i>このまま返すと ' + Math.floor(payoffM/12) + '年' + (payoffM%12 ? (payoffM%12)+'ヶ月' : '') + '後に完済' +
               (startAge!=null ? '（' + (startAge + Math.floor(payoffM/12)) + '歳・' +
@@ -5724,7 +5725,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 23:10</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 23:22</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
