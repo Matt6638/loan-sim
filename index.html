@@ -3104,6 +3104,7 @@
       pts[ev.pointerId] = ev.clientX;
       var ids = Object.keys(pts);
       if(ids.length !== 2 || !base) return;
+      if(gBase) return;                 // Safariのピンチが動いているときは二重に効かせない
       var d = Math.abs(pts[ids[0]] - pts[ids[1]]) || 1;
       setYears(baseY * base / d);
     });
@@ -6321,7 +6322,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:10</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:25</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
