@@ -615,13 +615,14 @@
   #waitBars .el-row:first-child{border-top:none;padding-top:2px;}
   #waitBars .el-head{font-size:0.84rem;color:var(--text);font-weight:700;margin-bottom:8px;line-height:1.5;
     display:flex;align-items:baseline;gap:6px;white-space:nowrap;}
-  #waitBars .el-no{flex:0 0 auto;color:#fff;background:var(--gold);border-radius:5px;
-    font-family:var(--mono);font-size:0.72rem;font-weight:700;padding:1px 6px;line-height:1.5;}
+  #waitBars .el-no{flex:0 0 auto;align-self:center;width:24px;height:24px;border-radius:50%;
+    color:#fff;background:var(--gold);font-family:var(--gothic);font-size:0.9rem;font-weight:700;
+    line-height:24px;text-align:center;padding:0;box-shadow:0 1px 3px rgba(154,123,79,.35);}
   #waitBars .el-nm{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;}
   #waitBars .el-tot{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-weight:700;color:var(--gold-soft);}
   @media (max-width:560px){
     #waitBars .el-head{font-size:0.78rem;gap:5px;}
-    #waitBars .el-no{font-size:0.66rem;padding:1px 5px;}
+    #waitBars .el-no{width:22px;height:22px;line-height:22px;font-size:0.84rem;}
     #waitBars .el-tot{font-size:0.76rem;}
   }
   .el-bar{display:flex;align-items:stretch;height:24px;position:relative;}
@@ -671,6 +672,14 @@
   .el-legend span{display:inline-flex;align-items:center;gap:5px;}
   .mini-svg{width:100%;height:74px;display:block;background:#fcfbf8;border:1px solid var(--border-soft);border-radius:5px;}
   .mini-wrap{position:relative;}
+  /* 繰上返済で短くなった期間を、グラフの赤い区間に ←→ で示す */
+  .mini-wrap .mw-arrow{position:absolute;top:52%;height:0;border-top:2px solid #c2185b;pointer-events:none;z-index:2;}
+  .mini-wrap .mw-arrow i{position:absolute;top:-4px;width:0;height:0;
+    border-top:4px solid transparent;border-bottom:4px solid transparent;}
+  .mini-wrap .mw-arrow .mw-l{left:-1px;border-right:6px solid #c2185b;}
+  .mini-wrap .mw-arrow .mw-r{right:-1px;border-left:6px solid #c2185b;}
+  .mini-wrap .mw-lab{position:absolute;top:26%;font-size:0.66rem;font-weight:700;font-style:normal;color:#c2185b;
+    white-space:nowrap;background:rgba(255,255,255,.9);padding:1px 5px;border-radius:3px;pointer-events:none;z-index:3;}
   /* 注記はグラフの下に、その年の位置に合わせて置く（グラフの中には重ねない） */
   .mini-notes{position:relative;height:15px;margin-top:1px;}
   .mini-notes span{position:absolute;top:0;font-family:var(--mono);font-size:0.6rem;
@@ -4325,9 +4334,19 @@
         over = '<div class="mini-notes"><span class="mn-pre" style="left:' + (mk / maxYears * 100).toFixed(1) + '%">↑ ' +
                  mk + '年目に' + man(prepay) + '万円を繰上返済</span></div>' +
                '<div class="mini-notes"><span class="mn-done" style="left:' + (cut.from / maxYears * 100).toFixed(1) + '%">' +
-                 cutLabel(prepayMonths) + 'で完済（' + cutLabel(savedMonths) + '短縮） ↑</span></div>';
+                 cutLabel(prepayMonths) + 'で完済 ↑</span></div>';
       }
-      const mini = rws ? '<div class="mini-wrap">' + miniAmortSVG(rws, maxAnnual, maxYears, null, mk, cut) + '</div>' + over +
+      // 短縮できた期間を、グラフの赤い区間の中に ←→ と「◯年短縮」で示す
+      let cutArrow = '';
+      if(cut){
+        const ax1 = cut.from / maxYears * 100, ax2 = cut.to / maxYears * 100, amid = (ax1 + ax2) / 2;
+        const ast = 'left:' + amid.toFixed(1) + '%;' +
+          (amid > 82 ? 'transform:translateX(-100%);' : (amid < 12 ? '' : 'transform:translateX(-50%);'));
+        cutArrow = '<span class="mw-arrow" style="left:' + ax1.toFixed(1) + '%;width:' + Math.max(0.5, ax2-ax1).toFixed(1) + '%">' +
+                     '<i class="mw-l"></i><i class="mw-r"></i></span>' +
+                   '<em class="mw-lab" style="' + ast + '">' + cutLabel(savedMonths) + ' 短縮</em>';
+      }
+      const mini = rws ? '<div class="mini-wrap">' + miniAmortSVG(rws, maxAnnual, maxYears, null, mk, cut) + cutArrow + '</div>' + over +
         '<div class="mini-cap"><span>1年目</span><span>' +
           (mk ? '' : '完済まで '+rws.length+'年') +
         '</span><span>'+maxYears+'年目</span></div>' : '';
@@ -4335,15 +4354,15 @@
              '<div class="el-outs"></div>'+mini+'</div>';
     }
     $('waitBars').innerHTML =
-      row(hd('①', '今すぐ買う', nowTotal), [
+      row(hd('1', '今すぐ買う', nowTotal), [
         {c:'el-p', v:now.p, l:'元金'}, {c:'el-i', v:now.i, l:'利息'}], 'now') +
-      row(hd('②', wy+'年後・金利そのまま', flatTotal), [
+      row(hd('2', wy+'年後・金利そのまま', flatTotal), [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
         {c:'el-p', v:flat.p, l:'元金'}, {c:'el-i', v:flat.i, l:'利息'}], 'waitFlat') +
-      row(hd('③', wy+'年後・金利＋'+(Math.round(upPct*100)/100)+'%', laterTotal), [
+      row(hd('3', wy+'年後・金利＋'+(Math.round(upPct*100)/100)+'%', laterTotal), [
         {c:'el-rent', v:rentTotal, l:'家賃'}, {c:'el-down', v:down, l:'頭金'},
         {c:'el-p', v:later.p, l:'元金'}, {c:'el-i', v:later.i, l:'利息'}], 'waitUp') +
-      row(hd('④', '今すぐ買って繰上返済', prepayTotal), [
+      row(hd('4', '今すぐ買って繰上返済', prepayTotal), [
         {c:'el-p', v:prepayP, l:'元金'}, {c:'el-i', v:prepayI, l:'利息'}], 'prepay');
     elFitBars($('waitBars'));
 
@@ -5817,7 +5836,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 11:30</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 12:15</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
