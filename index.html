@@ -227,6 +227,12 @@
   .dt-reset{width:100%;background:#fff;color:var(--rose);border:1px dashed var(--rose);}
   .dt-reset:hover{background:#fbf1ee;}
   .dt-note{font-size:0.72rem;color:var(--gold-soft);min-height:1em;line-height:1.4;}
+  .flash-msg{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);z-index:120;
+    max-width:min(560px,92vw);background:#fff;border:1px solid var(--gold-soft);border-radius:10px;
+    padding:11px 15px;font-size:0.78rem;line-height:1.6;color:var(--text);
+    box-shadow:0 8px 26px rgba(20,25,35,.22);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;}
+  .flash-msg.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;cursor:pointer;}
+  .flash-msg b{color:var(--rose);}
   .file-note{color:var(--text-dim);}
   .file-note b{color:var(--rose);}
 
@@ -1052,6 +1058,13 @@
   .pp-plot .pyl{position:absolute;left:5px;transform:translateY(-50%);font-family:var(--mono);font-size:0.6rem;
     color:var(--text-dim);background:rgba(255,255,255,.82);padding:0 3px;border-radius:2px;pointer-events:none;}
   .pp-crash-note{font-size:0.66rem;color:var(--rose);font-weight:700;margin-top:4px;line-height:1.5;}
+  .pp-plot .pcl{position:absolute;top:5px;font-size:0.58rem;font-weight:700;color:var(--rose);
+    line-height:1.35;text-align:center;white-space:nowrap;pointer-events:none;
+    background:rgba(255,255,255,.8);padding:1px 4px;border-radius:3px;}
+  .pp-plot .pcl small{display:block;font-size:0.55rem;font-weight:600;opacity:.85;}
+  /* 完済の位置を示す▲。グラフの目盛り（年度）の真上に来るように置く */
+  .pp-plot .pmk{position:absolute;top:95%;transform:translate(-50%,-32%);font-size:0.6rem;line-height:1;pointer-events:none;}
+  .pp-plot .pmk-pre{color:#c2185b;} .pp-plot .pmk-base{color:var(--interest-ink);}
   .pp-plot .pyu{position:absolute;right:6px;top:3px;font-size:0.58rem;color:var(--text-dim);
     background:rgba(255,255,255,.82);padding:0 3px;pointer-events:none;}
   .pp-legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:0.66rem;color:var(--text-dim);margin-top:5px;}
@@ -1064,6 +1077,7 @@
   .pp-axis .pa-first{transform:none;} .pp-axis .pa-last{transform:translateX(-100%);}
   .pp-marks{position:relative;height:31px;margin-top:1px;}
   .pp-marks span{position:absolute;top:0;font-size:0.62rem;font-weight:700;white-space:nowrap;line-height:1.4;}
+  .pp-marks .pm-sw{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:0;}
   .pp-marks .pm-pre{color:#c2185b;transform:translateX(-50%);}
   .pp-marks .pm-base{color:var(--interest-ink);top:15px;}
   @media (max-width:560px){
@@ -1628,6 +1642,8 @@
             <label class="qb-field"><input type="text" inputmode="decimal" id="qBonus"><span class="qb-u" id="qBonusUnit">%</span></label>
           </div>
         </div>
+        <button type="button" class="qb-print" id="qFileSave" title="いまの入力を日付つきのファイルに保存"><span class="lbl-full">💾 保存</span><span class="lbl-short">💾</span></button>
+        <button type="button" class="qb-print" id="qFileLoad" title="保存したファイルを読み込む（開いた時点に合わせて自動で直します）"><span class="lbl-full">📂 読込</span><span class="lbl-short">📂</span></button>
         <button type="button" class="qb-reset" id="qReset"><span class="lbl-full">全クリア</span><span class="lbl-short">クリア</span></button>
         <button type="button" class="qb-print" id="qPrint" title="A4のPDFを作成して保存・共有"><span class="lbl-full">📄 出力</span><span class="lbl-short">📄</span></button>
         <button type="button" class="qb-gear" id="qGear" aria-label="設定" title="設定（金利上昇・完済などの詳細条件）">
@@ -2894,7 +2910,21 @@
     }
     return Math.max(0, b);
   }
-  function fileNote(html){ var e = $('fileNote'); if(e) e.innerHTML = html || ''; }
+  function fileNote(html){
+    var e = $('fileNote'); if(e) e.innerHTML = html || '';
+    flash(html);
+  }
+  // 画面の下に数秒だけ出すお知らせ（設定を開いていなくても結果が分かるように）
+  function flash(html){
+    if(!html) return;
+    var t = $('flashMsg');
+    if(!t){ t = document.createElement('div'); t.id = 'flashMsg'; t.className = 'flash-msg'; document.body.appendChild(t); }
+    t.innerHTML = html;
+    t.classList.add('on');
+    clearTimeout(window.gFlashT);
+    window.gFlashT = setTimeout(function(){ t.classList.remove('on'); }, 7000);
+    t.onclick = function(){ t.classList.remove('on'); };
+  }
   function saveToFile(){
     var nm = (($('custName')||{}).value || '').trim();
     var d = new Date();
@@ -5210,7 +5240,19 @@
             '" stroke="#c2185b" stroke-width="1.6" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>' +
           '<line x1="'+baseX.toFixed(1)+'" y1="'+padT+'" x2="'+baseX.toFixed(1)+'" y2="'+(padT+plotH)+
             '" stroke="var(--interest-ink)" stroke-width="1.6" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>' +
-        '</svg>' + ylab + '</div>' +
+        '</svg>' + ylab +
+          (function(){
+            // 暴落の帯に「下げ率」と「回復期間」を書き込む
+            if(!cr || crS >= T) return '';
+            var l1 = Math.min(crS,T)/T*100, l2 = Math.min(crEnd,T)/T*100, mid = (l1+l2)/2;
+            var st = 'left:' + mid.toFixed(1) + '%;' +
+              (mid > 78 ? 'transform:translateX(-100%);' : (mid < 14 ? '' : 'transform:translateX(-50%);'));
+            return '<span class="pcl" style="' + st + '">▼' + Math.round(cr.drop*-100) + '％ 下落' +
+                   '<small>回復まで ' + ym(cr.dropM + cr.recM) + '</small></span>';
+          })() +
+          '<span class="pmk pmk-pre" style="left:' + (Math.min(pre.months,T)/T*100).toFixed(1) + '%">▲</span>' +
+          '<span class="pmk pmk-base" style="left:' + (Math.min(payoffM,T)/T*100).toFixed(1) + '%">▲</span>' +
+        '</div>' +
         '<div class="pp-axis">' +
           (function(){
             var out = '', ticks = [0, 0.25, 0.5, 0.75, 1];
@@ -5227,7 +5269,8 @@
           (function(){
             var pp = Math.min(pre.months,T)/T*100;
             return '<span class="pm-pre" style="left:' + pp.toFixed(1) + '%;' +
-              (pp > 70 ? 'transform:translateX(-100%);' : (pp < 12 ? 'transform:none;' : 'transform:translateX(-50%);')) + '">▲ ';
+              (pp > 70 ? 'transform:translateX(-100%);' : (pp < 12 ? 'transform:none;' : 'transform:translateX(-50%);')) +
+              '"><i class="pm-sw" style="background:#c2185b"></i>';
           })() +
             (full ? 'いま完済' : ('繰上げなら ' + Math.floor(pre.months/12) + '年' + (pre.months%12 ? (pre.months%12)+'ヶ月' : '') + '後に完済')) +
             (startAge!=null ? '（' + (startAge + Math.floor(pre.months/12)) + '歳・' +
@@ -5235,7 +5278,7 @@
           (function(){
             var bp = Math.min(payoffM,T)/T*100;
             var st = 'left:' + bp.toFixed(1) + '%;' + (bp > 70 ? 'transform:translateX(-100%);' : (bp < 12 ? '' : 'transform:translateX(-50%);'));
-            return '<span class="pm-base" style="' + st + '">▲ このまま返すと ' + Math.floor(payoffM/12) + '年' + (payoffM%12 ? (payoffM%12)+'ヶ月' : '') + '後に完済' +
+            return '<span class="pm-base" style="' + st + '"><i class="pm-sw" style="background:var(--interest-ink)"></i>このまま返すと ' + Math.floor(payoffM/12) + '年' + (payoffM%12 ? (payoffM%12)+'ヶ月' : '') + '後に完済' +
               (startAge!=null ? '（' + (startAge + Math.floor(payoffM/12)) + '歳・' +
                 (NOW_YEAR + Math.floor((NOW_MONTH-1+payoffM)/12)) + '年）' : '') + '</span>';
           })() +
@@ -5681,7 +5724,7 @@
           '<button type="button" class="dt-btn dt-reset" id="resetAll">既定値に戻す（全クリア）</button>' +
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 22:18</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-06 23:10</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -5870,7 +5913,9 @@
     if($('qReset')) $('qReset').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
     // ファイルに保存／ファイルから読込
     if($('fileSave')) $('fileSave').addEventListener('click', saveToFile);
+    if($('qFileSave')) $('qFileSave').addEventListener('click', saveToFile);
     if($('fileLoadBtn')) $('fileLoadBtn').addEventListener('click', function(){ $('fileLoad').click(); });
+    if($('qFileLoad')) $('qFileLoad').addEventListener('click', function(){ $('fileLoad').click(); });
     if($('fileLoad')) $('fileLoad').addEventListener('change', function(){
       if(this.files && this.files[0]) loadFromFile(this.files[0]);
       this.value = '';
