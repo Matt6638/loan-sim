@@ -6243,7 +6243,7 @@
     if(secLabel) push('sec'+list.length, secLabel, secNodes);
     list.push({key:'notes', label:'注記（計算方法・前提・出典）', nodes:[document.getElementById('notesAppendix')].filter(Boolean)});
     // お客様にお渡しするPDFには載せない項目（画面での説明用）
-    var DENY = ['年収から借入可能額を診断'];
+    var DENY = [];   // ご自身の条件でご自身が試算するため、除外する単元はなし
     list.forEach(function(b){ if(DENY.indexOf(b.label) >= 0) b.deny = true; });
     return list;
   }
@@ -6441,7 +6441,7 @@
           '<div class="dt-note">前提にしている制度・税制：<span class="asof-x">2026年9月</span> 時点</div>' +
           '<div class="dt-note" id="useNote"></div>' +
           '<div class="dt-note dt-offline">入力した内容は<b>端末の中だけ</b>に保存され、外部へ送信されることはありません。オフラインでも動きます。</div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:20</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:40</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
