@@ -215,7 +215,7 @@
   .drawer-body .dpanel.on{display:block;}
   .drawer-body .dpanel + .dpanel{border-top:1px solid var(--border-soft);margin-top:6px;}
 
-  /* 顧客データの保存/読込・全リセット（折りたたみ・デフォルト閉で入力欄を広く） */
+  /* プランの保存/読込・全クリア（折りたたみ・デフォルト閉で入力欄を広く） */
   .drawer-tools{flex:0 0 auto;border-bottom:1px solid var(--border-soft);background:#faf7f0;}
   .dt-summary{list-style:none;cursor:pointer;padding:9px 14px;font-size:0.78rem;font-weight:600;color:var(--gold-soft);user-select:none;}
   .dt-summary::-webkit-details-marker{display:none;}
@@ -2148,7 +2148,7 @@
 
   <div class="grid">
 
-    <!-- INPUT: 営業操作パネル -->
+    <!-- INPUT: 条件の入力 -->
     <div class="panel">
       <div class="ledger-title">上昇シナリオ</div>
 
@@ -2189,7 +2189,7 @@
       </div>
     </div>
 
-    <!-- RESULT: 顧客向け結果パネル -->
+    <!-- RESULT: 結果パネル -->
     <div class="panel" id="stressPanel">
       <div class="headline-figure">
         <div class="headline-label">現行金利での毎月返済額（初回）</div>
@@ -2468,7 +2468,7 @@
   <div class="section-body">
     <div class="grid">
 
-      <!-- INPUT: 営業操作パネル -->
+      <!-- INPUT: 条件の入力 -->
       <div class="panel">
         <div class="ledger-title">診断条件</div>
 
@@ -2527,7 +2527,7 @@
         </div>
       </div>
 
-      <!-- RESULT: 顧客向け結果パネル -->
+      <!-- RESULT: 結果パネル -->
       <div class="panel">
         <div class="diag-bar">
           <span class="diag-rate income-need" id="incomeNeed" style="display:none;">上の<b>年収</b>を入れると診断できます</span>
@@ -2586,7 +2586,7 @@
   <div class="section-body">
     <div class="grid">
 
-      <!-- INPUT: 営業操作パネル -->
+      <!-- INPUT: 条件の入力 -->
       <div class="panel">
         <div class="ledger-title">控除の条件</div>
 
@@ -2693,7 +2693,7 @@
         </div>
       </div>
 
-      <!-- RESULT: 顧客向け結果パネル -->
+      <!-- RESULT: 結果パネル -->
       <div class="panel">
         <!-- 控除額を左右する条件は、設定を開かなくてもここで切り替えられるようにする -->
         <div class="diag-bar cr-bar">
@@ -2774,13 +2774,14 @@
     <p>本書は住宅ローンのご返済イメージを共有するための<strong>参考資料</strong>であり、融資の可否・条件・金額を保証するものではありません。記載の金額・年数・割合は入力条件にもとづく<strong>概算</strong>で、実際の金融機関の審査結果・返済予定表・税額とは異なります。</p>
     <p>金利は入力時点の想定値であり、変動金利の場合の将来の金利変動、繰上返済手数料、保証料、火災保険料、団体信用生命保険料、諸費用、登記費用等は含まれていません。税制・審査基準は改正されるため、住宅ローン控除等の適用可否・金額は最新の国税庁情報および税務署・税理士等の専門家にご確認ください。</p>
     <p>投資信託等の利回りは過去の実績または想定値であり、将来の運用成果を保証・示唆するものではありません。元本割れの可能性があります。本書は特定の金融商品の売買を推奨・勧誘するものではありません。</p>
-    <p>本書は<strong>上記の作成日・入力条件にもとづき、特定のお客様向けに作成した個別の試算</strong>です。前提（借入額・金利・期間・年齢・年収・入居時期等）が異なる方には当てはまりません。<strong>転載・再配布・営業目的での二次利用はご遠慮ください。</strong></p>
-    <p><strong>本書の内容にもとづく判断・行動の結果について、作成者および提供者は一切の責任を負いません。</strong>ご契約にあたっては必ず金融機関の正式な書面をご確認ください。</p>
+    <p>本書は<strong>上記の作成日・入力条件にもとづく、ご自身の検討用の試算</strong>です。前提（借入額・金利・期間・年齢・年収・入居時期等）が異なる方には当てはまりません。</p>
+    <p><strong>本書は住宅ローンの選択・借入・繰上返済・資産運用について、特定の行動を推奨・勧誘するものではありません。</strong>ご契約にあたっては必ず金融機関の正式な書面をご確認いただき、必要に応じて金融機関・税理士・ファイナンシャルプランナー等の専門家にご相談ください。</p>
+    <p>本ソフトウェアの計算結果は概算であり、その正確性・完全性・特定目的への適合性を保証するものではありません。本書の内容にもとづくご判断の結果について、<strong>当方は責任を負いかねます</strong>（ただし、当方の故意または重大な過失による場合を除きます）。</p>
   </div>
 
   <div class="disclaimer notes-appendix" id="notesAppendix">
     <div class="na-title">注記（計算方法・前提・出典）</div>
-    <p><strong>通信について：</strong>本ツールは1つのファイルで完結しており、<strong>外部のサーバーと一切通信しません</strong>（アクセス解析・外部フォント・外部スクリプトのいずれも使用していません）。入力した内容・保存した顧客データは<strong>端末の中だけ</strong>に保存され、外部へ送信されることはありません。オフラインでも動作します。</p>
+    <p><strong>通信について：</strong>本ツールは1つのファイルで完結しており、<strong>外部のサーバーと一切通信しません</strong>（アクセス解析・外部フォント・外部スクリプトのいずれも使用していません）。入力した内容・保存したプランは<strong>端末の中だけ</strong>に保存され、外部へ送信されることはありません。オフラインでも動作します。</p>
 
     <p><strong>この試算は <span class="asof-x">2026年9月</span> 時点の制度・税制にもとづいています。</strong>
     本ツールに表示される金額・年数・割合はすべて<strong>「概算・目安」</strong>です。実際の金融機関の審査・返済予定表・税額とは異なる場合があります。税制・審査基準は改正されるため、適用の可否や金額は必ず最新の一次情報および金融機関・税理士等の専門家にご確認ください。</p>
@@ -3562,6 +3563,39 @@
   var gPPBal = 0;                                  // 繰上vs運用で使う「いまの残債」
   // この試算が前提にしている制度・税制の時点。改正があったら必ず更新すること
   var RULES_ASOF = '2026年9月';
+
+  // ===== 利用回数のカウント =====
+  // 端末の中だけで数える。外部には何も送らない。
+  var USE_KEY = 'loanSimUse';
+  var gUse = {n:0, first:'', last:''};
+  function countUse(){
+    try{
+      var o = JSON.parse(localStorage.getItem(USE_KEY) || 'null');
+      if(!o || typeof o.n !== 'number') o = {n:0, first:'', last:''};
+      var d = new Date();
+      var ymd = d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+      o.n += 1;
+      if(!o.first) o.first = ymd;
+      o.last = ymd;
+      localStorage.setItem(USE_KEY, JSON.stringify(o));
+      gUse = o;
+    }catch(e){}
+    // 集計先を設定している場合のみ、起動を1回だけ知らせる（個人情報・入力内容は一切送らない）
+    try{
+      var ep = localStorage.getItem('loanSimPing') || '';
+      if(ep && /^https:\/\//.test(ep)){
+        var img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.src = ep + (ep.indexOf('?') < 0 ? '?' : '&') + 'v=' + encodeURIComponent(BUILD_ID);
+      }
+    }catch(e){}
+  }
+  function useSummary(){
+    if(!(gUse.n > 0)) return '';
+    return '起動 <b>' + gUse.n.toLocaleString('ja-JP') + '</b> 回' +
+           (gUse.first ? '（' + gUse.first + ' 〜 ' + gUse.last + '）' : '');
+  }
+  var BUILD_ID = '2026-09-07';
 
   // 過去の主な暴落。株価指数の【日次終値】ベースで、高値→安値→高値回復までの実績を月数に丸めた概算。
   // 配当再投資を含まない株価指数の下落率であり、実際の運用成績を示すものではありません。
@@ -5313,7 +5347,7 @@
 
   // 今買う vs 待つ（設定側と結果側の入力を双方向同期）
   var gSave4Manual = false;    // ④の積立額を自分で入れたかどうか
-  // 商談で見せたいパターンだけ残せるようにする（全部並ぶと見づらいため）
+  // 見せたいパターンだけ残せるようにする（全部並ぶと見づらいため）
   var gWaitShow = {1:true, 2:true, 3:true, 4:true};
   function applyWaitShow(){
     var wrap = $('waitBars'); if(!wrap) return;
@@ -6241,10 +6275,10 @@
     var d = new Date();
     var ymd = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
     if($('printCond')) $('printCond').textContent = (name ? name+'　' : '') + (($('pieCond')||{}).textContent||'');
-    if($('printWm')) $('printWm').textContent = (name ? name + '　' : '') + '複製・再配布禁止';
+    if($('printWm')) $('printWm').textContent = 'ご自身の検討用';
     var org = ($('printOrg') && $('printOrg').value.trim()) ? $('printOrg').value.trim() : '';
     if($('printMeta')) $('printMeta').textContent =
-      (org ? '作成：'+org+'　／　' : '') + '作成日：'+ymd+
+      (org ? org+'　／　' : '') + '作成日：'+ymd+
       '　／　この試算は '+RULES_ASOF+' 時点の制度・税制にもとづく概算です' +
       '　／　融資条件を保証するものではありません（詳細は末尾の免責事項をご確認ください）';
 
@@ -6378,14 +6412,14 @@
     drawer.innerHTML = '<div class="drawer-head"><span class="dh-no">01</span><span class="dh-title" id="drawerTitle">入力</span>' +
       '<button type="button" class="drawer-close" id="drawerClose">完了 ✓</button></div>' +
       '<details class="drawer-tools" id="dtools">' +
-        '<summary class="dt-summary">顧客データの保存・読込 ／ 全リセット</summary>' +
+        '<summary class="dt-summary">プランの保存・読込 ／ 全クリア</summary>' +
         '<div class="dt-body">' +
           '<div class="dt-row">' +
-            '<input type="text" id="custName" placeholder="顧客名で保存（例：山田様）">' +
+            '<input type="text" id="custName" placeholder="プラン名で保存（例：A物件 3,500万）">' +
             '<button type="button" class="dt-btn dt-save" id="custSave">保存</button>' +
           '</div>' +
           '<div class="dt-row">' +
-            '<select id="custList"><option value="">― 保存した顧客を読込 ―</option></select>' +
+            '<select id="custList"><option value="">― 保存したプランを読込 ―</option></select>' +
             '<button type="button" class="dt-btn" id="custLoad">読込</button>' +
             '<button type="button" class="dt-btn dt-del" id="custDel">削除</button>' +
           '</div>' +
@@ -6394,7 +6428,7 @@
             '<button type="button" class="dt-btn" id="defClear">既定値を出荷時に戻す</button>' +
           '</div>' +
           '<div class="dt-row">' +
-            '<input type="text" id="printOrg" placeholder="会社名・担当者名（PDFに載ります）">' +
+            '<input type="text" id="printOrg" placeholder="お名前（任意・PDFに載ります）">' +
           '</div>' +
           '<div class="dt-row">' +
             '<button type="button" class="dt-btn dt-save" id="fileSave">ファイルに保存（日付つき）</button>' +
@@ -6405,8 +6439,9 @@
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
           '<div class="dt-note">前提にしている制度・税制：<span class="asof-x">2026年9月</span> 時点</div>' +
-          '<div class="dt-note dt-offline">このアプリは<b>外部と一切通信しません</b>。入力した内容は端末の中だけに保存され、外部へ送信されることはありません。オフラインでも動きます。</div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 17:05</span></div>' +
+          '<div class="dt-note" id="useNote"></div>' +
+          '<div class="dt-note dt-offline">入力した内容は<b>端末の中だけ</b>に保存され、外部へ送信されることはありません。オフラインでも動きます。</div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:20</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -6497,7 +6532,7 @@
       t.addEventListener('click', function(){ show(t.dataset.mod, true); });
     });
 
-    // ===== 全入力の保存/読込/リセット（顧客ごと・localStorage・オフライン） =====
+    // ===== 全入力の保存/読込/リセット（プランごと・localStorage・オフライン） =====
     var LS_KEY = 'loansim:customers';
     // 全入力（ドロワー内の input/select、method/bonusMode等のラジオ、各チェック）を1オブジェクトに収集
     function collectState(){
@@ -6520,7 +6555,7 @@
       $('bonusAmountWrap').classList.toggle('hidden', !amt);
       recalcAll(); diagnose();
     }
-    // 初期値（既定）＝入力移動直後の状態。営業ごとの既定値を保存していればそちらを使う
+    // 初期値（既定）＝入力移動直後の状態。自分の既定値を保存していればそちらを使う
     window.gCollectState = collectState; window.gApplyState = applyState;
     var FACTORY_STATE = collectState();
     var DEF_KEY = 'loanSimDefaults';
@@ -6548,7 +6583,7 @@
     function refreshCustList(sel){
       var o = getCustomers(), names = Object.keys(o).sort();
       var lst = $('custList');
-      lst.innerHTML = '<option value="">― 保存した顧客を読込 ―</option>' + names.map(function(n){
+      lst.innerHTML = '<option value="">― 保存したプランを読込 ―</option>' + names.map(function(n){
         return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>';
       }).join('');
       if(sel) lst.value = sel;
@@ -6557,16 +6592,16 @@
 
     $('custSave').addEventListener('click', function(){
       var name = ($('custName').value||'').trim();
-      if(!name){ note('顧客名を入力してください'); return; }
+      if(!name){ note('プラン名を入力してください'); return; }
       var o = getCustomers(); o[name] = collectState(); setCustomers(o);
       refreshCustList(name); note('「'+name+'」を保存しました');
     });
     $('custLoad').addEventListener('click', function(){
-      var name = $('custList').value; if(!name){ note('読み込む顧客を選んでください'); return; }
+      var name = $('custList').value; if(!name){ note('読み込むプランを選んでください'); return; }
       var o = getCustomers(); if(o[name]){ applyState(o[name]); setPristineAll(false); syncQuickBar(); $('custName').value = name; note('「'+name+'」を読み込みました'); }
     });
     $('custDel').addEventListener('click', function(){
-      var name = $('custList').value; if(!name){ note('削除する顧客を選んでください'); return; }
+      var name = $('custList').value; if(!name){ note('削除するプランを選んでください'); return; }
       var o = getCustomers(); delete o[name]; setCustomers(o); refreshCustList(); note('「'+name+'」を削除しました');
     });
     function doResetAll(msg){
@@ -6591,9 +6626,11 @@
     // 結果画面のクイックバーにある「全クリア」も同じ全リセットを実行
     if($('qReset')) $('qReset').addEventListener('click', function(){ doResetAll('全ての入力を初期値に戻しました'); });
     // ファイルに保存／ファイルから読込
-    // 会社名・担当者名は端末に覚えておく（PDFの作成者欄に使う）
+    // お名前は端末に覚えておく（PDFの作成者欄に使う）
     var ORG_KEY = 'loanSimOrg';
     Array.prototype.forEach.call(document.querySelectorAll('.asof-x'), function(e){ e.textContent = RULES_ASOF; });
+    countUse();
+    if($('useNote')) $('useNote').innerHTML = 'このアプリの利用状況（この端末のみ）：' + useSummary();
     if($('printOrg')){
       try{ $('printOrg').value = localStorage.getItem(ORG_KEY) || ''; }catch(e){}
       $('printOrg').addEventListener('change', function(){

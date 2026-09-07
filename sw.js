@@ -2,7 +2,7 @@
 // 方針：本体（index.html）は「まずネットワーク、だめならキャッシュ」。
 //       オンラインなら常に最新版が手に入り、オフラインなら直前の版で起動できる。
 //       外部ドメインへは一切アクセスしない。
-const CACHE = 'loan-sim-2026-09-07';
+const CACHE = 'loan-sim-2026-09-07b';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){
