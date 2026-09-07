@@ -1195,6 +1195,8 @@
   .pp-plot .pyl{position:absolute;left:5px;transform:translateY(-50%);font-family:var(--mono);font-size:0.6rem;
     color:var(--text-dim);background:rgba(255,255,255,.82);padding:0 3px;border-radius:2px;pointer-events:none;}
   .pp-crash-note{font-size:0.66rem;color:var(--rose);font-weight:700;margin-top:4px;line-height:1.5;}
+  .pp-crash-note .cr-src{font-weight:400;color:var(--text-dim);margin-top:3px;line-height:1.65;}
+  .pp-crash-note .cr-src b{color:var(--rose);}
   .pp-plot .pcl{position:absolute;top:5px;font-size:0.6rem;font-weight:700;color:var(--rose);
     line-height:1.35;white-space:nowrap;pointer-events:none;
     background:rgba(255,255,255,.85);padding:1px 5px;border-radius:3px;}
@@ -3539,15 +3541,26 @@
   // この試算が前提にしている制度・税制の時点。改正があったら必ず更新すること
   var RULES_ASOF = '2026年9月';
 
-  // 過去の主な暴落（概算）。drop=下落率、dropM=下げきるまでの月数、recM=元の水準に戻るまでの月数
-  // ※市場の代表的な指数の高値→安値→高値回復までの、公表値にもとづく概算。実際の運用成績を示すものではありません
+  // 過去の主な暴落。株価指数の【日次終値】ベースで、高値→安値→高値回復までの実績を月数に丸めた概算。
+  // 配当再投資を含まない株価指数の下落率であり、実際の運用成績を示すものではありません。
+  // 出典は docs/税制・審査基準リファレンス.md 4章（2026年9月 裏どり済み）。
   var CRASHES = {
-    it:     {name:'ITバブル崩壊',     idx:'S&P500', span:'2000年3月〜2007年5月',  drop:-0.49, dropM:31,  recM:55},
-    lehman: {name:'リーマンショック', idx:'S&P500', span:'2007年10月〜2013年3月', drop:-0.57, dropM:17,  recM:48},
-    corona: {name:'コロナショック',   idx:'S&P500', span:'2020年2月〜2020年8月',  drop:-0.34, dropM:2,   recM:5},
-    bm:     {name:'ブラックマンデー', idx:'S&P500', span:'1987年8月〜1989年7月',  drop:-0.34, dropM:3,   recM:20},
-    jp:     {name:'日本のバブル崩壊', idx:'日経平均', span:'1989年12月〜2024年2月', drop:-0.80, dropM:160, recM:250}
+    it:     {name:'ITバブル崩壊',     idx:'S&P500',   drop:-0.491, dropM:31,  recM:55,
+             peak:'2000年3月24日', low:'2002年10月9日', back:'2007年5月30日'},
+    lehman: {name:'リーマンショック', idx:'S&P500',   drop:-0.568, dropM:17,  recM:48,
+             peak:'2007年10月9日（終値1,565.15）', low:'2009年3月9日（終値676.53）', back:'2013年3月28日'},
+    corona: {name:'コロナショック',   idx:'S&P500',   drop:-0.339, dropM:1,   recM:5,
+             peak:'2020年2月19日（終値3,386.15）', low:'2020年3月23日', back:'2020年8月18日'},
+    bm:     {name:'ブラックマンデー', idx:'S&P500',   drop:-0.335, dropM:4,   recM:19,
+             peak:'1987年8月25日（終値336.77）', low:'1987年12月4日（終値223.92）', back:'1989年7月26日'},
+    jp:     {name:'日本のバブル崩壊', idx:'日経平均', drop:-0.819, dropM:231, recM:179,
+             peak:'1989年12月29日（終値38,915円87銭）', low:'2009年3月10日（終値7,054円98銭）', back:'2024年2月22日（終値39,098円68銭）'}
   };
+  // 画面に出す「期間」の表記は peak〜back から作る
+  Object.keys(CRASHES).forEach(function(k){
+    var c = CRASHES[k];
+    c.span = c.peak.replace(/（.*/,'') + '〜' + c.back.replace(/（.*/,'');
+  });
   var gTableUnit = 'man'; // 年間返済予定表の単位（既定＝万円 / 'yen' で円）
   var gLastSummary=null, gPatterns=[], gActiveMod='base';
 
@@ -5888,8 +5901,13 @@
               (crS > 0 ? Math.round(crS/12) + '年後' : 'いま') + '</b>に起きた前提。' +
               '<b>' + Math.round(cr.drop*-100) + '%</b> 下がるのに <b>' + ym(cr.dropM) + '</b>、' +
               '元の水準に戻るまで さらに <b>' + ym(cr.recM) + '</b>' +
-              '（合計 <b>' + ym(cr.dropM + cr.recM) + '</b>）。この間の利回りは想定値ではなく実際の値動きに置き換えています。' +
-              (crEnd > T ? '　※グラフの期間内には回復しきりません。' : '') + '</div>' : '');
+              '（合計 <b>' + ym(cr.dropM + cr.recM) + '</b>）。この間の運用例は、実際に起きた下落と回復に置き換えています。' +
+              (crEnd > T ? '　※グラフの期間内には回復しきりません。' : '') +
+              '<div class="cr-src">高値 ' + cr.peak + ' → 安値 ' + cr.low + ' → 高値回復 ' + cr.back + '（' + cr.idx + '・日次終値ベース）。' +
+                '配当の再投資を含まない<b>株価指数の下落率</b>を、資産全体にそのまま当てはめた概算です。' +
+                '実際の積立では下落局面が買い増しになるため、ここまで目減りしないのが普通で、<b>厳しめの見方</b>になっています。' +
+                '下落〜回復の途中経過は均等に置き換えており、実際の値動きとは異なります。</div>' +
+              '</div>' : '');
 
       // ---- 結果は「運用例を並べた表」で示す。単独の有利な金額は見出しにしない ----
       var ppTbl = (function(){
@@ -6365,7 +6383,7 @@
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
           '<div class="dt-note">前提にしている制度・税制：<span class="asof-x">2026年9月</span> 時点</div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 13:40</span></div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 15:10</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
