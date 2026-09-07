@@ -1,0 +1,25 @@
+{
+  "name": "住宅ローン返済シミュレーション",
+  "short_name": "住宅ローン",
+  "description": "商談用の住宅ローン返済シミュレーター（オフラインで動作／外部と通信しません）",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f5ef",
+  "theme_color": "#f0ece0",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
