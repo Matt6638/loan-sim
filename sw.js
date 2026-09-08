@@ -2,7 +2,7 @@
 // 方針：本体は「まずネットワーク、だめならキャッシュ」。オンラインなら常に最新、オフラインなら直前の版。
 //       新しい版は install しても待機したままにし、利用者が「いま更新する」を押したときだけ切り替える。
 //       外部ドメインへは一切アクセスしない。
-const CACHE = 'loan-sim-v4';
+const CACHE = 'loan-sim-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './version.json', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){
