@@ -239,7 +239,10 @@
     padding:10px 14px;font-size:0.78rem;box-shadow:0 8px 26px rgba(20,25,35,.28);}
   .update-bar.on{display:flex;transform:translateX(-50%) translateY(0);}
   .update-bar button{font-family:var(--gothic);font-size:0.76rem;font-weight:700;color:var(--principal);
-    background:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;}
+    background:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;flex:0 0 auto;}
+  .update-bar .ub-later{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6);}
+  .update-bar #updateText{line-height:1.5;}
+  .update-bar #updateText small{display:block;font-size:0.68rem;opacity:.9;font-weight:400;}
   .flash-msg{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);z-index:120;
     max-width:min(560px,92vw);background:#fff;border:1px solid var(--gold-soft);border-radius:10px;
     padding:11px 15px;font-size:0.78rem;line-height:1.6;color:var(--text);
@@ -1713,8 +1716,9 @@
 
 <!-- 新しい版が用意できたときだけ出る -->
 <div class="update-bar" id="updateBar">
-  <span>新しい版が用意できました。</span>
+  <span id="updateText">新しい版があります</span>
   <button type="button" id="updateNow">いま更新する</button>
+  <button type="button" class="ub-later" id="updateLater">あとで</button>
 </div>
 
 <!-- PDF出力：載せる項目を選ぶ -->
@@ -3595,7 +3599,7 @@
     return '起動 <b>' + gUse.n.toLocaleString('ja-JP') + '</b> 回' +
            (gUse.first ? '（' + gUse.first + ' 〜 ' + gUse.last + '）' : '');
   }
-  var BUILD_ID = '2026-09-07';
+  var BUILD_ID = '2026-09-07 19:20';
 
   // 過去の主な暴落。株価指数の【日次終値】ベースで、高値→安値→高値回復までの実績を月数に丸めた概算。
   // 配当再投資を含まない株価指数の下落率であり、実際の運用成績を示すものではありません。
@@ -6439,9 +6443,13 @@
           '<div class="dt-note" id="custNote"></div>' +
           '<div class="dt-note file-note" id="fileNote"></div>' +
           '<div class="dt-note">前提にしている制度・税制：<span class="asof-x">2026年9月</span> 時点</div>' +
+          '<div class="dt-row">' +
+            '<button type="button" class="dt-btn" id="updCheck">更新を確認する</button>' +
+            '<span class="dt-note" id="updNote"></span>' +
+          '</div>' +
           '<div class="dt-note" id="useNote"></div>' +
-          '<div class="dt-note dt-offline">入力した内容は<b>端末の中だけ</b>に保存され、外部へ送信されることはありません。オフラインでも動きます。</div>' +
-          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 18:40</span></div>' +
+          '<div class="dt-note dt-offline">入力した内容は<b>端末の中だけ</b>に保存され、<b>外部へ送信されることはありません</b>。起動時に、このアプリを配信している場所のバージョン情報だけを読み込み、新しい版があればお知らせします（オフラインのときは何もしません）。</div>' +
+          '<div class="dt-note">表示中のバージョン：<span id="buildStamp">2026-09-07 19:20</span></div>' +
         '</div>' +
       '</details>' +
       '<div class="drawer-body" id="drawerBody"></div>';
@@ -6637,7 +6645,15 @@
         try{ localStorage.setItem(ORG_KEY, this.value.trim()); }catch(e){}
       });
     }
-    if($('updateNow')) $('updateNow').addEventListener('click', function(){ location.reload(true); });
+    if($('updateNow')) $('updateNow').addEventListener('click', function(){ if(window.gApplyUpdate) window.gApplyUpdate(); });
+    if($('updateLater')) $('updateLater').addEventListener('click', function(){
+      var b = $('updateBar'); if(b) b.classList.remove('on');   // バッジは残す（次に開いたときにまた出る）
+    });
+    if($('updCheck')) $('updCheck').addEventListener('click', function(){
+      if(window.gCheckUpdate) window.gCheckUpdate();
+      var n = $('updNote');
+      if(n) n.textContent = navigator.onLine ? '確認しました。新しい版があれば下に案内が出ます。' : 'オフラインのため確認できません。';
+    });
     if($('fileSave')) $('fileSave').addEventListener('click', saveToFile);
     if($('qFileSave')) $('qFileSave').addEventListener('click', saveToFile);
     if($('fileLoadBtn')) $('fileLoadBtn').addEventListener('click', function(){ $('fileLoad').click(); });
@@ -6731,23 +6747,94 @@
 <script>
 // ホーム画面に追加したあと、オフラインでも起動できるようにする。
 // ファイル単体（file://）で開いたときは何もしない（そのままでもオフラインで動く）。
-if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js').then(function(reg){
-      // 新しい版が用意できたら、次に開いたときから切り替わる
-      reg.addEventListener('updatefound', function(){
-        var nw = reg.installing;
-        if(!nw) return;
-        nw.addEventListener('statechange', function(){
-          if(nw.state === 'installed' && navigator.serviceWorker.controller){
-            var b = document.getElementById('updateBar');
-            if(b) b.classList.add('on');
-          }
+// ===== 更新の確認とお知らせ =====
+// 送信はしません。読み込むのは「このアプリを配信している場所の version.json」だけです。
+// オフラインのときは何もしません。更新は手動（ボタンを押したときだけ）です。
+(function(){
+  if(location.protocol.indexOf('http') !== 0) return;   // ファイル単体で開いたときは何もしない
+  var reg = null;
+
+  function badge(on){
+    try{
+      if(on && navigator.setAppBadge) navigator.setAppBadge(1);
+      else if(!on && navigator.clearAppBadge) navigator.clearAppBadge();
+    }catch(e){}
+  }
+  function showBar(ver, note){
+    var b = document.getElementById('updateBar');
+    if(!b) return;
+    var t = document.getElementById('updateText');
+    if(t) t.innerHTML = '新しい版があります' + (ver ? '（<b>' + ver + '</b>）' : '') +
+                        (note ? '<small>' + note + '</small>' : '');
+    b.classList.add('on');
+    badge(true);
+    try{ localStorage.setItem('loanSimUpd', JSON.stringify({v:ver||'', n:note||''})); }catch(e){}
+  }
+  function clearBar(){
+    var b = document.getElementById('updateBar');
+    if(b) b.classList.remove('on');
+    badge(false);
+    try{ localStorage.removeItem('loanSimUpd'); }catch(e){}
+  }
+  // 前回「新しい版あり」のまま終えていたら、オフラインでもバッジと案内を復元する
+  try{
+    var saved = JSON.parse(localStorage.getItem('loanSimUpd') || 'null');
+    if(saved) showBar(saved.v, saved.n);
+  }catch(e){}
+
+  // 配信元のバージョンを見に行く（起動時と、アプリに戻ってきたとき）
+  function checkVersion(){
+    if(!navigator.onLine) return;
+    fetch('version.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){
+        if(!j || !j.build) return;
+        if(String(j.build) !== String(BUILD_ID)) showBar(j.build, j.note || '');
+        else clearBar();
+      }).catch(function(){});
+  }
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').then(function(r){
+        reg = r;
+        if(r.waiting) showBar('', '');           // すでに次の版が控えている
+        r.addEventListener('updatefound', function(){
+          var nw = r.installing;
+          if(!nw) return;
+          nw.addEventListener('statechange', function(){
+            if(nw.state === 'installed' && navigator.serviceWorker.controller) showBar('', '');
+          });
         });
-      });
-    }).catch(function(){});
+        r.update().catch(function(){});
+        checkVersion();
+      }).catch(function(){ checkVersion(); });
+    });
+    // 新しい版に切り替わったら読み直す
+    var reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(reloading) return; reloading = true;
+      clearBar(); location.reload();
+    });
+  } else {
+    window.addEventListener('load', checkVersion);
+  }
+
+  // アプリに戻ってきたときにも確認する
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible'){
+      if(reg) reg.update().catch(function(){});
+      checkVersion();
+    }
   });
-}
+
+  // 「いま更新する」＝手動で切り替え
+  window.gApplyUpdate = function(){
+    clearBar();
+    if(reg && reg.waiting){ reg.waiting.postMessage({type:'SKIP_WAITING'}); setTimeout(function(){ location.reload(); }, 400); }
+    else location.reload();
+  };
+  window.gCheckUpdate = checkVersion;
+})();
 </script>
 </body>
 </html>
