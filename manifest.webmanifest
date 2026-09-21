@@ -1,7 +1,7 @@
 {
   "name": "住宅ローン返済シミュレーション",
   "short_name": "住宅ローン",
-  "description": "商談用の住宅ローン返済シミュレーター（オフラインで動作／外部と通信しません）",
+  "description": "住宅ローンの返済や繰上返済を、ご自身で試算するための計算ツール（概算／オフラインでも動きます）",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
